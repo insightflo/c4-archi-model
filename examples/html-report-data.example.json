@@ -1,0 +1,404 @@
+{
+  "schemaVersion": "0.4.0",
+  "meta": {
+    "language": "ko",
+    "titleOverride": null,
+    "generatedAt": "2026-08-10T00:00:00Z"
+  },
+  "build": {
+    "sessionPath": "examples/ordering-system.architecture-session.json",
+    "canonicalModelPath": "examples/ordering-system.architecture-model.json",
+    "evidenceLedgerPath": "examples/ordering-system.evidence-ledger.json",
+    "coveragePath": "examples/ordering-system.coverage.json",
+    "understandingPath": "examples/ordering-system.human-understanding.json",
+    "expectedFiles": [
+      "examples/ordering-system.architecture-session.json",
+      "examples/ordering-system.architecture-model.json",
+      "examples/ordering-system.evidence-ledger.json",
+      "examples/ordering-system.coverage.json",
+      "examples/ordering-system.human-understanding.json",
+      "examples/ordering-system-context.svg",
+      "examples/ordering-system-container.svg",
+      "examples/ordering-system.puml",
+      "examples/mini-example.md"
+    ]
+  },
+  "overview": {
+    "problem": "고객의 주문을 접수하고, 주문을 저장한 뒤, 배송 준비를 비동기로 시작해야 한다.",
+    "oneSentence": "고객 입력을 Web App과 Order API가 받아 PostgreSQL에 저장하고, 주문 생성 이벤트를 통해 Fulfilment Worker가 배송 준비를 시작한다.",
+    "scopeSummary": "System Context, Container 구조, 주문 생성 정상 흐름을 다룬다. Production 배포와 실패 복구 구현은 범위 밖이다.",
+    "readingOrder": [
+      "System Context로 사용자와 시스템 경계를 본다.",
+      "Container View로 실행 단위와 저장소를 본다.",
+      "Dynamic Flow로 주문 한 건의 이동 순서를 따라간다.",
+      "확인 필요와 근거에서 분석 경계를 확인한다."
+    ],
+    "claimIds": [
+      "CL-001",
+      "CL-002",
+      "CL-016",
+      "CL-017"
+    ]
+  },
+  "diagrams": [
+    {
+      "id": "context-diagram",
+      "viewId": "ordering-context",
+      "assetPath": "examples/ordering-system-context.svg",
+      "dataUri": null,
+      "mimeType": "image/svg+xml",
+      "required": true,
+      "presentation": {
+        "intro": "고객과 Ordering System의 가장 바깥 경계를 보여준다.",
+        "readingTips": [
+          "왼쪽의 Customer와 중앙의 Ordering System 관계부터 본다."
+        ],
+        "notShown": [
+          "내부 Container",
+          "배포 인프라"
+        ],
+        "nextViewIds": [
+          "ordering-container"
+        ],
+        "caption": "System Context View",
+        "alt": "Customer가 Ordering System을 사용해 주문을 생성하는 System Context 다이어그램"
+      }
+    },
+    {
+      "id": "container-diagram",
+      "viewId": "ordering-container",
+      "assetPath": "examples/ordering-system-container.svg",
+      "dataUri": null,
+      "mimeType": "image/svg+xml",
+      "required": true,
+      "presentation": {
+        "intro": "주문 생성과 배송 준비에 참여하는 실행 단위와 저장 경계를 보여준다.",
+        "readingTips": [
+          "Customer에서 Web App, Order API 순서로 읽는다.",
+          "Order API에서 Database와 topic으로 갈라지는 화살표를 본다."
+        ],
+        "notShown": [
+          "Order API 내부 클래스",
+          "Production 서버 수",
+          "실패 복구 정책"
+        ],
+        "nextViewIds": [
+          "ordering-create-order"
+        ],
+        "caption": "Container View",
+        "alt": "Web App, Order API, PostgreSQL, topic, Worker를 보여주는 Container 다이어그램"
+      }
+    }
+  ],
+  "flows": [
+    {
+      "id": "create-order-flow",
+      "viewId": "ordering-create-order",
+      "kind": "happy-path",
+      "presentation": {
+        "title": "주문 생성과 배송 준비 시작",
+        "description": "한 번의 주문이 어떤 순서로 이동하는지 따라간다.",
+        "stepNotes": [
+          {
+            "explanation": "고객이 Web App에서 주문 내용을 입력한다.",
+            "attention": null,
+            "analogy": "키오스크에 주문을 입력하는 단계",
+            "stepId": "step-customer-web"
+          },
+          {
+            "explanation": "Web App이 Order API에 HTTPS/JSON 요청을 보낸다.",
+            "attention": "화면은 데이터베이스에 직접 쓰지 않는다.",
+            "analogy": "접수 창구에 주문서를 전달하는 단계",
+            "stepId": "step-web-api"
+          },
+          {
+            "explanation": "Order API가 PostgreSQL에 주문을 저장한다.",
+            "attention": null,
+            "analogy": "주문 장부에 기록하는 단계",
+            "stepId": "step-api-db"
+          },
+          {
+            "explanation": "Order API가 주문 생성 이벤트를 topic에 발행한다.",
+            "attention": "저장과 발행 사이 실패 복구는 확인되지 않았다.",
+            "analogy": "전달대에 주문서를 올리는 단계",
+            "stepId": "step-api-topic"
+          },
+          {
+            "explanation": "Fulfilment Worker가 이벤트를 소비해 배송 준비를 시작한다.",
+            "attention": null,
+            "analogy": "작업자가 전달대의 주문서를 가져가는 단계",
+            "stepId": "step-worker-topic"
+          }
+        ],
+        "notes": [
+          {
+            "kind": "warn",
+            "title": "확인되지 않은 실패 경로",
+            "text": "주문 저장은 성공했지만 이벤트 발행이 실패할 때의 복구 방식은 입력 자료에 없다.",
+            "claimIds": [
+              "CL-017"
+            ],
+            "issueIds": []
+          }
+        ]
+      }
+    }
+  ],
+  "elementGroups": [
+    {
+      "id": "containers",
+      "title": "주요 Containers",
+      "scopeModelId": "ordering-system",
+      "elements": [
+        {
+          "modelId": "web-app",
+          "shortId": "C1",
+          "presentation": {
+            "whyItMatters": "고객 화면과 주문 처리 책임을 분리한다.",
+            "withoutIt": "고객이 주문을 입력할 사용자 인터페이스가 없다.",
+            "analogy": "주문을 적는 키오스크 화면",
+            "notes": [
+              "Customer의 입력을 받고 Order API로 요청을 보낸다."
+            ]
+          }
+        },
+        {
+          "modelId": "order-api",
+          "shortId": "C2",
+          "presentation": {
+            "whyItMatters": "주문 저장과 이벤트 발행 조정을 한 경계에 모은다.",
+            "withoutIt": "주문 규칙과 저장 책임이 여러 곳에 흩어질 수 있다.",
+            "analogy": "주문 접수 창구",
+            "notes": [
+              "Web App, Database, topic과 연결된다."
+            ]
+          }
+        },
+        {
+          "modelId": "order-database",
+          "shortId": "C3",
+          "presentation": {
+            "whyItMatters": "주문 상태를 지속적으로 보존한다.",
+            "withoutIt": "주문 기록을 보관할 수 없다.",
+            "analogy": "주문 장부",
+            "notes": [
+              "PostgreSQL로 명시되어 있다."
+            ]
+          }
+        },
+        {
+          "modelId": "order-created-topic",
+          "shortId": "C4",
+          "presentation": {
+            "whyItMatters": "주문 접수와 배송 준비의 실행 시점을 분리한다.",
+            "withoutIt": "문서에 적힌 비동기 전달 경계를 표현할 수 없다.",
+            "analogy": "주문서를 꽂는 전달대",
+            "notes": [
+              "전달 보장과 재시도 정책은 확인되지 않았다."
+            ]
+          }
+        },
+        {
+          "modelId": "fulfilment-worker",
+          "shortId": "C5",
+          "presentation": {
+            "whyItMatters": "후속 배송 준비를 API 응답과 분리한다.",
+            "withoutIt": "배송 준비를 시작할 실행자가 없다.",
+            "analogy": "전달대에서 주문서를 가져가는 작업자",
+            "notes": [
+              "topic의 이벤트를 소비한다."
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "audienceSections": [
+    {
+      "id": "beginner-container-tip",
+      "audience": "beginner",
+      "title": "C4의 Container는 Docker만 뜻하지 않는다",
+      "text": "따로 실행되는 애플리케이션이나 데이터를 저장하는 경계를 뜻한다.",
+      "items": [
+        "Web App, Order API, Database, topic, Worker가 각각 다른 책임을 가진다."
+      ],
+      "claimIds": [
+        "CL-003",
+        "CL-004",
+        "CL-005",
+        "CL-006",
+        "CL-007"
+      ],
+      "modelIds": [
+        "web-app",
+        "order-api",
+        "order-database",
+        "order-created-topic",
+        "fulfilment-worker"
+      ],
+      "issueIds": []
+    },
+    {
+      "id": "beginner-boundary-tip",
+      "audience": "beginner",
+      "title": "확인된 구조와 확인되지 않은 운영 정책을 구분한다",
+      "text": "그림은 정상 흐름을 보여주지만 실패 복구와 배포 구조는 자료가 없어 확정하지 않는다.",
+      "items": [
+        "빈칸을 추측으로 메우지 않는다."
+      ],
+      "claimIds": [
+        "CL-017"
+      ],
+      "modelIds": [
+        "api-to-db",
+        "api-to-topic"
+      ],
+      "issueIds": [
+        "U1",
+        "U2"
+      ]
+    }
+  ],
+  "analysis": {
+    "benefits": [
+      {
+        "id": "A-B1",
+        "text": "주문 화면, 처리, 저장, 후속 작업의 책임이 분리되어 있다.",
+        "claimIds": [
+          "CL-003",
+          "CL-004",
+          "CL-005",
+          "CL-007"
+        ],
+        "issueIds": []
+      },
+      {
+        "id": "A-B2",
+        "text": "topic을 통해 주문 접수와 배송 준비의 실행 시점을 분리한다.",
+        "claimIds": [
+          "CL-006",
+          "CL-012",
+          "CL-013"
+        ],
+        "issueIds": []
+      }
+    ],
+    "tradeoffs": [
+      {
+        "id": "A-T1",
+        "text": "비동기 연결은 메시지 보존, 재시도, 중복 처리와 관측성 책임을 추가할 수 있으나 현재 정책은 확인되지 않았다.",
+        "claimIds": [
+          "CL-017"
+        ],
+        "issueIds": [
+          "U1"
+        ]
+      }
+    ],
+    "risks": [
+      {
+        "id": "A-R1",
+        "text": "주문 저장과 이벤트 발행의 원자성 보장 방식이 확인되지 않았다.",
+        "claimIds": [
+          "CL-017"
+        ],
+        "issueIds": [
+          "U1"
+        ]
+      }
+    ]
+  },
+  "issueRefs": [
+    "U1",
+    "U2"
+  ],
+  "glossary": [
+    {
+      "term": "Container",
+      "definition": "C4에서 실행되는 애플리케이션이나 데이터 저장소를 뜻한다.",
+      "analogy": "식당의 홀·주방·창고처럼 책임이 다른 운영 공간"
+    },
+    {
+      "term": "topic",
+      "definition": "프로그램이 이벤트를 발행하고 다른 프로그램이 소비하는 논리 메시지 채널이다.",
+      "analogy": "주문서를 꽂아 두는 전달대"
+    },
+    {
+      "term": "비동기",
+      "definition": "후속 처리가 같은 순간에 끝나지 않아도 되는 상호작용 방식이다.",
+      "analogy": "택배 접수 뒤 배송 완료까지 창구에서 기다리지 않는 것"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "session",
+      "name": "ordering-system.architecture-session.json",
+      "kind": "analysis session",
+      "contentPath": "examples/ordering-system.architecture-session.json",
+      "content": null,
+      "mimeType": "application/json",
+      "downloadName": "ordering-system.architecture-session.json",
+      "required": true
+    },
+    {
+      "id": "canonical-model",
+      "name": "ordering-system.architecture-model.json",
+      "kind": "canonical model",
+      "contentPath": "examples/ordering-system.architecture-model.json",
+      "content": null,
+      "mimeType": "application/json",
+      "downloadName": "ordering-system.architecture-model.json",
+      "required": true
+    },
+    {
+      "id": "evidence-ledger",
+      "name": "ordering-system.evidence-ledger.json",
+      "kind": "evidence ledger",
+      "contentPath": "examples/ordering-system.evidence-ledger.json",
+      "content": null,
+      "mimeType": "application/json",
+      "downloadName": "ordering-system.evidence-ledger.json",
+      "required": true
+    },
+    {
+      "id": "coverage",
+      "name": "ordering-system.coverage.json",
+      "kind": "coverage",
+      "contentPath": "examples/ordering-system.coverage.json",
+      "content": null,
+      "mimeType": "application/json",
+      "downloadName": "ordering-system.coverage.json",
+      "required": true
+    },
+    {
+      "id": "understanding",
+      "name": "ordering-system.human-understanding.json",
+      "kind": "human understanding gate",
+      "contentPath": "examples/ordering-system.human-understanding.json",
+      "content": null,
+      "mimeType": "application/json",
+      "downloadName": "ordering-system.human-understanding.json",
+      "required": true
+    },
+    {
+      "id": "plantuml-source",
+      "name": "ordering-system.puml",
+      "kind": "diagram source",
+      "contentPath": "examples/ordering-system.puml",
+      "content": null,
+      "mimeType": "text/plain",
+      "downloadName": "ordering-system.puml",
+      "required": true
+    },
+    {
+      "id": "explanation-source",
+      "name": "mini-example.md",
+      "kind": "explanation",
+      "contentPath": "examples/mini-example.md",
+      "content": null,
+      "mimeType": "text/markdown",
+      "downloadName": "mini-example.md",
+      "required": true
+    }
+  ]
+}

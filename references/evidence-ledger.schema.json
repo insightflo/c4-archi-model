@@ -1,0 +1,373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://c4-archi-model.local/schema/evidence-ledger-0.4.0.json",
+  "title": "C4 Architecture Evidence Ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "ledgerId",
+    "sessionId",
+    "modelRevision",
+    "generatedAt",
+    "snapshot",
+    "sources",
+    "claims"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "0.4.0"
+    },
+    "ledgerId": {
+      "$ref": "#/$defs/id"
+    },
+    "sessionId": {
+      "$ref": "#/$defs/id"
+    },
+    "modelRevision": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "capturedAt",
+        "scope",
+        "sourceIds",
+        "notes"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "capturedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "scope": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "sourceIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "notes": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/claim"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "idArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "derivation": {
+      "enum": [
+        "explicit",
+        "normalized",
+        "inferred",
+        "unresolved"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "VERIFIED",
+        "PARTIAL",
+        "DOC_ONLY",
+        "UNVERIFIED",
+        "CONFLICT"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "location",
+        "version",
+        "readScope",
+        "limitations",
+        "immutableRef",
+        "contentHash",
+        "capturedAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "enum": [
+            "design-doc",
+            "code",
+            "api",
+            "infrastructure",
+            "runtime",
+            "existing-diagram",
+            "data-model",
+            "other"
+          ]
+        },
+        "location": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "readScope": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "limitations": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "immutableRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contentHash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[0-9a-fA-F]{64}$"
+        },
+        "capturedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "locator",
+        "excerpt",
+        "evidenceClass",
+        "capturedAt",
+        "immutableRef",
+        "contentHash"
+      ],
+      "properties": {
+        "sourceId": {
+          "$ref": "#/$defs/id"
+        },
+        "locator": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "excerpt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidenceClass": {
+          "enum": [
+            "documentation",
+            "code",
+            "test",
+            "api",
+            "schema",
+            "config",
+            "runtime",
+            "infrastructure",
+            "diagram",
+            "other"
+          ]
+        },
+        "capturedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "immutableRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contentHash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[0-9a-fA-F]{64}$"
+        }
+      }
+    },
+    "contradiction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "locator",
+        "description",
+        "immutableRef",
+        "contentHash"
+      ],
+      "properties": {
+        "sourceId": {
+          "$ref": "#/$defs/id"
+        },
+        "locator": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "immutableRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contentHash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[0-9a-fA-F]{64}$"
+        }
+      }
+    },
+    "usedBy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "element",
+            "relationship",
+            "view",
+            "step",
+            "html-section",
+            "diagram",
+            "flow",
+            "other"
+          ]
+        },
+        "id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "statement",
+        "targetIds",
+        "derivation",
+        "confidence",
+        "supports",
+        "contradictions",
+        "usedBy",
+        "notes"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "statement": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "targetIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "derivation": {
+          "$ref": "#/$defs/derivation"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "supports": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/support"
+          }
+        },
+        "contradictions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contradiction"
+          }
+        },
+        "usedBy": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/usedBy"
+          }
+        },
+        "notes": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    }
+  }
+}

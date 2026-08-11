@@ -1,0 +1,17 @@
+{
+  "$schema": "../references/evidence-ledger.schema.json",
+  "schemaVersion": "0.4.0",
+  "ledgerId": "ledger-example",
+  "sessionId": "session-example",
+  "modelRevision": "1",
+  "generatedAt": "1970-01-01T00:00:00Z",
+  "snapshot": {
+    "id": "snapshot-example",
+    "capturedAt": "1970-01-01T00:00:00Z",
+    "scope": "읽은 자료와 범위를 적는다.",
+    "sourceIds": [],
+    "notes": []
+  },
+  "sources": [],
+  "claims": []
+}

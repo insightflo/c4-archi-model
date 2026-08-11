@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "0.4.0",
+  "sessionId": "session-ordering-example",
+  "audienceMode": "beginner",
+  "method": "persona-simulation",
+  "simulated": true,
+  "persona": "소프트웨어 아키텍처를 처음 보는 신규 업무 담당자",
+  "testedAt": "2026-08-10T00:00:00Z",
+  "result": "PASS_BOUNDED",
+  "questions": [
+    {
+      "id": "B-01",
+      "question": "누가 이 시스템을 사용하는가?",
+      "expectedEvidenceRefs": [
+        "CL-001",
+        "CL-008"
+      ],
+      "answer": "Customer가 Ordering System을 사용해 주문을 생성한다.",
+      "result": "PASS",
+      "issue": null,
+      "modelIds": [
+        "customer",
+        "ordering-system"
+      ],
+      "viewIds": [
+        "ordering-context"
+      ],
+      "audience": "beginner"
+    },
+    {
+      "id": "B-02",
+      "question": "이 시스템은 어떤 문제를 해결하는가?",
+      "expectedEvidenceRefs": [
+        "CL-002"
+      ],
+      "answer": "주문 접수와 배송 준비 시작을 조정한다.",
+      "result": "PASS",
+      "issue": null,
+      "modelIds": [
+        "ordering-system"
+      ],
+      "viewIds": [
+        "ordering-context"
+      ],
+      "audience": "beginner"
+    },
+    {
+      "id": "B-03",
+      "question": "주요 실행 단위는 무엇인가?",
+      "expectedEvidenceRefs": [
+        "CL-003",
+        "CL-004",
+        "CL-005",
+        "CL-006",
+        "CL-007"
+      ],
+      "answer": "Web App, Order API, Order Database, order-created topic, Fulfilment Worker다.",
+      "result": "PASS",
+      "issue": null,
+      "modelIds": [
+        "web-app",
+        "order-api",
+        "order-database",
+        "order-created-topic",
+        "fulfilment-worker"
+      ],
+      "viewIds": [
+        "ordering-container"
+      ],
+      "audience": "beginner"
+    },
+    {
+      "id": "B-04",
+      "question": "핵심 요청은 어디서 시작해 어디서 끝나는가?",
+      "expectedEvidenceRefs": [
+        "CL-016"
+      ],
+      "answer": "Customer 입력에서 시작해 Fulfilment Worker가 이벤트를 소비하고 배송 준비를 시작하는 데서 끝난다.",
+      "result": "PASS",
+      "issue": null,
+      "modelIds": [
+        "customer",
+        "fulfilment-worker",
+        "step-customer-web",
+        "step-worker-topic"
+      ],
+      "viewIds": [
+        "ordering-create-order"
+      ],
+      "audience": "beginner"
+    },
+    {
+      "id": "B-05",
+      "question": "아직 확인되지 않은 것은 무엇인가?",
+      "expectedEvidenceRefs": [
+        "CL-017"
+      ],
+      "answer": "주문 저장과 이벤트 발행 사이 실패 복구 및 Production 배포 구조는 확인되지 않았다.",
+      "result": "PASS",
+      "issue": null,
+      "modelIds": [
+        "api-to-db",
+        "api-to-topic"
+      ],
+      "viewIds": [
+        "ordering-container",
+        "ordering-create-order"
+      ],
+      "audience": "beginner"
+    }
+  ],
+  "limitations": [
+    "실제 초보자에게 읽힌 결과가 아니라 명시된 persona를 사용한 시뮬레이션이다.",
+    "Production 배포와 실패 복구 자료는 입력에 없다."
+  ]
+}

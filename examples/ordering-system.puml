@@ -1,0 +1,42 @@
+@startuml ordering_context
+left to right direction
+skinparam shadowing false
+skinparam roundcorner 18
+actor Customer
+rectangle "Ordering System\n[Software System]\n주문 접수와 배송 준비 시작을 조정한다." as OrderingSystem #315fca
+Customer --> OrderingSystem : 주문을 생성한다
+@enduml
+
+@startuml ordering_container
+left to right direction
+skinparam shadowing false
+skinparam roundcorner 18
+actor Customer
+rectangle "Ordering System" {
+  rectangle "Web App\n[Container]\n주문 입력 화면" as WebApp #315fca
+  rectangle "Order API\n[Container]\n저장과 이벤트 발행 조정" as OrderApi #315fca
+  database "Order Database\n[Container: PostgreSQL]" as OrderDb #247653
+  queue "order-created topic\n[Container candidate]" as Topic #9a650c
+  rectangle "Fulfilment Worker\n[Container]\n배송 준비 시작" as Worker #7351a4
+}
+Customer --> WebApp : 주문 정보를 입력한다
+WebApp --> OrderApi : 주문 생성 요청 [HTTPS/JSON]
+OrderApi --> OrderDb : 주문을 저장한다
+OrderApi --> Topic : 주문 생성 이벤트를 발행한다
+Worker --> Topic : 주문 생성 이벤트를 소비한다
+@enduml
+
+@startuml create_order_dynamic
+skinparam shadowing false
+actor Customer
+participant "Web App" as WebApp
+participant "Order API" as OrderApi
+database "Order Database" as OrderDb
+queue "order-created topic" as Topic
+participant "Fulfilment Worker" as Worker
+Customer -> WebApp : 1. 주문 정보 입력
+WebApp -> OrderApi : 2. 주문 생성 요청 [HTTPS/JSON]
+OrderApi -> OrderDb : 3. 주문 저장
+OrderApi -> Topic : 4. 주문 생성 이벤트 발행
+Worker -> Topic : 5. 주문 생성 이벤트 소비
+@enduml

@@ -1,0 +1,444 @@
+{
+  "$schema": "../references/evidence-ledger.schema.json",
+  "schemaVersion": "0.4.0",
+  "ledgerId": "ledger-ordering-example",
+  "sessionId": "session-ordering-example",
+  "modelRevision": "1",
+  "generatedAt": "2026-08-10T00:00:00Z",
+  "snapshot": {
+    "id": "snapshot-ordering-4e52e5080310",
+    "capturedAt": "2026-08-10T00:00:00Z",
+    "scope": "examples/mini-example.md의 입력 문장과 설명 예시",
+    "sourceIds": [
+      "S1"
+    ],
+    "notes": [
+      "가상 예시이며 코드·런타임·IaC는 포함하지 않는다."
+    ]
+  },
+  "sources": [
+    {
+      "id": "S1",
+      "name": "mini-example.md",
+      "kind": "design-doc",
+      "location": "examples/mini-example.md > 입력 문장",
+      "version": "v0.4.0-example",
+      "readScope": "입력 문장과 설명 예시",
+      "limitations": [
+        "배포 환경 정보 없음",
+        "이벤트 전달 보장과 재시도 정책 없음"
+      ],
+      "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+      "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+      "capturedAt": "2026-08-10T00:00:00Z"
+    }
+  ],
+  "claims": [
+    {
+      "id": "CL-001",
+      "statement": "고객은 웹 화면에서 주문을 생성한다.",
+      "targetIds": [
+        "customer"
+      ],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 1",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-002",
+      "statement": "Ordering System은 예시 설명을 위해 관련 실행 단위를 묶은 상위 소프트웨어 경계다.",
+      "targetIds": [
+        "ordering-system"
+      ],
+      "derivation": "normalized",
+      "confidence": "PARTIAL",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 전체",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-003",
+      "statement": "Web App은 고객에게 주문 입력 화면을 제공한다.",
+      "targetIds": [
+        "web-app"
+      ],
+      "derivation": "normalized",
+      "confidence": "DOC_ONLY",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 1~2",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-004",
+      "statement": "Order API는 주문 요청을 받고 저장과 이벤트 발행을 조정한다.",
+      "targetIds": [
+        "order-api"
+      ],
+      "derivation": "normalized",
+      "confidence": "DOC_ONLY",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 2~3",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-005",
+      "statement": "Order Database는 PostgreSQL로 주문 데이터를 저장한다.",
+      "targetIds": [
+        "order-database"
+      ],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 3",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-006",
+      "statement": "order-created topic은 주문 생성 이벤트를 전달하는 논리 채널이다.",
+      "targetIds": [
+        "order-created-topic"
+      ],
+      "derivation": "normalized",
+      "confidence": "PARTIAL",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 3~4",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-007",
+      "statement": "Fulfilment Worker는 주문 생성 이벤트를 소비해 배송 준비를 시작한다.",
+      "targetIds": [
+        "fulfilment-worker"
+      ],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 4",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-008",
+      "statement": "고객은 Ordering System을 사용해 주문을 생성한다.",
+      "targetIds": [
+        "customer-to-system"
+      ],
+      "derivation": "normalized",
+      "confidence": "PARTIAL",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 1",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-009",
+      "statement": "고객은 Web App에 주문 정보를 입력한다.",
+      "targetIds": [
+        "customer-to-web"
+      ],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 1",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-010",
+      "statement": "Web App은 Order API에 HTTPS/JSON으로 주문 생성 요청을 보낸다.",
+      "targetIds": [
+        "web-to-api"
+      ],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 2",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-011",
+      "statement": "Order API는 PostgreSQL Order Database에 주문을 저장한다.",
+      "targetIds": [
+        "api-to-db"
+      ],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 3",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-012",
+      "statement": "Order API는 order-created topic에 주문 생성 이벤트를 발행한다.",
+      "targetIds": [
+        "api-to-topic"
+      ],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 3",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-013",
+      "statement": "Fulfilment Worker는 order-created topic의 이벤트를 소비한다.",
+      "targetIds": [
+        "worker-to-topic"
+      ],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 4",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-014",
+      "statement": "System Context는 고객과 Ordering System의 외부 관계만 보여준다.",
+      "targetIds": [
+        "ordering-context"
+      ],
+      "derivation": "normalized",
+      "confidence": "PARTIAL",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 전체",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-015",
+      "statement": "Container View는 주문 생성에 참여하는 실행 단위와 저장 경계를 보여준다.",
+      "targetIds": [
+        "ordering-container"
+      ],
+      "derivation": "normalized",
+      "confidence": "PARTIAL",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 전체",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-016",
+      "statement": "주문 생성은 고객 입력, API 요청, 저장, 이벤트 발행, Worker 소비 순서로 진행된다.",
+      "targetIds": [
+        "ordering-create-order",
+        "step-customer-web",
+        "step-web-api",
+        "step-api-db",
+        "step-api-topic",
+        "step-worker-topic"
+      ],
+      "derivation": "normalized",
+      "confidence": "DOC_ONLY",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 1~4",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [],
+      "notes": []
+    },
+    {
+      "id": "CL-017",
+      "statement": "주문 저장과 이벤트 발행 사이의 원자성 보장 방식은 입력 자료에서 확인할 수 없다.",
+      "targetIds": [
+        "api-to-db",
+        "api-to-topic"
+      ],
+      "derivation": "unresolved",
+      "confidence": "UNVERIFIED",
+      "supports": [
+        {
+          "sourceId": "S1",
+          "locator": "입력 문장 3",
+          "excerpt": null,
+          "evidenceClass": "documentation",
+          "capturedAt": "2026-08-10T00:00:00Z",
+          "immutableRef": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2",
+          "contentHash": "sha256:4e52e5080310164a198b5a3dcfa46f30cadfa1cf8ced748a8d440bd6972e6eb2"
+        }
+      ],
+      "contradictions": [],
+      "usedBy": [
+        {
+          "kind": "other",
+          "id": "coverage:U1"
+        },
+        {
+          "kind": "html-section",
+          "id": "html:issue-U1"
+        }
+      ],
+      "notes": []
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "../references/coverage.schema.json",
+  "schemaVersion": "0.4.0",
+  "coverageId": "coverage-example",
+  "sessionId": "session-example",
+  "modelRevision": "1",
+  "generatedAt": "1970-01-01T00:00:00Z",
+  "explored": [
+    {
+      "id": "EXP-001",
+      "label": "분석한 범위",
+      "reason": "근거와 범위를 적는다.",
+      "impact": "none-for-current-purpose",
+      "nextCheck": null,
+      "sourceIds": [],
+      "claimIds": [],
+      "confidence": "UNVERIFIED",
+      "affectedModelIds": [],
+      "affectedViewIds": []
+    }
+  ],
+  "unknownRelevant": [],
+  "unknownOutOfScope": [],
+  "expansionPoints": [],
+  "boundaries": [],
+  "completion": {
+    "result": "NOT_RUN",
+    "reason": "아직 검증하지 않았다.",
+    "questionAnswered": false,
+    "stopConditionMet": false,
+    "blockingIds": []
+  }
+}

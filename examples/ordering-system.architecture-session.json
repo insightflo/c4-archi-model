@@ -1,0 +1,42 @@
+{
+  "$schema": "../references/architecture-session.schema.json",
+  "schemaVersion": "0.4.0",
+  "sessionId": "session-ordering-example",
+  "createdAt": "2026-08-10T00:00:00Z",
+  "question": "주문 생성과 배송 준비 시작 구조를 초보자가 이해하도록 설명한다.",
+  "purpose": "orientation",
+  "audienceMode": "beginner",
+  "analysisProfile": "guided",
+  "targetIds": [
+    "ordering-system"
+  ],
+  "expectedOutcome": "독자가 주요 Container와 주문 생성 5단계를 설명할 수 있다.",
+  "inScope": [
+    "System Context",
+    "Container 구조",
+    "주문 생성 정상 흐름"
+  ],
+  "outOfScope": [
+    "Production 배포 구조",
+    "이벤트 실패 복구 구현"
+  ],
+  "stopCondition": "System Context, Container, 핵심 Dynamic 흐름과 관련 미확인 항목이 설명되면 종료한다.",
+  "riskTriggers": [
+    "주문 저장과 이벤트 발행 사이 원자성 미확인"
+  ],
+  "sourceSnapshotId": "snapshot-ordering-4e52e5080310",
+  "notes": [
+    "가상 예시이며 실제 시스템 판단에 사용하지 않는다."
+  ],
+  "outputSurface": {
+    "directory": "examples",
+    "htmlRequired": true,
+    "requestedFormats": [
+      "html",
+      "json",
+      "puml",
+      "svg",
+      "markdown"
+    ]
+  }
+}

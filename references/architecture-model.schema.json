@@ -1,0 +1,402 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://c4-archi-model.local/schema/architecture-model-0.4.0.json",
+  "title": "C4 Architecture Canonical Model",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "metadata",
+    "elements",
+    "relationships",
+    "views"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "description",
+        "targetSystemId",
+        "schemaVersion",
+        "modelRevision",
+        "generatorVersion",
+        "generatedAt",
+        "sourceSnapshotId"
+      ],
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "targetSystemId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "schemaVersion": {
+          "const": "0.4.0"
+        },
+        "modelRevision": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "generatorVersion": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "generatedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "sourceSnapshotId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/element"
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relationship"
+      }
+    },
+    "views": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/view"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "idArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "derivation": {
+      "enum": [
+        "explicit",
+        "normalized",
+        "inferred",
+        "unresolved"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "VERIFIED",
+        "PARTIAL",
+        "DOC_ONLY",
+        "UNVERIFIED",
+        "CONFLICT"
+      ]
+    },
+    "element": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "name",
+        "description",
+        "technology",
+        "parentId",
+        "environment",
+        "tags",
+        "derivation",
+        "confidence",
+        "rationale",
+        "claimIds",
+        "instanceOfId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "person",
+            "softwareSystem",
+            "container",
+            "component",
+            "codeElement",
+            "deploymentNode",
+            "infrastructureNode"
+          ]
+        },
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "technology": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "parentId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "environment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "derivation": {
+          "$ref": "#/$defs/derivation"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "rationale": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "claimIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "instanceOfId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sourceId",
+        "destinationId",
+        "description",
+        "technology",
+        "interactionStyle",
+        "derivation",
+        "confidence",
+        "rationale",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "sourceId": {
+          "$ref": "#/$defs/id"
+        },
+        "destinationId": {
+          "$ref": "#/$defs/id"
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "technology": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "interactionStyle": {
+          "enum": [
+            "synchronous",
+            "asynchronous",
+            "batch",
+            "data-access",
+            "event",
+            "unknown"
+          ]
+        },
+        "derivation": {
+          "$ref": "#/$defs/derivation"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "rationale": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "claimIds": {
+          "$ref": "#/$defs/idArray"
+        }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "order",
+        "relationshipId",
+        "kind",
+        "condition",
+        "note",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "relationshipId": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "interaction",
+            "decision",
+            "failure",
+            "recovery"
+          ]
+        },
+        "condition": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "claimIds": {
+          "$ref": "#/$defs/idArray"
+        }
+      }
+    },
+    "view": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "title",
+        "scopeId",
+        "environment",
+        "description",
+        "question",
+        "notShown",
+        "elementIds",
+        "relationshipIds",
+        "steps",
+        "nextViewIds",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "systemLandscape",
+            "systemContext",
+            "container",
+            "component",
+            "code",
+            "dynamic",
+            "deployment"
+          ]
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "scopeId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "environment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "question": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "notShown": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "elementIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "relationshipIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "nextViewIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "claimIds": {
+          "$ref": "#/$defs/idArray"
+        }
+      }
+    }
+  }
+}

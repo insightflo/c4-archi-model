@@ -1,0 +1,29 @@
+{
+  "$schema": "../references/architecture-session.schema.json",
+  "schemaVersion": "0.4.0",
+  "sessionId": "session-example",
+  "createdAt": "1970-01-01T00:00:00Z",
+  "question": "어떤 아키텍처 질문에 답하려는지 적는다.",
+  "purpose": "orientation",
+  "audienceMode": "beginner",
+  "analysisProfile": "guided",
+  "targetIds": [],
+  "expectedOutcome": "독자가 시스템 경계와 핵심 흐름을 설명할 수 있다.",
+  "inScope": [],
+  "outOfScope": [],
+  "stopCondition": "System Context, Container, 핵심 Dynamic 흐름과 관련 미확인 항목이 설명되면 종료한다.",
+  "riskTriggers": [],
+  "sourceSnapshotId": null,
+  "notes": [],
+  "outputSurface": {
+    "directory": "c4-architecture",
+    "htmlRequired": true,
+    "requestedFormats": [
+      "html",
+      "json",
+      "puml",
+      "svg",
+      "markdown"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "../references/human-understanding.schema.json",
+  "schemaVersion": "0.4.0",
+  "sessionId": "session-example",
+  "audienceMode": "beginner",
+  "method": "not-run",
+  "simulated": false,
+  "persona": "입력 자료의 도메인을 처음 접하는 독자",
+  "testedAt": null,
+  "result": "NOT_RUN",
+  "questions": [],
+  "limitations": [
+    "실제 독자 또는 독자 persona 검토를 아직 실행하지 않았다."
+  ]
+}

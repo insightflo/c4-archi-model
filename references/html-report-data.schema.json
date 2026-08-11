@@ -1,0 +1,689 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://c4-archi-model.local/schema/html-report-data-0.4.0.json",
+  "title": "C4 HTML Presentation Data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "meta",
+    "build",
+    "overview",
+    "diagrams",
+    "flows",
+    "elementGroups",
+    "audienceSections",
+    "analysis",
+    "issueRefs",
+    "glossary",
+    "artifacts"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "0.4.0"
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "language",
+        "titleOverride",
+        "generatedAt"
+      ],
+      "properties": {
+        "language": {
+          "type": "string",
+          "minLength": 2
+        },
+        "titleOverride": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionPath",
+        "canonicalModelPath",
+        "evidenceLedgerPath",
+        "coveragePath",
+        "understandingPath",
+        "expectedFiles"
+      ],
+      "properties": {
+        "sessionPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "canonicalModelPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceLedgerPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coveragePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "understandingPath": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "expectedFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/expectedFile"
+          }
+        }
+      }
+    },
+    "overview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "problem",
+        "oneSentence",
+        "scopeSummary",
+        "readingOrder",
+        "claimIds"
+      ],
+      "properties": {
+        "problem": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "oneSentence": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "scopeSummary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "readingOrder": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "claimIds": {
+          "$ref": "#/$defs/idArray"
+        }
+      }
+    },
+    "diagrams": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/diagram"
+      }
+    },
+    "flows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/flow"
+      }
+    },
+    "elementGroups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/elementGroup"
+      }
+    },
+    "audienceSections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/audienceSection"
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "benefits",
+        "tradeoffs",
+        "risks"
+      ],
+      "properties": {
+        "benefits": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/analysisItem"
+          }
+        },
+        "tradeoffs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/analysisItem"
+          }
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/analysisItem"
+          }
+        }
+      }
+    },
+    "issueRefs": {
+      "$ref": "#/$defs/idArray"
+    },
+    "glossary": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/glossary"
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "idArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "derivation": {
+      "enum": [
+        "explicit",
+        "normalized",
+        "inferred",
+        "unresolved"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "VERIFIED",
+        "PARTIAL",
+        "DOC_ONLY",
+        "UNVERIFIED",
+        "CONFLICT"
+      ]
+    },
+    "expectedFile": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "required"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": {
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "diagram": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "viewId",
+        "assetPath",
+        "dataUri",
+        "mimeType",
+        "required",
+        "presentation"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "viewId": {
+          "$ref": "#/$defs/id"
+        },
+        "assetPath": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dataUri": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mimeType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "presentation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "intro",
+            "readingTips",
+            "notShown",
+            "nextViewIds",
+            "caption",
+            "alt"
+          ],
+          "properties": {
+            "intro": {
+              "type": "string"
+            },
+            "readingTips": {
+              "$ref": "#/$defs/stringArray"
+            },
+            "notShown": {
+              "$ref": "#/$defs/stringArray"
+            },
+            "nextViewIds": {
+              "$ref": "#/$defs/idArray"
+            },
+            "caption": {
+              "type": "string"
+            },
+            "alt": {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          }
+        }
+      }
+    },
+    "stepPresentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stepId",
+        "explanation",
+        "attention",
+        "analogy"
+      ],
+      "properties": {
+        "stepId": {
+          "$ref": "#/$defs/id"
+        },
+        "explanation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "attention": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "analogy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "flowNote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "title",
+        "text",
+        "claimIds",
+        "issueIds"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "info",
+            "warn",
+            "danger",
+            "good"
+          ]
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "text": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "claimIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "issueIds": {
+          "$ref": "#/$defs/idArray"
+        }
+      }
+    },
+    "flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "viewId",
+        "kind",
+        "presentation"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "viewId": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "happy-path",
+            "failure-path",
+            "decision",
+            "recovery",
+            "other"
+          ]
+        },
+        "presentation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "description",
+            "stepNotes",
+            "notes"
+          ],
+          "properties": {
+            "title": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "stepNotes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/stepPresentation"
+              }
+            },
+            "notes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/flowNote"
+              }
+            }
+          }
+        }
+      }
+    },
+    "elementPresentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "whyItMatters",
+        "withoutIt",
+        "analogy",
+        "notes"
+      ],
+      "properties": {
+        "whyItMatters": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "withoutIt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "analogy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "elementRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "modelId",
+        "shortId",
+        "presentation"
+      ],
+      "properties": {
+        "modelId": {
+          "$ref": "#/$defs/id"
+        },
+        "shortId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "presentation": {
+          "$ref": "#/$defs/elementPresentation"
+        }
+      }
+    },
+    "elementGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "scopeModelId",
+        "elements"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "scopeModelId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/elementRef"
+          }
+        }
+      }
+    },
+    "audienceSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "audience",
+        "title",
+        "text",
+        "items",
+        "claimIds",
+        "modelIds",
+        "issueIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "audience": {
+          "enum": [
+            "beginner",
+            "expert",
+            "both"
+          ]
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "text": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "claimIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "modelIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "issueIds": {
+          "$ref": "#/$defs/idArray"
+        }
+      }
+    },
+    "analysisItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "claimIds",
+        "issueIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "claimIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "issueIds": {
+          "$ref": "#/$defs/idArray"
+        }
+      }
+    },
+    "glossary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "term",
+        "definition",
+        "analogy"
+      ],
+      "properties": {
+        "term": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "definition": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "analogy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "contentPath",
+        "content",
+        "mimeType",
+        "downloadName",
+        "required"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "contentPath": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "content": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mimeType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "downloadName": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

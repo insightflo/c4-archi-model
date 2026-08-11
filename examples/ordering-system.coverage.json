@@ -1,0 +1,165 @@
+{
+  "$schema": "../references/coverage.schema.json",
+  "schemaVersion": "0.4.0",
+  "coverageId": "coverage-ordering-example",
+  "sessionId": "session-ordering-example",
+  "modelRevision": "1",
+  "generatedAt": "2026-08-10T00:00:00Z",
+  "explored": [
+    {
+      "id": "E1",
+      "label": "시스템 외부 경계",
+      "reason": "고객과 Ordering System의 관계를 확인했다.",
+      "impact": "none-for-current-purpose",
+      "nextCheck": null,
+      "sourceIds": [
+        "S1"
+      ],
+      "claimIds": [
+        "CL-001",
+        "CL-002",
+        "CL-008",
+        "CL-014"
+      ],
+      "confidence": "PARTIAL",
+      "affectedViewIds": [
+        "ordering-context"
+      ],
+      "affectedModelIds": [
+        "customer",
+        "ordering-system",
+        "customer-to-system"
+      ]
+    },
+    {
+      "id": "E2",
+      "label": "주문 생성 정상 흐름",
+      "reason": "Web App, API, DB, topic, Worker 순서를 확인했다.",
+      "impact": "none-for-current-purpose",
+      "nextCheck": null,
+      "sourceIds": [
+        "S1"
+      ],
+      "claimIds": [
+        "CL-003",
+        "CL-004",
+        "CL-005",
+        "CL-006",
+        "CL-007",
+        "CL-010",
+        "CL-011",
+        "CL-012",
+        "CL-013",
+        "CL-015",
+        "CL-016"
+      ],
+      "confidence": "DOC_ONLY",
+      "affectedViewIds": [
+        "ordering-container",
+        "ordering-create-order"
+      ],
+      "affectedModelIds": [
+        "web-app",
+        "order-api",
+        "order-database",
+        "order-created-topic",
+        "fulfilment-worker",
+        "customer-to-web",
+        "web-to-api",
+        "api-to-db",
+        "api-to-topic",
+        "worker-to-topic"
+      ]
+    }
+  ],
+  "unknownRelevant": [
+    {
+      "id": "U1",
+      "label": "주문 저장과 이벤트 발행의 원자성",
+      "reason": "입력 자료는 저장 후 이벤트 발행만 설명하며 중간 실패 복구를 말하지 않는다.",
+      "impact": "relevant-later",
+      "nextCheck": "Order API 트랜잭션 코드와 이벤트 발행 구현을 확인한다.",
+      "sourceIds": [
+        "S1"
+      ],
+      "claimIds": [
+        "CL-017"
+      ],
+      "confidence": "UNVERIFIED",
+      "affectedViewIds": [
+        "ordering-container",
+        "ordering-create-order"
+      ],
+      "affectedModelIds": [
+        "order-api",
+        "api-to-db",
+        "api-to-topic"
+      ]
+    }
+  ],
+  "unknownOutOfScope": [
+    {
+      "id": "U2",
+      "label": "Production 배포 구조",
+      "reason": "배포 자료가 입력에 포함되지 않았다.",
+      "impact": "none-for-current-purpose",
+      "nextCheck": "IaC 또는 운영 배포 문서를 확인한다.",
+      "sourceIds": [],
+      "claimIds": [],
+      "confidence": "UNVERIFIED",
+      "affectedViewIds": [],
+      "affectedModelIds": []
+    }
+  ],
+  "expansionPoints": [
+    {
+      "id": "X1",
+      "label": "Order API Component View",
+      "reason": "주문 저장과 이벤트 발행 책임을 더 자세히 볼 수 있다.",
+      "impact": "relevant-later",
+      "nextCheck": "Order API 내부 모듈과 인터페이스를 확인한다.",
+      "sourceIds": [
+        "S1"
+      ],
+      "claimIds": [
+        "CL-004"
+      ],
+      "confidence": "PARTIAL",
+      "affectedViewIds": [
+        "ordering-container"
+      ],
+      "affectedModelIds": [
+        "order-api"
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "B1",
+      "label": "설계 의도만 확인",
+      "reason": "코드·런타임·IaC 증거가 없어 실제 구현과 운영 상태는 검증하지 않았다.",
+      "impact": "none-for-current-purpose",
+      "nextCheck": "코드와 배포 자료가 제공되면 교차검증한다.",
+      "sourceIds": [
+        "S1"
+      ],
+      "claimIds": [],
+      "confidence": "DOC_ONLY",
+      "affectedViewIds": [
+        "ordering-context",
+        "ordering-container",
+        "ordering-create-order"
+      ],
+      "affectedModelIds": [
+        "ordering-system"
+      ]
+    }
+  ],
+  "completion": {
+    "result": "PASS_BOUNDED",
+    "reason": "논리 Container 구조와 주문 생성 정상 흐름은 설명할 수 있지만 배포와 실패 복구는 현재 범위 밖이다.",
+    "questionAnswered": true,
+    "stopConditionMet": true,
+    "blockingIds": []
+  }
+}

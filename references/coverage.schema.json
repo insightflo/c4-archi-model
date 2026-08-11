@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://c4-archi-model.local/schema/coverage-0.4.0.json",
+  "title": "C4 Architecture Analysis Coverage",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "coverageId",
+    "sessionId",
+    "modelRevision",
+    "generatedAt",
+    "explored",
+    "unknownRelevant",
+    "unknownOutOfScope",
+    "expansionPoints",
+    "boundaries",
+    "completion"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "0.4.0"
+    },
+    "coverageId": {
+      "$ref": "#/$defs/id"
+    },
+    "sessionId": {
+      "$ref": "#/$defs/id"
+    },
+    "modelRevision": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "explored": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/item"
+      },
+      "minItems": 1
+    },
+    "unknownRelevant": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/item"
+      }
+    },
+    "unknownOutOfScope": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/item"
+      }
+    },
+    "expansionPoints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/item"
+      }
+    },
+    "boundaries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/item"
+      }
+    },
+    "completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result",
+        "reason",
+        "questionAnswered",
+        "stopConditionMet",
+        "blockingIds"
+      ],
+      "properties": {
+        "result": {
+          "enum": [
+            "PASS",
+            "PASS_BOUNDED",
+            "REQUEST_CHANGES",
+            "NOT_RUN"
+          ]
+        },
+        "reason": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "questionAnswered": {
+          "type": "boolean"
+        },
+        "stopConditionMet": {
+          "type": "boolean"
+        },
+        "blockingIds": {
+          "$ref": "#/$defs/idArray"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "idArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "derivation": {
+      "enum": [
+        "explicit",
+        "normalized",
+        "inferred",
+        "unresolved"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "VERIFIED",
+        "PARTIAL",
+        "DOC_ONLY",
+        "UNVERIFIED",
+        "CONFLICT"
+      ]
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "reason",
+        "impact",
+        "nextCheck",
+        "sourceIds",
+        "claimIds",
+        "confidence",
+        "affectedModelIds",
+        "affectedViewIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "reason": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "impact": {
+          "enum": [
+            "blocks-answer",
+            "blocks-change",
+            "relevant-later",
+            "none-for-current-purpose"
+          ]
+        },
+        "nextCheck": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "claimIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "affectedModelIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "affectedViewIds": {
+          "$ref": "#/$defs/idArray"
+        }
+      }
+    }
+  }
+}

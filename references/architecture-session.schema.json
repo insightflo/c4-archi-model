@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://c4-archi-model.local/schema/architecture-session-0.4.0.json",
+  "title": "C4 Architecture Analysis Session",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sessionId",
+    "createdAt",
+    "question",
+    "purpose",
+    "audienceMode",
+    "analysisProfile",
+    "targetIds",
+    "expectedOutcome",
+    "inScope",
+    "outOfScope",
+    "stopCondition",
+    "riskTriggers",
+    "sourceSnapshotId",
+    "notes",
+    "outputSurface"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "0.4.0"
+    },
+    "sessionId": {
+      "$ref": "#/$defs/id"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "question": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "purpose": {
+      "enum": [
+        "orientation",
+        "design-review",
+        "change-impact",
+        "audit",
+        "takeover",
+        "incident",
+        "explanation",
+        "other"
+      ]
+    },
+    "audienceMode": {
+      "enum": [
+        "beginner",
+        "expert",
+        "both"
+      ]
+    },
+    "analysisProfile": {
+      "enum": [
+        "guided",
+        "focus",
+        "full"
+      ]
+    },
+    "targetIds": {
+      "$ref": "#/$defs/idArray"
+    },
+    "expectedOutcome": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "inScope": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "outOfScope": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "stopCondition": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "riskTriggers": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "sourceSnapshotId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "notes": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "outputSurface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "directory",
+        "htmlRequired",
+        "requestedFormats"
+      ],
+      "properties": {
+        "directory": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "htmlRequired": {
+          "type": "boolean"
+        },
+        "requestedFormats": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "idArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "derivation": {
+      "enum": [
+        "explicit",
+        "normalized",
+        "inferred",
+        "unresolved"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "VERIFIED",
+        "PARTIAL",
+        "DOC_ONLY",
+        "UNVERIFIED",
+        "CONFLICT"
+      ]
+    }
+  }
+}

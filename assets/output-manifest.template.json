@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "0.4.0",
+  "packageId": "c4-architecture",
+  "title": "C4 Architecture Report",
+  "packageVersion": "1.0.0",
+  "generatedAt": "1970-01-01T00:00:00Z",
+  "entryPoint": "index.html",
+  "paths": {
+    "session": "model/architecture-session.json",
+    "model": "model/architecture-model.json",
+    "evidence": "qa/evidence-ledger.json",
+    "coverage": "qa/coverage.json",
+    "understanding": "qa/human-understanding.json",
+    "reportData": "html/report-data.json",
+    "handoff": "HANDOFF.md"
+  },
+  "files": [],
+  "validation": {
+    "result": "NOT_RUN",
+    "validatedAt": null,
+    "validatorVersion": null,
+    "reportPath": null
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://c4-archi-model.local/schema/human-understanding-0.4.0.json",
+  "title": "C4 Human Understanding Gate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sessionId",
+    "audienceMode",
+    "method",
+    "simulated",
+    "persona",
+    "testedAt",
+    "result",
+    "questions",
+    "limitations"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "0.4.0"
+    },
+    "sessionId": {
+      "$ref": "#/$defs/id"
+    },
+    "audienceMode": {
+      "enum": [
+        "beginner",
+        "expert",
+        "both"
+      ]
+    },
+    "method": {
+      "enum": [
+        "not-run",
+        "persona-simulation",
+        "human-review"
+      ]
+    },
+    "simulated": {
+      "type": "boolean"
+    },
+    "persona": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "testedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "result": {
+      "enum": [
+        "PASS",
+        "PASS_BOUNDED",
+        "REQUEST_CHANGES",
+        "NOT_RUN"
+      ]
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/question"
+      }
+    },
+    "limitations": {
+      "$ref": "#/$defs/stringArray"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "idArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "derivation": {
+      "enum": [
+        "explicit",
+        "normalized",
+        "inferred",
+        "unresolved"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "VERIFIED",
+        "PARTIAL",
+        "DOC_ONLY",
+        "UNVERIFIED",
+        "CONFLICT"
+      ]
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "audience",
+        "question",
+        "answer",
+        "result",
+        "modelIds",
+        "viewIds",
+        "expectedEvidenceRefs",
+        "issue"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "audience": {
+          "enum": [
+            "beginner",
+            "expert",
+            "both"
+          ]
+        },
+        "question": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "answer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "result": {
+          "enum": [
+            "PASS",
+            "PASS_BOUNDED",
+            "REQUEST_CHANGES",
+            "NOT_RUN"
+          ]
+        },
+        "modelIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "viewIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "expectedEvidenceRefs": {
+          "$ref": "#/$defs/idArray"
+        },
+        "issue": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

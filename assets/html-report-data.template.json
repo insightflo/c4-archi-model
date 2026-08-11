@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "0.4.0",
+  "meta": {
+    "language": "ko",
+    "titleOverride": null,
+    "generatedAt": "1970-01-01T00:00:00Z"
+  },
+  "build": {
+    "sessionPath": "model/architecture-session.json",
+    "canonicalModelPath": "model/architecture-model.json",
+    "evidenceLedgerPath": "qa/evidence-ledger.json",
+    "coveragePath": "qa/coverage.json",
+    "understandingPath": "qa/human-understanding.json",
+    "expectedFiles": [
+      "model/architecture-session.json",
+      "model/architecture-model.json",
+      "qa/evidence-ledger.json",
+      "qa/coverage.json",
+      {
+        "path": "qa/human-understanding.json",
+        "required": false
+      }
+    ]
+  },
+  "overview": {
+    "problem": "이 시스템이 해결하는 문제를 적는다.",
+    "oneSentence": "확인된 구조를 한 문장으로 요약한다.",
+    "scopeSummary": "현재 분석 범위와 제외 범위를 적는다.",
+    "readingOrder": [
+      "System Context",
+      "Container",
+      "핵심 Dynamic 흐름",
+      "확인 필요 항목"
+    ],
+    "claimIds": []
+  },
+  "diagrams": [],
+  "flows": [],
+  "elementGroups": [],
+  "audienceSections": [],
+  "analysis": {
+    "benefits": [],
+    "tradeoffs": [],
+    "risks": []
+  },
+  "issueRefs": [],
+  "glossary": [],
+  "artifacts": []
+}

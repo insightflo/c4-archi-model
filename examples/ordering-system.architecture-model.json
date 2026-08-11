@@ -1,0 +1,379 @@
+{
+  "$schema": "../references/architecture-model.schema.json",
+  "metadata": {
+    "title": "Ordering System",
+    "description": "주문 생성과 배송 준비 흐름을 설명하는 가상 예시",
+    "targetSystemId": "ordering-system",
+    "schemaVersion": "0.4.0",
+    "modelRevision": "1",
+    "generatorVersion": "c4-archi-model/0.4.0",
+    "generatedAt": "2026-08-10T00:00:00Z",
+    "sourceSnapshotId": "snapshot-ordering-4e52e5080310"
+  },
+  "elements": [
+    {
+      "id": "customer",
+      "type": "person",
+      "name": "Customer",
+      "description": "웹 화면에서 주문을 생성한다.",
+      "technology": null,
+      "parentId": null,
+      "environment": null,
+      "tags": [],
+      "derivation": "explicit",
+      "rationale": null,
+      "claimIds": [
+        "CL-001"
+      ],
+      "instanceOfId": null,
+      "confidence": "DOC_ONLY"
+    },
+    {
+      "id": "ordering-system",
+      "type": "softwareSystem",
+      "name": "Ordering System",
+      "description": "주문 접수와 배송 준비 시작을 조정한다.",
+      "technology": null,
+      "parentId": null,
+      "environment": null,
+      "tags": [],
+      "derivation": "normalized",
+      "rationale": "예시 설명을 위해 관련 Container를 하나의 분석 범위로 묶었다.",
+      "claimIds": [
+        "CL-002"
+      ],
+      "instanceOfId": null,
+      "confidence": "PARTIAL"
+    },
+    {
+      "id": "web-app",
+      "type": "container",
+      "name": "Web App",
+      "description": "고객에게 주문 입력 화면을 제공한다.",
+      "technology": null,
+      "parentId": "ordering-system",
+      "environment": null,
+      "tags": [],
+      "derivation": "normalized",
+      "rationale": null,
+      "claimIds": [
+        "CL-003"
+      ],
+      "instanceOfId": null,
+      "confidence": "DOC_ONLY"
+    },
+    {
+      "id": "order-api",
+      "type": "container",
+      "name": "Order API",
+      "description": "주문 요청을 받고 저장과 이벤트 발행을 조정한다.",
+      "technology": null,
+      "parentId": "ordering-system",
+      "environment": null,
+      "tags": [],
+      "derivation": "normalized",
+      "rationale": null,
+      "claimIds": [
+        "CL-004"
+      ],
+      "instanceOfId": null,
+      "confidence": "DOC_ONLY"
+    },
+    {
+      "id": "order-database",
+      "type": "container",
+      "name": "Order Database",
+      "description": "주문 데이터를 저장한다.",
+      "technology": "PostgreSQL",
+      "parentId": "ordering-system",
+      "environment": null,
+      "tags": [
+        "database"
+      ],
+      "derivation": "explicit",
+      "rationale": null,
+      "claimIds": [
+        "CL-005"
+      ],
+      "instanceOfId": null,
+      "confidence": "DOC_ONLY"
+    },
+    {
+      "id": "order-created-topic",
+      "type": "container",
+      "name": "order-created topic",
+      "description": "주문 생성 이벤트를 전달하는 논리 채널이다.",
+      "technology": null,
+      "parentId": "ordering-system",
+      "environment": null,
+      "tags": [
+        "queue-or-topic"
+      ],
+      "derivation": "normalized",
+      "rationale": "명시된 topic을 독립적인 메시지 전달 경계로 모델링했다.",
+      "claimIds": [
+        "CL-006"
+      ],
+      "instanceOfId": null,
+      "confidence": "PARTIAL"
+    },
+    {
+      "id": "fulfilment-worker",
+      "type": "container",
+      "name": "Fulfilment Worker",
+      "description": "주문 생성 이벤트를 소비해 배송 준비를 시작한다.",
+      "technology": null,
+      "parentId": "ordering-system",
+      "environment": null,
+      "tags": [
+        "worker"
+      ],
+      "derivation": "explicit",
+      "rationale": null,
+      "claimIds": [
+        "CL-007"
+      ],
+      "instanceOfId": null,
+      "confidence": "DOC_ONLY"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "customer-to-system",
+      "sourceId": "customer",
+      "destinationId": "ordering-system",
+      "description": "주문을 생성한다.",
+      "technology": null,
+      "interactionStyle": "synchronous",
+      "derivation": "normalized",
+      "rationale": "Context View를 위한 상위 관계로 정규화했다.",
+      "claimIds": [
+        "CL-008"
+      ],
+      "confidence": "PARTIAL"
+    },
+    {
+      "id": "customer-to-web",
+      "sourceId": "customer",
+      "destinationId": "web-app",
+      "description": "주문 정보를 입력한다.",
+      "technology": null,
+      "interactionStyle": "synchronous",
+      "derivation": "explicit",
+      "rationale": null,
+      "claimIds": [
+        "CL-009"
+      ],
+      "confidence": "DOC_ONLY"
+    },
+    {
+      "id": "web-to-api",
+      "sourceId": "web-app",
+      "destinationId": "order-api",
+      "description": "주문 생성 요청을 전송한다.",
+      "technology": "HTTPS/JSON",
+      "interactionStyle": "synchronous",
+      "derivation": "explicit",
+      "rationale": null,
+      "claimIds": [
+        "CL-010"
+      ],
+      "confidence": "DOC_ONLY"
+    },
+    {
+      "id": "api-to-db",
+      "sourceId": "order-api",
+      "destinationId": "order-database",
+      "description": "주문을 저장한다.",
+      "technology": "PostgreSQL",
+      "interactionStyle": "data-access",
+      "derivation": "explicit",
+      "rationale": null,
+      "claimIds": [
+        "CL-011"
+      ],
+      "confidence": "DOC_ONLY"
+    },
+    {
+      "id": "api-to-topic",
+      "sourceId": "order-api",
+      "destinationId": "order-created-topic",
+      "description": "주문 생성 이벤트를 발행한다.",
+      "technology": null,
+      "interactionStyle": "asynchronous",
+      "derivation": "explicit",
+      "rationale": null,
+      "claimIds": [
+        "CL-012"
+      ],
+      "confidence": "DOC_ONLY"
+    },
+    {
+      "id": "worker-to-topic",
+      "sourceId": "fulfilment-worker",
+      "destinationId": "order-created-topic",
+      "description": "주문 생성 이벤트를 소비한다.",
+      "technology": null,
+      "interactionStyle": "asynchronous",
+      "derivation": "explicit",
+      "rationale": null,
+      "claimIds": [
+        "CL-013"
+      ],
+      "confidence": "DOC_ONLY"
+    }
+  ],
+  "views": [
+    {
+      "id": "ordering-context",
+      "type": "systemContext",
+      "title": "Ordering System - System Context",
+      "scopeId": "ordering-system",
+      "environment": null,
+      "description": "고객과 Ordering System의 관계를 보여준다.",
+      "question": "누가 Ordering System을 사용하며 어떤 가치를 얻는가?",
+      "elementIds": [
+        "customer",
+        "ordering-system"
+      ],
+      "relationshipIds": [
+        "customer-to-system"
+      ],
+      "steps": [],
+      "nextViewIds": [
+        "ordering-container"
+      ],
+      "claimIds": [
+        "CL-014"
+      ],
+      "notShown": [
+        "내부 Container",
+        "배포 인프라"
+      ]
+    },
+    {
+      "id": "ordering-container",
+      "type": "container",
+      "title": "Ordering System - Container View",
+      "scopeId": "ordering-system",
+      "environment": null,
+      "description": "주문 생성과 배송 준비에 참여하는 실행 단위와 저장소를 보여준다.",
+      "question": "Ordering System 내부 책임은 어떤 실행 단위와 저장 경계로 나뉘는가?",
+      "elementIds": [
+        "customer",
+        "web-app",
+        "order-api",
+        "order-database",
+        "order-created-topic",
+        "fulfilment-worker"
+      ],
+      "relationshipIds": [
+        "customer-to-web",
+        "web-to-api",
+        "api-to-db",
+        "api-to-topic",
+        "worker-to-topic"
+      ],
+      "steps": [],
+      "nextViewIds": [
+        "ordering-create-order"
+      ],
+      "claimIds": [
+        "CL-015"
+      ],
+      "notShown": [
+        "클래스와 함수",
+        "운영 서버 수"
+      ]
+    },
+    {
+      "id": "ordering-create-order",
+      "type": "dynamic",
+      "title": "Create Order",
+      "scopeId": "ordering-system",
+      "environment": null,
+      "description": "고객이 주문을 생성하고 배송 준비가 시작되는 순서다.",
+      "question": "한 번의 주문은 어떤 순서로 이동하는가?",
+      "elementIds": [
+        "customer",
+        "web-app",
+        "order-api",
+        "order-database",
+        "order-created-topic",
+        "fulfilment-worker"
+      ],
+      "relationshipIds": [
+        "customer-to-web",
+        "web-to-api",
+        "api-to-db",
+        "api-to-topic",
+        "worker-to-topic"
+      ],
+      "steps": [
+        {
+          "id": "step-customer-web",
+          "order": 1,
+          "relationshipId": "customer-to-web",
+          "kind": "interaction",
+          "condition": null,
+          "note": "주문 정보가 Web App에 입력된다.",
+          "claimIds": [
+            "CL-016"
+          ]
+        },
+        {
+          "id": "step-web-api",
+          "order": 2,
+          "relationshipId": "web-to-api",
+          "kind": "interaction",
+          "condition": null,
+          "note": "Order API가 주문 요청을 받는다.",
+          "claimIds": [
+            "CL-016"
+          ]
+        },
+        {
+          "id": "step-api-db",
+          "order": 3,
+          "relationshipId": "api-to-db",
+          "kind": "interaction",
+          "condition": null,
+          "note": "주문이 PostgreSQL에 저장된다.",
+          "claimIds": [
+            "CL-016"
+          ]
+        },
+        {
+          "id": "step-api-topic",
+          "order": 4,
+          "relationshipId": "api-to-topic",
+          "kind": "interaction",
+          "condition": null,
+          "note": "주문 생성 이벤트가 topic에 게시된다.",
+          "claimIds": [
+            "CL-016"
+          ]
+        },
+        {
+          "id": "step-worker-topic",
+          "order": 5,
+          "relationshipId": "worker-to-topic",
+          "kind": "interaction",
+          "condition": null,
+          "note": "배송 준비가 시작된다. Worker가 이벤트를 소비한다.",
+          "claimIds": [
+            "CL-016"
+          ]
+        }
+      ],
+      "nextViewIds": [],
+      "claimIds": [
+        "CL-016"
+      ],
+      "notShown": [
+        "이벤트 실패 복구 정책",
+        "배포 토폴로지"
+      ]
+    }
+  ]
+}

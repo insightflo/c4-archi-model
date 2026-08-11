@@ -1,0 +1,16 @@
+{
+  "$schema": "../references/architecture-model.schema.json",
+  "metadata": {
+    "title": "Architecture Model",
+    "description": null,
+    "targetSystemId": null,
+    "schemaVersion": "0.4.0",
+    "modelRevision": "1",
+    "generatorVersion": "c4-archi-model/0.4.0",
+    "generatedAt": null,
+    "sourceSnapshotId": null
+  },
+  "elements": [],
+  "relationships": [],
+  "views": []
+}
