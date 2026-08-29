@@ -20,9 +20,12 @@ HTML은 canonical model을 대체하지 않는다. report data는 canonical 이�
 
 ```text
 이해하기
+  한눈 요약(30초)과 독자 계약 — 사실 표기를 읽는 법
+  장면 목차 — 클릭하면 해당 프레임·View로 이동
   문제와 한 문장 요약
   Context / Container / Dynamic / 필요한 Component
   요소 책임과 용어
+  그래서 무엇을 해야 할까 — 상황별 시나리오
 
 설계 검토
   경계·상태·계약·실패·배포·트레이드오프
@@ -31,13 +34,16 @@ HTML은 canonical model을 대체하지 않는다. report data는 canonical 이�
 근거·QA
   Source Snapshot
   Claim과 traceability
+  증거 체인 종합 — 소스 → 결론 한눈 보기
   Coverage 완료 판정
   Human Understanding Gate
-  validator 결과
+  validator 결과 (본문에서 열람 가능한 검증 로그)
 
 원본 파일
   Session, Model, Ledger, Coverage, PUML/DSL/Markdown
 ```
+
+각 요소의 최소 계약은 `references/scene-frame-reporting.md`를 따른다.
 
 초보자 첫 화면에는 내부 UUID, locator와 raw JSON을 전면 배치하지 않는다. 필요할 때 펼쳐 보게 한다.
 

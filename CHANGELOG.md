@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.0 — 2026-09-01
+
+### Scene-frame reader experience (참고: 2026-08-28 온보딩 「아키텍처 그림, 문서 쉽게 만들기 — C4 · ADR · arc42」 장면 프레임 리포트)
+
+- `references/scene-frame-reporting.md`를 추가해 검증된 장면 프레임형 독자 경험(한눈 요약,
+  독자 계약, 장면 목차·점프, 근거 인용 병렬, 증거 체인 종합, 상황별 시나리오, 검증 로그 공개,
+  한계와 불확실성)을 C4 보고서 규범으로 일반화했다.
+- `validate_html_text`가 로컬 상대 참조(src/href/poster)의 파일 존재와 문서 내 앵커 대상을
+  검사한다(HTML-STATIC-005/006). 참조가 전혀 없는 문서는 통과이며, 참조하는데 대상이
+  없으면 strict build를 중단한다. 2026-09-01 manual-onboarding 사고(배포본 HTML이 없는
+  frames/*.jpg를 참조해 장면 이미지 7장 전부 404, 기존 QA 통과)의 재발 방지.
+- `validate_html_assets.py`와 `build_html_report.py`, 패키지 entryPoint 검사에 base_dir을
+  전달해 발행 직전과 패키지 검증에서 동일한 참조 무결성 검사를 수행한다.
+- 초보자용 권장 문서 구조와 HTML 권장 정보 구조에 한눈 요약·독자 계약·장면 목차·
+  상황별 시나리오·증거 체인 종합 슬롯을 추가했다.
+
 ## 0.4.0 — 2026-08-10
 
 ### Correctness and traceability

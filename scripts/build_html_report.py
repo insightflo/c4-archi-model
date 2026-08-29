@@ -464,7 +464,7 @@ def main() -> int:
             "warnings": [f"{item.code} {item.path}: {item.message}" for item in validation.findings],
         }
         html_text = inject(template, hydrated)
-        output_report = validate_html_text(html_text, output_path.name)
+        output_report = validate_html_text(html_text, output_path.name, base_dir=output_path.parent)
         validation.merge(output_report)
         if output_report.errors and not args.lenient:
             print_report(validation)

@@ -11,7 +11,7 @@ def main() -> int:
     p=argparse.ArgumentParser(description="Validate an offline HTML report and optional SVG assets")
     p.add_argument("html",type=Path);p.add_argument("--svg",type=Path,action="append",default=[]);p.add_argument("--output-json",type=Path);a=p.parse_args()
     report=ValidationReport("html-assets")
-    report.merge(validate_html_text(a.html.read_text(encoding="utf-8",errors="replace"),a.html.name))
+    report.merge(validate_html_text(a.html.read_text(encoding="utf-8",errors="replace"),a.html.name,base_dir=a.html.parent))
     for path in a.svg: report.merge(validate_svg(path))
     print_report(report)
     if a.output_json: write_report(a.output_json,report)

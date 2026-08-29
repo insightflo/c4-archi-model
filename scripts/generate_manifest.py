@@ -10,6 +10,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from c4_validation import _matches_forbidden
+
 DEFAULT_REQUIRED = [
     "SKILL.md",
     "VERSION",
@@ -99,6 +101,10 @@ def generate(root: Path, version: str) -> dict:
         if not path.is_file() or path.name == "manifest.json":
             continue
         rel = path.relative_to(root).as_posix()
+        # forbidden 패턴(.git/, .DS_Store, __pycache__/, *.pyc 등)은 패키지 자산이 아니므로
+        # 해싱 대상에서 제외한다. git 저장소 루트에서 재생성해도 .git 내부가 들어가지 않게 한다.
+        if _matches_forbidden(rel, DEFAULT_FORBIDDEN):
+            continue
         files.append({"path": rel, "sha256": sha256(path), "size": path.stat().st_size})
     return {
         "$schema": "references/package-manifest.schema.json",

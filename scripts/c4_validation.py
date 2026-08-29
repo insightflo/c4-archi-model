@@ -840,7 +840,7 @@ EXTERNAL_HTML_PATTERNS = [
 ]
 
 
-def validate_html_text(html_text: str, name: str = "index.html") -> ValidationReport:
+def validate_html_text(html_text: str, name: str = "index.html", base_dir: Path | None = None) -> ValidationReport:
     report = ValidationReport("html-static")
     for pattern in EXTERNAL_HTML_PATTERNS:
         if pattern.search(html_text):
@@ -853,8 +853,49 @@ def validate_html_text(html_text: str, name: str = "index.html") -> ValidationRe
     lower = html_text.lower()
     if "<html" not in lower or "<meta charset=" not in lower:
         report.error("HTML-STATIC-004", name, "basic HTML document markers are missing")
+    if base_dir is not None:
+        report.merge(validate_html_local_references(html_text, name, base_dir))
     if not report.errors:
         report.pass_check("HTML-STATIC-001", "HTML is offline and has no unresolved template tokens")
+    return report
+
+
+def validate_html_local_references(html_text: str, name: str, base_dir: Path) -> ValidationReport:
+    """이 문서가 참조하는 상대 자산(src/href/poster)과 문서 내 앵커가 실제로 존재하는지 검사한다.
+
+    2026-09-01 manual-onboarding 사고(배포본 HTML이 존재하지 않는 frames/*.jpg를 참조해
+    장면 이미지 7장이 전부 404가 됨)의 재발 방지. 참조가 전혀 없는 문서는 통과이며,
+    참조하는데 대상이 없으면 오류이다.
+    """
+    report = ValidationReport(f"html-refs:{name}")
+    attr_re = re.compile(r"(?:src|href|poster)\s*=\s*['\"]([^'\"]+)['\"]", re.I)
+    skip_prefixes = ("http://", "https://", "//", "data:", "mailto:", "javascript:", "tel:")
+    ids = set(re.findall(r"\bid\s*=\s*['\"]([^'\"]+)['\"]", html_text))
+    asset_refs: set[str] = set()
+    fragment_refs: set[str] = set()
+    for match in attr_re.finditer(html_text):
+        raw = match.group(1).strip().replace("&amp;", "&")
+        if not raw or "${" in raw or "{" in raw:
+            continue
+        if raw.lower().startswith(skip_prefixes):
+            continue
+        fragment = raw.split("#", 1)
+        path_part = fragment[0].split("?", 1)[0].strip()
+        frag = fragment[1].strip() if len(fragment) > 1 else ""
+        if path_part:
+            asset_refs.add(path_part)
+        if frag:
+            fragment_refs.add(frag)
+    broken_assets = sorted(ref for ref in asset_refs if not (base_dir / ref).exists())
+    if broken_assets:
+        report.error("HTML-STATIC-005", name, f"referenced local files are missing: {broken_assets[:10]}")
+    else:
+        report.pass_check("HTML-STATIC-005", "all referenced local files exist", str(len(asset_refs)))
+    broken_fragments = sorted(ref for ref in fragment_refs if ref not in ids)
+    if broken_fragments:
+        report.error("HTML-STATIC-006", name, f"in-document fragment targets are missing: {broken_fragments[:10]}")
+    else:
+        report.pass_check("HTML-STATIC-006", "all in-document fragment targets exist", str(len(fragment_refs)))
     return report
 
 
@@ -950,7 +991,7 @@ def validate_package_manifest(root: Path, manifest: dict[str, Any], schema_path:
     if entry is not None and not entry.is_file():
         report.error("PKG-011", "$.entryPoint", "entry point does not exist")
     elif entry is not None and entry.suffix.lower() == ".html":
-        report.merge(validate_html_text(entry.read_text(encoding="utf-8", errors="replace"), manifest["entryPoint"]))
+        report.merge(validate_html_text(entry.read_text(encoding="utf-8", errors="replace"), manifest["entryPoint"], base_dir=entry.parent))
 
     for key, rel in manifest["paths"].items():
         if rel is None:
@@ -1058,6 +1099,9 @@ def validate_skill_package_manifest(root: Path, manifest: dict[str, Any], schema
             report.error("SKPKG-013", rel, "symbolic links are not allowed")
             continue
         if not path.is_file() or rel == manifest_rel:
+            continue
+        if rel == ".git" or rel.startswith(".git/"):
+            # VCS 메타데이터는 패키지 내용이 아니다. git 저장소 루트에서도 검증이 성립해야 한다.
             continue
         actual.add(rel)
         matched = _matches_forbidden(rel, forbidden_patterns)

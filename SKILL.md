@@ -322,6 +322,9 @@ boundaries          자료·시간·도구·범위 경계
 - 각 요소를 `무엇인지 / 왜 필요한지 / 누구와 대화하는지 / 없거나 실패하면 어떤 영향인지`로 설명한다.
 - 실제 요청 하나를 번호 순서로 따라간다.
 - 쉬운 설명을 위해 사실을 삭제하거나 바꾸지 않는다.
+- 설명 구조는 장면 프레임형 독자 경험(한눈 요약, 독자 계약, 장면 목차·점프, 근거 인용 병렬,
+  증거 체인 종합, 상황별 시나리오)을 기본으로 제안한다.
+  최소 계약은 `references/scene-frame-reporting.md`를 따른다.
 
 #### 전문가용
 
@@ -453,6 +456,11 @@ HTML 요구사항:
 - 확대·축소·100% 복원·전체 화면·검색·인쇄 기능
 - `이해하기 / 설계 검토 / 근거·QA / 원본 파일` 영역 분리
 - 초보자 첫 화면에 내부 ID와 locator를 과도하게 노출하지 않음
+- 첫 화면에 한눈 요약(30초 요약)과 독자 계약(표기 읽는 법)을 제공하고,
+  장면 목차가 각 프레임·섹션으로 이동함
+- 설명 카드에 근거 인용(locator 포함)을 함께 노출하고, 소스 → 결론 증거 체인 종합 표를 제공함
+- 검증 로그(View 수·step 순서·참조 무결성·validator 결과)를 본문에서 열람 가능함
+- 상황별 "그래서 무엇을 해야 하는가" 시나리오 섹션을 제공함 (초보자용 기본)
 - 확인 필요, `PASS_BOUNDED`, `NOT_RUN`, conflict를 숨기지 않음
 - 대체 텍스트와 키보드 탐색 제공
 
@@ -596,6 +604,8 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 - 필수 파일 누락, manifest hash 불일치, 금지 파일 포함
 - SVG에 script, `foreignObject`, 외부 URL이 포함됨
 - HTML에 외부 runtime 의존성 또는 미치환 token이 남음
+- HTML이 참조하는 로컬 파일이 존재하지 않거나 문서 내 앵커 대상이 없음
+  (HTML-STATIC-005 / HTML-STATIC-006)
 
 경고는 숨기지 않는다. 시각 예산 초과, mutable source hash 누락, 브라우저 QA 미실행은
 결과와 Handoff에 남긴다.
@@ -641,6 +651,7 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 ### 규칙과 Schema
 
 - `references/analysis-profiles.md`
+- `references/scene-frame-reporting.md`
 - `references/c4-model-guide.md`
 - `references/evidence-and-model.md`
 - `references/source-snapshot.md`
