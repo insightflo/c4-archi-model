@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.6.0 — 2026-09-02
+
+### Archify 기본 다이어그램 경로 (참고: tt-a1i/archify 2.17, Cocoon-AI/architecture-diagram-generator, antvis/Infographic)
+
+- 다이어그램 저작·렌더링 기본 경로를 archify(JSON IR → 결정적 검증 → 자가완결 인터랙티브 HTML)로
+  지정했다. `references/archify-adapter.md`에 C4 View → archify 타입 매핑, canonical 요소 →
+  컴포넌트 타입(역할별 고정 색상 계승) 매핑, IR 저작 계약, validate/deliver 사이클과 영수증
+  보관 규칙을 정의했다.
+- Node 18+와 archify 패키지(`bin/archify.mjs`)가 가용할 때만 기본 경로를 쓰고, 미가용 시
+  기존 폴백 체인(Structurizr → Mermaid/PlantUML → ASCII)을 그대로 유지한다. 임의 설치 금지,
+  에이전트 독립성 유지.
+- `scripts/extract_archify_svg.py`를 추가했다. deliver 산출물에서 보고서 임베딩용 정적 SVG를
+  추출하며, 고유 루트 id로 CSS를 스코핑해 보고서 문서로 스타일이 새어나가지 않게 하고,
+  테마 변수를 SVG 루트로 옮기며, script/foreignObject/외부 URL 위생 검사와 @keyframes 제거를
+  수행한다. 실제 archify 2.17 산출물로 동작 검증(923 CSS 규칙 중 SVG 관련 153규칙 스코핑 보존,
+  클래스 100% 커버, XML 유효).
+- Step 8 우선순위, Step 14 출력 트리(IR + HTML + SVG, qa/ 영수증), 검증 실패 규칙(deliver
+  exit≠0, 동결 후보 재편집, 추출 SVG 위생), 렌더링 보고 항목을 archify 계약에 맞게 갱신했다.
+- 기존 PlantUML/Mermaid 원본은 archify IR로 통역하지 않고 canonical model에서 재저작하는
+  규칙과, 목록·절차·비교 같은 정보 그림(인포그래픽)은 archify로 강제하지 않는 경계 규칙을
+  추가했다 (archify 원조 프로젝트 Cocoon-AI/architecture-diagram-generator와 정보 그림 엔진
+  antvis/Infographic의 용도 구분 참고).
+
 ## 0.5.0 — 2026-09-01
 
 ### Scene-frame reader experience (참고: 2026-08-28 온보딩 「아키텍처 그림, 문서 쉽게 만들기 — C4 · ADR · arc42」 장면 프레임 리포트)

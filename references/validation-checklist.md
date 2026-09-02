@@ -87,6 +87,9 @@
 
 - [ ] SVG가 parseable하다.
 - [ ] SVG에 script, javascript URL, foreignObject, 외부 asset URL이 없다.
+- [ ] archify 경로를 썼다면: deliver exit 0 영수증이 qa/에 있고, 통과 후보를 재편집하지
+      않았고, 임베딩 SVG는 extract_archify_svg.py 추출 영수증과 함께 있다.
+- [ ] archify 산출물에서 추출한 SVG의 스타일이 고유 id로 스코핑되어 있다.
 - [ ] HTML에 외부 script, CSS, font, image runtime 의존성이 없다.
 - [ ] `__REPORT_DATA_JSON__`, `{{PLACEHOLDER}}`, 미치환 token이 없다.
 - [ ] 기본 HTML 문서 marker와 charset이 있다.

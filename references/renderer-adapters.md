@@ -15,7 +15,17 @@ architecture-model.json
 
 렌더러가 바뀌어도 유지되는 요소, 관계, View, 근거를 저장한다.
 
-### 권장 model-as-code
+### 기본 다이어그램 소스·렌더러 (archify 가용 시)
+
+```text
+<view>.<type>.json    archify JSON IR (View별 파생 source)
+<view>.html           인터랙티브 아티팩트 (deliver 확정)
+<view>.svg            보고서 임베딩용 정적 추출
+```
+
+자세한 계약은 `references/archify-adapter.md`를 따른다.
+
+### 폴백 model-as-code
 
 ```text
 workspace.dsl
@@ -54,6 +64,9 @@ Draw.io
 사용자가 형식을 지정함
 → 해당 형식 + canonical JSON
 
+archify 패키지와 Node 18+가 가용함 (doctor 통과)
+→ archify JSON IR 저작·검증·deliver (기본 경로)
+
 C4-aware 렌더러와 검증기가 사용 가능함
 → model-as-code 생성·검증 후 렌더링
 
@@ -67,9 +80,36 @@ C4-aware 렌더러와 검증기가 사용 가능함
 도구가 없을 때 설치 명령을 자동으로 강요하지 않는다.
 사용자가 설치를 요청한 경우에만 현재 운영체제와 환경을 확인한 뒤 안내한다.
 
+archify의 5가지 타입(architecture/workflow/sequence/dataflow/lifecycle)은
+시스템 구조·흐름 표현용이다. 목록·절차·비교 같은 정보 그림(인포그래픽)은
+C4 View가 아니므로 archify로 강제하지 않는다 (`references/archify-adapter.md` §9).
+
 ---
 
-## 3. Structurizr DSL 어댑터
+## 3. Archify 어댑터 (기본 경로)
+
+전체 계약은 `references/archify-adapter.md`를 따른다. 요약:
+
+```text
+C4 View → archify 타입 매핑
+  Context/Landscape/Container/Component/Deployment → architecture
+  Dynamic(요청·응답) → sequence, Dynamic(승인·분기·다단계) → workflow
+
+저작: schemas/common.schema.json + 타입 schema 1종 + 예시 1종만 읽는다.
+      주요 노드 ≤ 12, quality_profile "showcase",
+      관계 라벨은 canonical 관계 설명에서 옮긴다.
+      기존 PUML/Mermaid는 통역하지 않고 canonical에서 재저작한다.
+
+검증: validate → 진단(supportedFixes)만 수정 → deliver (exit 0 확인).
+      영수증은 qa/archify-*.json 에 보관. 통과 후보는 동결.
+
+추출: scripts/extract_archify_svg.py로 보고서 임베딩용 정적 SVG 생성
+      (id 스코핑 + script/foreignObject/외부 URL 검사 + 테마 보존).
+```
+
+---
+
+## 4. Structurizr DSL 어댑터
 
 `assets/workspace-template.dsl`을 시작 골격으로 사용할 수 있다.
 
@@ -90,7 +130,7 @@ Structurizr는 C4 모델 저자가 만든 reference implementation이지만,
 
 ---
 
-## 4. Mermaid 어댑터
+## 5. Mermaid 어댑터
 
 Mermaid의 지원 문법은 실행 환경과 버전에 따라 다를 수 있다.
 
@@ -121,7 +161,7 @@ flowchart LR
 
 ---
 
-## 5. PlantUML/C4-PlantUML 어댑터
+## 6. PlantUML/C4-PlantUML 어댑터
 
 - 라이브러리 include 경로와 버전을 사용 환경에서 확인한다.
 - 외부 include를 사용할 수 없는 환경이면 로컬 의존성을 요구하지 말고 일반 PlantUML로 대체한다.
@@ -131,7 +171,7 @@ flowchart LR
 
 ---
 
-## 6. SVG/PNG 렌더링
+## 7. SVG/PNG 렌더링
 
 이미지를 생성할 수 있을 때:
 
@@ -146,7 +186,7 @@ flowchart LR
 
 ---
 
-## 7. HTML 보고서 어댑터
+## 8. HTML 보고서 어댑터
 
 HTML은 canonical source가 아니라 사람이 읽는 최종 진입점이다.
 `references/html-output-guide.md`를 따르고, 기본 템플릿은 `assets/html-report-template.html`을 사용한다.
@@ -199,7 +239,7 @@ QA와 package integrity 표시
 
 ---
 
-## 8. 편집형 캔버스
+## 9. 편집형 캔버스
 
 편집형 파일을 생성할 때:
 
@@ -211,11 +251,16 @@ QA와 package integrity 표시
 
 ---
 
-## 9. 렌더링 보고
+## 10. 렌더링 보고
 
 `validation-report.md`에 다음을 기록한다.
 
 ```text
+Archify availability (doctor): available/unavailable
+Archify IR authored: view 목록
+Archify validate receipt: pass/fail/not run per view
+Archify deliver: exit 0/fail per view
+Archify SVG extraction: pass/fail per view
 Canonical model schema validation: pass/fail/not run
 Structurizr DSL parse: pass/fail/not run
 Diagram source syntax check: pass/fail/not run

@@ -336,23 +336,36 @@ boundaries          자료·시간·도구·범위 경계
 
 ### Step 8 — 다이어그램 Source와 렌더링
 
-`references/renderer-adapters.md`를 따른다.
+`references/renderer-adapters.md`와 `references/archify-adapter.md`를 따른다.
 
 우선순위:
 
 1. 사용자가 지정한 형식
-2. C4-aware model-as-code
-3. 현재 환경에서 검증 가능한 diagrams-as-code
-4. 렌더러가 없으면 source diagram + 텍스트 미리보기
+2. archify (기본 경로 — Node 18+와 archify 패키지가 가용하면 다이어그램 저작·렌더링에 archify를 쓴다)
+3. C4-aware model-as-code (Structurizr DSL)
+4. 현재 환경에서 검증 가능한 diagrams-as-code (Mermaid/PlantUML/D2)
+5. 렌더러가 없으면 source diagram + 텍스트 미리보기
+
+archify 경로에서는:
+
+- canonical model에서 각 View별 archify JSON IR을 저작한다. IR은 canonical source가
+  아닌 파생 View source다.
+- `validate` 영수증을 `qa/`에 저장하고, `deliver`로 View별 인터랙티브 HTML 아티팩트를
+  확정한다. deliver exit code가 0이 아니면 완료로 보고하지 않는다.
+- 보고서 임베딩용 정적 SVG는 `scripts/extract_archify_svg.py`로 산출물에서 추출한다.
+- Node나 archify가 없으면 이유를 밝히고 폴백 경로(3~5)로 내려간다. 임의 설치하지 않는다.
+- 기존 PlantUML/Mermaid 원본이 입력에 있어도 archify IR로 통역하지 않고
+  canonical model에서 새로 저작한다.
 
 필수 보존:
 
 - canonical JSON
-- View source diagram
+- View source diagram (archify IR 또는 어댑터별 source)
 - 사람이 읽는 설명
-- 렌더링 성공 여부
+- 렌더링 성공 여부 (archify `validate`/`deliver` 영수증 포함)
 
 SVG를 HTML에 넣기 전 script, `foreignObject`, 외부 URL과 위험한 참조를 검사한다.
+archify 산출물에서 추출한 SVG도 같은 검사를 통과해야 한다.
 
 ### Step 9 — Human Understanding Gate
 
@@ -508,13 +521,18 @@ c4-architecture/
 ├─ html/
 │  └─ report-data.json
 ├─ diagrams/
+│  ├─ 01-system-context.architecture.json
+│  ├─ 01-system-context.html
 │  ├─ 01-system-context.svg
-│  ├─ 01-system-context.puml
+│  ├─ 02-container.architecture.json
+│  ├─ 02-container.html
 │  ├─ 02-container.svg
-│  ├─ 02-container.puml
-│  ├─ 03-dynamic-<scenario>.*
-│  ├─ 04-component-<container>.*
-│  └─ 05-deployment-<environment>.*
+│  ├─ 03-dynamic-<scenario>.sequence.json
+│  ├─ 03-dynamic-<scenario>.html
+│  ├─ 03-dynamic-<scenario>.svg
+│  ├─ 04-component-<container>.architecture.json
+│  └─ 05-deployment-<environment>.architecture.json
+│  (폴백 경로에서는 같은 위치에 .puml/.mmd/.dsl source를 둔다)
 ├─ explanation/
 │  ├─ beginner.md
 │  └─ expert.md
@@ -522,6 +540,9 @@ c4-architecture/
    ├─ evidence-ledger.json
    ├─ coverage.json
    ├─ human-understanding.json
+   ├─ archify-validate-<view>.json
+   ├─ archify-deliver-<view>.json
+   ├─ archify-svg-<view>.json
    ├─ content-validation.json
    ├─ html-build-validation.json
    ├─ html-static-validation.json
@@ -591,6 +612,9 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 다음은 최종 `PASS`를 막는다.
 
 - Container의 parent가 Software System이 아님
+- archify 경로에서 `deliver` exit code가 0이 아닌데 렌더링 완료로 보고함
+- 통과해 동결된 archify 후보를 임의로 다시 편집함 (freeze 위반)
+- archify 산출물에서 추출한 SVG가 `extract_archify_svg.py` 검사를 통과하지 못함
 - Component가 여러 Container에 걸쳐 있거나 잘못된 parent를 가짐
 - 존재하지 않는 relationship endpoint 또는 View 참조
 - Dynamic order가 `1..N` 연속이 아니거나 step relationship이 View에 없음
@@ -659,6 +683,7 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 - `references/human-understanding-gates.md`
 - `references/visual-budgets.md`
 - `references/renderer-adapters.md`
+- `references/archify-adapter.md`
 - `references/html-output-guide.md`
 - `references/validation-checklist.md`
 - `references/*.schema.json`
@@ -673,6 +698,7 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 - `scripts/validate_human_understanding.py`
 - `scripts/validate_html_report_data.py`
 - `scripts/validate_html_assets.py`
+- `scripts/extract_archify_svg.py`
 - `scripts/build_html_report.py`
 - `scripts/build_output_manifest.py`
 - `scripts/validate_package.py`

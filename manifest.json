@@ -2,7 +2,7 @@
   "$schema": "references/package-manifest.schema.json",
   "schemaVersion": "1.0",
   "packageName": "c4-archi-model",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "entrypoint": "SKILL.md",
   "language": "ko",
   "agentIndependent": true,
@@ -42,6 +42,7 @@
     "references/human-understanding-gates.md",
     "references/visual-budgets.md",
     "references/renderer-adapters.md",
+    "references/archify-adapter.md",
     "references/html-output-guide.md",
     "references/validation-checklist.md",
     "scripts/c4_validation.py",
@@ -54,6 +55,7 @@
     "scripts/validate_human_understanding.py",
     "scripts/validate_html_report_data.py",
     "scripts/validate_html_assets.py",
+    "scripts/extract_archify_svg.py",
     "scripts/build_html_report.py",
     "scripts/build_output_manifest.py",
     "scripts/validate_package.py",
@@ -90,8 +92,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "3fe567f35ba9bd230263bb07a0e35e06dc59946e66309d364e5d55000a6ed3bf",
-      "size": 4848
+      "sha256": "43ab0911129cdc491c7070907211b339fac3a1909c379aa5b4eb075c04fa9531",
+      "size": 6785
     },
     {
       "path": "LICENSE",
@@ -105,12 +107,12 @@
     },
     {
       "path": "SKILL.md",
-      "sha256": "6f45164a1ee534cb9b38edabdde515b8db39dd45e395d372740a2e479ee7d36c",
-      "size": 26792
+      "sha256": "eb1ce664fb2fce15a3c7e6d92c0f586b927546551ac4cd26cf3ccd8807c6262d",
+      "size": 28615
     },
     {
       "path": "VERSION",
-      "sha256": "a0ad50640139a524f86591157145bf1d4674ea9c065bfea21558f0f7b04430c8",
+      "sha256": "97a5d6e540a6120d09c39ddb667e0e8e2bac7fcc2ffef813b82e08fd60365bce",
       "size": 6
     },
     {
@@ -234,6 +236,11 @@
       "size": 2120
     },
     {
+      "path": "references/archify-adapter.md",
+      "sha256": "8efffc4bde1c34bd814f6083438c45a948d40046036043fb6d596c0f1f56bc02",
+      "size": 11486
+    },
+    {
       "path": "references/architecture-model.schema.json",
       "sha256": "e3086ed2ba0f17ae840a16bc21a6e9ed5ee047e38870a5725b1be7ca1dce4020",
       "size": 8109
@@ -295,8 +302,8 @@
     },
     {
       "path": "references/renderer-adapters.md",
-      "sha256": "aa3a214e05a5bf5c688647be7bb2f7836ac492efbe8495114a27a8e0240f643d",
-      "size": 8269
+      "sha256": "12b118914582e38249d8e055f26a3c34911095781d080f7ee3f576ce63661e19",
+      "size": 10159
     },
     {
       "path": "references/scene-frame-reporting.md",
@@ -310,8 +317,8 @@
     },
     {
       "path": "references/validation-checklist.md",
-      "sha256": "07025ef59624bf7d2775fbd201d2bae537748eaa496b3b43260f642eb4256d2a",
-      "size": 6469
+      "sha256": "b9a1112fb9ec5a21229c47850203b145c22ebac3db0194f19ac2602f946c66b2",
+      "size": 6769
     },
     {
       "path": "references/visual-budgets.md",
@@ -339,9 +346,14 @@
       "size": 62061
     },
     {
+      "path": "scripts/extract_archify_svg.py",
+      "sha256": "8502ffae285a78debc55260f83034cbbbb8ccf40739b07caf237f2cfd7e6a5da",
+      "size": 15678
+    },
+    {
       "path": "scripts/generate_manifest.py",
-      "sha256": "0b788d939d2dbdae1a7ca337b04eef9baa9926340d7c0b97756f7d8d2c449c33",
-      "size": 4768
+      "sha256": "c7b5c9f426250d927ba24d7b1150614ed4189cf0e34940cead5f5ef2aa2954f8",
+      "size": 4843
     },
     {
       "path": "scripts/run_regression_tests.py",
