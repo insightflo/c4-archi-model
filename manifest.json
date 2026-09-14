@@ -2,7 +2,7 @@
   "$schema": "references/package-manifest.schema.json",
   "schemaVersion": "1.0",
   "packageName": "c4-archi-model",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "entrypoint": "SKILL.md",
   "language": "ko",
   "agentIndependent": true,
@@ -92,8 +92,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "9946830c4ed902773bfd7ff750ed5956581317ac0b3f30e834bd4f41fbe5d512",
-      "size": 7678
+      "sha256": "3f8940641b228a73036a570b1bf67ad9d78e788fdf3afe6167ceb7fba71ee248",
+      "size": 9127
     },
     {
       "path": "LICENSE",
@@ -107,12 +107,12 @@
     },
     {
       "path": "SKILL.md",
-      "sha256": "870fe9505b61d5b730906ae6bc0a02fdb56641ebae14852dc1d0f871df7e3b97",
-      "size": 29296
+      "sha256": "8a22cc44b19f18a99830e59928c088e28dcbea5b7dad031e5bd2ead9b866d3f7",
+      "size": 30855
     },
     {
       "path": "VERSION",
-      "sha256": "967d9afb101346667166f2e76e81910bc190488d7d41d50ca0072e9d92f00e32",
+      "sha256": "a66780da23103beaf12432b418508966b31a2a3a787f9468a5b6cdaa8667c1ef",
       "size": 6
     },
     {
@@ -147,8 +147,8 @@
     },
     {
       "path": "assets/html-report-template.html",
-      "sha256": "9bee94192ba6353142457639f892e62c020ae6cfe7ddb32445721f6374311359",
-      "size": 53627
+      "sha256": "6a47bcd559cb632df9d153cbfeb5235245208db64ce3ff95c43c6bd8d6a2b7e3",
+      "size": 54571
     },
     {
       "path": "assets/human-understanding.template.json",
@@ -159,6 +159,46 @@
       "path": "assets/output-manifest.template.json",
       "sha256": "f697a85a6c437722d84bbcb0bec82765c6cb508a9c101f8b91854c242c6c2e6a",
       "size": 659
+    },
+    {
+      "path": "assets/repo-flowmap/CHANGELOG.md",
+      "sha256": "fb1d7b1bd0f5d181d5c2fe78b56c12cd9646b1772211c0e6221830b20d8e443a",
+      "size": 5821
+    },
+    {
+      "path": "assets/repo-flowmap/SCHEMA.md",
+      "sha256": "f35f96e6d7378d57e34dee0b0762a746fb90ce54c67e9301270ed3255a050447",
+      "size": 5587
+    },
+    {
+      "path": "assets/repo-flowmap/SKILL.md",
+      "sha256": "1bf5151caf1d9a9a98c9ddd03291df3dd966a8d381a3ae07e124195a6822aa5a",
+      "size": 4523
+    },
+    {
+      "path": "assets/repo-flowmap/VENDORED.md",
+      "sha256": "e6da096162c13e43188c5e2be5f67c5d4efb03deb9201713a2c2a0128e15875a",
+      "size": 1729
+    },
+    {
+      "path": "assets/repo-flowmap/references/RENDERER_RULES.md",
+      "sha256": "cdb354eff6f2a43a93c7e694f82b4bf8190fbf757ae8b9e0d440a67b8d7a563d",
+      "size": 5461
+    },
+    {
+      "path": "assets/repo-flowmap/scripts/build_flowmap.mjs",
+      "sha256": "04adb9ca3c92e70b7c34fc7a452aef4ad6596ba1b3fa49e75bb27b795a796c7d",
+      "size": 1232
+    },
+    {
+      "path": "assets/repo-flowmap/scripts/validate_flowmap.mjs",
+      "sha256": "e3b3c6f7cdab1fd2dae1a6ef8707a1f169e629ed1cc61cb87ca156253863eb0c",
+      "size": 6436
+    },
+    {
+      "path": "assets/repo-flowmap/template.html",
+      "sha256": "d40d8cd53564c856bad1addfc0856c53b4f349b4e8cbba3b9c98fad246a7584d",
+      "size": 258275
     },
     {
       "path": "assets/report-template.md",
@@ -237,8 +277,8 @@
     },
     {
       "path": "references/archify-adapter.md",
-      "sha256": "593b9b5dff1c8f36d9bfdd56870816b04a940f2c36c4f8e15d0ba5a6001b37bc",
-      "size": 12213
+      "sha256": "f6aca8506bc9f98562437016b360a60b807ec35b1e32fb1449d5fd5efb4bedc3",
+      "size": 12357
     },
     {
       "path": "references/architecture-model.schema.json",
@@ -302,8 +342,13 @@
     },
     {
       "path": "references/renderer-adapters.md",
-      "sha256": "12b118914582e38249d8e055f26a3c34911095781d080f7ee3f576ce63661e19",
-      "size": 10159
+      "sha256": "0d1cb30dde57b7266d0ed579931a3ecf5bb2c5dd8d8b6604a755a4f496849ac0",
+      "size": 11300
+    },
+    {
+      "path": "references/repo-flowmap-adapter.md",
+      "sha256": "0fb498bf56b8f0107c4ad39440261c3c16ac737b030756485084d4525ed1d02a",
+      "size": 6337
     },
     {
       "path": "references/scene-frame-reporting.md",

@@ -47,8 +47,9 @@ archify 미가용로 판정하고 폴백 경로(Structurizr → Mermaid/PlantUML
 - 사유를 사용자에게 밝히고 설치를 제안한다. 동의를 받으면 사용 중인 에이전트의 skills
   디렉터리(예: `~/.pi/agent/skills/archify`)에 archify 패키지 루트(`bin/archify.mjs`가
   있는 디렉터리)를 설치하고 `doctor`로 재판정한 뒤 기본 경로를 쓴다.
-- 동의가 없을 때만 폴백 경로로 내려간다. 폴백은 정상 경로지만, 요청이 그림 품질을
-  포함하면 설치 제안이 기본이다.
+- 동의가 없거나 설치할 수 없으면 번들 repo-flowmap(`references/repo-flowmap-adapter.md`,
+  `assets/repo-flowmap/`)으로 내려간다. Node 18+가 있으면 별도 설치 없이 동작한다.
+- Node 자체가 없을 때 Structurizr → Mermaid/PlantUML → ASCII 체인으로 내려간다.
 
 금지:
 

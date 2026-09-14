@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.8.0 — 2026-09-14
+
+### 번들 폴백 렌더러 repo-flowmap (archify 미가용 시 기본)
+
+- repo-flowmap(JSON 검증기 + 고정 렌더러 + 인터랙티브 단일 HTML 빌더)을 `assets/repo-flowmap/`
+  으로 포함했다. Node 18+ 표준 라이브러리만 사용, 별도 설치 불필요. 출처·동기화 규칙은
+  `assets/repo-flowmap/VENDORED.md`.
+- Step 8 우선순위 체인을 6단으로 확장: archify → **repo-flowmap(번들)** → Structurizr →
+  Mermaid/PlantUML/D2 → source+텍스트. archify 설치 동의가 없거나 불가능하면 번들 repo-flowmap,
+  Node 자체가 없을 때만 Structurizr 체인으로 하락.
+- `references/repo-flowmap-adapter.md` 신설: C4 View → flowmap 매핑, ID 대응·meta 규칙,
+  validate/build 명령과 영수증(qa/repo-flowmap-*.json), 보고서 embed 계약, 한계(정적 SVG 없음,
+  임베드 드래그 제한).
+- 보고서 템플릿이 text/html 다이어그램을 `sandbox="allow-scripts"` iframe으로 렌더링하도록 확장
+  (다이어그램 카드 + 전체화면 다이얼로그 + 인쇄 CSS). 빌더는 기존 data URI 경로를 그대로 사용
+  (mimetypes가 .html → text/html 해석). SVG 위생 검사는 SVG에만 스코핑 유지.
+- renderer-adapters: 출력 계층·선택 규칙·내장 규칙·렌더링 보고 항목에 repo-flowmap 추가.
+  즉석 커스텀 렌더러 금지는 유지되며 repo-flowmap은 규정된 렌더러로 명시.
+
 ## 0.7.0 — 2026-09-14
 
 ### 수제 렌더러 허점 봉합 (2026-09-14 papercompany 산출물 회귀 방지)

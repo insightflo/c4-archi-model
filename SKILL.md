@@ -336,15 +336,16 @@ boundaries          자료·시간·도구·범위 경계
 
 ### Step 8 — 다이어그램 Source와 렌더링
 
-`references/renderer-adapters.md`와 `references/archify-adapter.md`를 따른다.
+`references/renderer-adapters.md`, `references/archify-adapter.md`, `references/repo-flowmap-adapter.md`를 따른다.
 
 우선순위:
 
 1. 사용자가 지정한 형식
 2. archify (기본 경로 — Node 18+와 archify 패키지가 가용하면 다이어그램 저작·렌더링에 archify를 쓴다)
-3. C4-aware model-as-code (Structurizr DSL)
-4. 현재 환경에서 검증 가능한 diagrams-as-code (Mermaid/PlantUML/D2)
-5. 렌더러가 없으면 source diagram + 텍스트 미리보기
+3. repo-flowmap (번들 폴백 기본 — `assets/repo-flowmap/`으로 스킬에 포함되어 별도 설치가 필요 없다. Node 18+만 있으면 archify 미가용 시 이 경로를 쓴다)
+4. C4-aware model-as-code (Structurizr DSL)
+5. 현재 환경에서 검증 가능한 diagrams-as-code (Mermaid/PlantUML/D2)
+6. 렌더러가 없으면 source diagram + 텍스트 미리보기
 
 archify 경로에서는:
 
@@ -355,10 +356,24 @@ archify 경로에서는:
 - 보고서 임베딩용 정적 SVG는 `scripts/extract_archify_svg.py`로 산출물에서 추출한다.
 - Node나 archify가 없으면 이유를 밝히고 사용자에게 archify 설치를 제안한다. 동의를 받으면
   사용 중인 에이전트의 skills 디렉터리(예: `~/.pi/agent/skills/archify`)에 archify 스킬 루트를
-  설치하고 `doctor`로 재판정한 뒤 기본 경로를 쓴다. 동의가 없을 때만 폴백 경로(3~5)로 내려간다.
-- 즉석에서 만든 커스텀 SVG·이미지 렌더러로 다이어그램을 대체하지 않는다. 렌더러는 archify 또는
-  폴백 체인(3~5)뿐이다. 수제 레이아웃은 결정적 품질 보장이 없다.
+  설치하고 `doctor`로 재판정한 뒤 기본 경로를 쓴다. 동의가 없거나 설치할 수 없으면
+  번들 폴백 경로(3)로 내려간다. Node 자체가 없을 때만 Structurizr 체인(4~6)으로 내려간다.
+- 즉석에서 만든 커스텀 SVG·이미지 렌더러로 다이어그램을 대체하지 않는다. 렌더러는 archify,
+  번들 repo-flowmap, 또는 폴백 체인(4~6)뿐이다. 수제 레이아웃은 결정적 품질 보장이 없다.
   이 위반은 Validation failure다 (2026-09-14 papercompany 산출물이 사례).
+- 기존 PlantUML/Mermaid 원본이 입력에 있어도 archify IR로 통역하지 않고
+  canonical model에서 새로 저작한다.
+
+repo-flowmap 경로에서는:
+
+- `references/repo-flowmap-adapter.md`를 따른다. 스킬에 번들된 repo-flowmap
+  (`assets/repo-flowmap/`)을 쓰므로 별도 설치 없이 Node 18+만으로 동작한다.
+- canonical model에서 View별 flowmap.json을 저작하고, 번들 `scripts/validate_flowmap.mjs`로
+  검증한 뒤 번들 `scripts/build_flowmap.mjs`로 인터랙티브 HTML을 만든다.
+  검증·빌드 영수증은 qa/에 저장한다.
+- 보고서 임베딩은 mimeType `text/html` 다이어그램(assetPath 지정)으로 하며, 기본 템플릿이
+  iframe(sandbox allow-scripts)으로 렌더링한다. 정적 SVG 추출은 이 경로에 없다.
+- 번들 `template.html`은 repo-flowmap 고정 계약상 수정하지 않는다.
 - 기존 PlantUML/Mermaid 원본이 입력에 있어도 archify IR로 통역하지 않고
   canonical model에서 새로 저작한다.
 
@@ -367,7 +382,7 @@ archify 경로에서는:
 - canonical JSON
 - View source diagram (archify IR 또는 어댑터별 source)
 - 사람이 읽는 설명
-- 렌더링 성공 여부 (archify `validate`/`deliver` 영수증 포함)
+- 렌더링 성공 여부 (archify `validate`/`deliver` 또는 repo-flowmap `validate`/`build` 영수증 포함)
 
 SVG를 HTML에 넣기 전 script, `foreignObject`, 외부 URL과 위험한 참조를 검사한다.
 archify 산출물에서 추출한 SVG도 같은 검사를 통과해야 한다.
@@ -537,7 +552,8 @@ c4-architecture/
 │  ├─ 03-dynamic-<scenario>.svg
 │  ├─ 04-component-<container>.architecture.json
 │  └─ 05-deployment-<environment>.architecture.json
-│  (폴백 경로에서는 같은 위치에 .puml/.mmd/.dsl source를 둔다)
+│  (repo-flowmap 경로에서는 <view>.flowmap.json과 <view>.flowmap.html을,
+│   기타 폴백 경로에서는 .puml/.mmd/.dsl source를 같은 위치에 둔다)
 ├─ explanation/
 │  ├─ beginner.md
 │  └─ expert.md
@@ -548,6 +564,8 @@ c4-architecture/
    ├─ archify-validate-<view>.json
    ├─ archify-deliver-<view>.json
    ├─ archify-svg-<view>.json
+   ├─ repo-flowmap-validate-<view>.json
+   ├─ repo-flowmap-build-<view>.json
    ├─ content-validation.json
    ├─ html-build-validation.json
    ├─ html-static-validation.json
@@ -618,7 +636,9 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 
 - Container의 parent가 Software System이 아님
 - archify 경로에서 `deliver` exit code가 0이 아닌데 렌더링 완료로 보고함
-- 규정된 렌더러(archify 또는 폴백 체인) 없이 즉석 작성한 커스텀 SVG·이미지 렌더러로 그림을 만듦
+- 규정된 렌더러(archify, 번들 repo-flowmap 또는 폴백 체인) 없이 즉석 작성한 커스텀
+  SVG·이미지 렌더러로 그림을 만듦
+- repo-flowmap 경로에서 `validate_flowmap.mjs`가 실패한 JSON을 빌드·보고함
 - 통과해 동결된 archify 후보를 임의로 다시 편집함 (freeze 위반)
 - archify 산출물에서 추출한 SVG가 `extract_archify_svg.py` 검사를 통과하지 못함
 - Component가 여러 Container에 걸쳐 있거나 잘못된 parent를 가짐

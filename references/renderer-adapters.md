@@ -25,6 +25,16 @@ architecture-model.json
 
 자세한 계약은 `references/archify-adapter.md`를 따른다.
 
+### 번들 폴백 렌더러 (repo-flowmap — archify 미가용 시 기본)
+
+```text
+<view>.flowmap.json   View별 파생 source (flowmap 스키마)
+<view>.flowmap.html   인터랙티브 아티팩트 (file:// 동작)
+```
+
+스킬에 `assets/repo-flowmap/`으로 번들되어 별도 설치가 필요 없다. Node 18+만 있으면
+동작한다. 자세한 계약은 `references/repo-flowmap-adapter.md`를 따른다.
+
 ### 폴백 model-as-code
 
 ```text
@@ -66,6 +76,9 @@ Draw.io
 
 archify 패키지와 Node 18+가 가용함 (doctor 통과)
 → archify JSON IR 저작·검증·deliver (기본 경로)
+
+archify 미가용이고 Node 18+가 있음 (사용자가 다른 형식을 지정하지 않음)
+→ 번들 repo-flowmap으로 flowmap.json 저작·검증·빌드 (번들 폴백 기본)
 
 C4-aware 렌더러와 검증기가 사용 가능함
 → model-as-code 생성·검증 후 렌더링
@@ -204,6 +217,9 @@ html/report-data.json
 ### 내장 규칙
 
 - 렌더링된 SVG를 우선해 data URI로 내장한다.
+- text/html 인터랙티브 다이어그램(repo-flowmap 산출물)은 data URI iframe으로 내장한다.
+  기본 템플릿이 `mimeType === 'text/html'` 다이어그램을 `sandbox="allow-scripts"` iframe으로
+  렌더링한다. iframe 내부 스크립트는 정상 내용이므로 SVG 위생 검사를 적용하지 않는다.
 - PNG만 있으면 충분한 해상도의 PNG를 내장한다.
 - JSON, PUML, DSL, Markdown 같은 텍스트 원본을 접을 수 있는 영역에 내장한다.
 - 외부 CDN, 외부 JavaScript, 외부 CSS, 외부 폰트, 원격 PlantUML 서버를 요구하지 않는다.
@@ -261,6 +277,10 @@ Archify IR authored: view 목록
 Archify validate receipt: pass/fail/not run per view
 Archify deliver: exit 0/fail per view
 Archify SVG extraction: pass/fail per view
+Repo-flowmap availability: bundled-ok/node-missing/broken (사유)
+Repo-flowmap validate: pass/fail/not run per view
+Repo-flowmap build: exit 0/fail per view
+Repo-flowmap report embed: embedded/missing per view
 Canonical model schema validation: pass/fail/not run
 Structurizr DSL parse: pass/fail/not run
 Diagram source syntax check: pass/fail/not run
