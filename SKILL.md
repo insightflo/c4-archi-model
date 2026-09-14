@@ -368,11 +368,13 @@ repo-flowmap 경로에서는:
 
 - `references/repo-flowmap-adapter.md`를 따른다. 스킬에 번들된 repo-flowmap
   (`assets/repo-flowmap/`)을 쓰므로 별도 설치 없이 Node 18+만으로 동작한다.
-- canonical model에서 View별 flowmap.json을 저작하고, 번들 `scripts/validate_flowmap.mjs`로
-  검증한 뒤 번들 `scripts/build_flowmap.mjs`로 인터랙티브 HTML을 만든다.
-  검증·빌드 영수증은 qa/에 저장한다.
+- canonical model에서 View별 flowmap.json을 저작하고, `scripts/build_repo_flowmap.py`로
+  번들 검증기·빌더를 실행해 HTML과 qa/ 영수증을 함께 만든다. 명령·경로 규칙은 어댑터 §3을 따른다.
+  입력/출력 SHA-256(파일 변경 확인값)은 해당 실행 중 기록하며, 기존 산출물의 사후 해시 보충은 금지한다.
 - 보고서 임베딩은 mimeType `text/html` 다이어그램(assetPath 지정)으로 하며, 기본 템플릿이
-  iframe(sandbox allow-scripts)으로 렌더링한다. 정적 SVG 추출은 이 경로에 없다.
+  iframe(sandbox allow-scripts)으로 렌더링한다. 번들 래퍼는 인쇄 SVG를 만들지 않는다.
+  별도 브라우저 추출기와 `repo-flowmap-svg-<view>.json` 영수증이 없으면 printAssetPath를 생략하고
+  인쇄 시 그림 누락 한계를 밝힌다. 수동 다운로드 파일만으로 인쇄 자산을 등록하지 않는다.
 - 번들 `template.html`은 repo-flowmap 고정 계약상 수정하지 않는다.
 - 기존 PlantUML/Mermaid 원본이 입력에 있어도 archify IR로 통역하지 않고
   canonical model에서 새로 저작한다.
@@ -566,6 +568,7 @@ c4-architecture/
    ├─ archify-svg-<view>.json
    ├─ repo-flowmap-validate-<view>.json
    ├─ repo-flowmap-build-<view>.json
+   ├─ repo-flowmap-svg-<view>.json   (별도 인쇄 SVG 추출 시)
    ├─ content-validation.json
    ├─ html-build-validation.json
    ├─ html-static-validation.json
@@ -641,8 +644,10 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 - repo-flowmap 경로에서 `validate_flowmap.mjs`가 실패한 JSON을 빌드·보고함
 - 다이어그램 입력(archify IR·flowmap)이 canonical model과 불일치함 — `validate_all.py`의
   DIA-* 검사가 강제한다
-- 규정된 렌더러 영수증이 없거나 산출물 해시가 영수증과 불일치함 — `validate_all.py`의
-  RCP-* 검사가 강제한다
+- 규정된 렌더러 영수증이 없거나 성공 상태·입력 경로/해시·산출물 해시가 불일치함 —
+  `validate_all.py`의 RCP-* 검사가 강제한다. 바이트 수만 있는 구 영수증은 실제 재빌드한다.
+  SVG 추출 영수증에는 sourceSha256이 필수다. 화면·인쇄 자산 및 data URI는 같은 View의
+  검증된 source → validate → build/deliver → extract(해당 시) 연결에 속해야 한다.
 - 통과해 동결된 archify 후보를 임의로 다시 편집함 (freeze 위반)
 - archify 산출물에서 추출한 SVG가 `extract_archify_svg.py` 검사를 통과하지 못함
 - Component가 여러 Container에 걸쳐 있거나 잘못된 parent를 가짐
@@ -729,6 +734,7 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 - `scripts/validate_html_report_data.py`
 - `scripts/validate_html_assets.py`
 - `scripts/extract_archify_svg.py`
+- `scripts/build_repo_flowmap.py`
 - `scripts/build_html_report.py`
 - `scripts/build_output_manifest.py`
 - `scripts/validate_package.py`

@@ -150,11 +150,18 @@ def malicious_svg_test() -> TestResult:
 def strict_builder_test() -> TestResult:
     with tempfile.TemporaryDirectory(prefix="c4-builder-") as temp:
         temp_root = Path(temp)
-        shutil.copytree(EXAMPLES, temp_root / "examples")
-        model_path = temp_root / "examples/ordering-system.architecture-model.json"
-        model = load_json(model_path)
-        next(item for item in model["elements"] if item["id"] == "web-app")["parentId"] = "customer"
-        model_path.write_text(json.dumps(model, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        report_data = load_json(EXAMPLES / "html-report-data.example.json")
+        # Test the canonical-model gate using the supported text fallback, not
+        # legacy SVGs or unrelated renderer examples without runtime receipts.
+        report_data["diagrams"] = []
+        for relative_path in report_data["build"]["expectedFiles"]:
+            target = temp_root / relative_path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(SKILL_ROOT / relative_path, target)
+        (temp_root / "examples/html-report-data.example.json").write_text(
+            json.dumps(report_data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
+        )
+        baseline_output = temp_root / "baseline.html"
         output = temp_root / "index.html"
         command = [
             sys.executable,
@@ -162,17 +169,40 @@ def strict_builder_test() -> TestResult:
             "--root", str(temp_root),
             "--data", "examples/html-report-data.example.json",
             "--template", str(SKILL_ROOT / "assets/html-report-template.html"),
-            "--output", str(output),
             "--skill-root", str(SKILL_ROOT),
         ]
-        completed = subprocess.run(command, text=True, capture_output=True, check=False)
-        passed = completed.returncode != 0 and not output.exists()
-        detail = (completed.stdout + "\n" + completed.stderr).strip()[-1200:]
+        baseline = subprocess.run(
+            [*command, "--output", str(baseline_output)],
+            text=True, capture_output=True, check=False,
+        )
+        baseline_observed = f"baselineExit={baseline.returncode}, baselineOutputExists={baseline_output.exists()}"
+        if baseline.returncode != 0 or not baseline_output.is_file():
+            return TestResult(
+                name="strict-builder-rejection",
+                passed=False,
+                expected="baseline exit=0 and HTML before mutation",
+                observed=baseline_observed,
+                detail=(baseline.stdout + "\n" + baseline.stderr).strip()[-1200:],
+            )
+
+        model_path = temp_root / "examples/ordering-system.architecture-model.json"
+        model = load_json(model_path)
+        next(item for item in model["elements"] if item["id"] == "web-app")["parentId"] = "customer"
+        model_path.write_text(json.dumps(model, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        # Separate paths ensure baseline HTML cannot be mistaken for mutation output.
+        completed = subprocess.run(
+            [*command, "--output", str(output)],
+            text=True, capture_output=True, check=False,
+        )
+        diagnostics = completed.stdout + "\n" + completed.stderr
+        expected_error = "[ERROR] MOD-003 " in diagnostics
+        passed = completed.returncode != 0 and not output.exists() and expected_error
+        detail = diagnostics.strip()[-1200:]
         return TestResult(
             name="strict-builder-rejection",
             passed=passed,
-            expected="non-zero exit and no HTML",
-            observed=f"exit={completed.returncode}, outputExists={output.exists()}",
+            expected="baseline exit=0 and HTML; mutation non-zero exit, no HTML, MOD-003",
+            observed=f"{baseline_observed}; exit={completed.returncode}, outputExists={output.exists()}, MOD-003={expected_error}",
             detail=detail,
         )
 
@@ -242,6 +272,8 @@ def receipt_artifact_tamper_test() -> TestResult:
             "schemaVersion": 1,
             "ok": True,
             "command": "deliver",
+            "input": "diagrams/ctx.architecture.json",
+            "specification": {"sha256": hashlib.sha256((root / "diagrams" / "ctx.architecture.json").read_bytes()).hexdigest()},
             "output": "diagrams/ctx.html",
             "artifact": {"sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(), "bytes": artifact.stat().st_size},
         }

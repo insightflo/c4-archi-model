@@ -307,7 +307,8 @@ def main() -> int:
 
     if not html_path.is_file():
         return _fail(receipt_path, "ARCHIFY-SVG-001", f"artifact not found: {html_path}")
-    html = html_path.read_text(encoding="utf-8")
+    source_bytes = html_path.read_bytes()
+    html = source_bytes.decode("utf-8")
 
     blocks = SVG_BLOCK_RE.findall(html)
     if len(blocks) != 1:
@@ -387,6 +388,7 @@ def main() -> int:
     receipt = {
         "ok": True,
         "source": str(html_path),
+        "sourceSha256": hashlib.sha256(source_bytes).hexdigest(),
         "output": str(out_path),
         "scopeId": scope_id,
         "theme": theme,

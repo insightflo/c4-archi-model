@@ -74,7 +74,26 @@ python3 scripts/validate_all.py \
 
 # 회귀 테스트
 python3 scripts/run_regression_tests.py
+python3 -m unittest discover -s tests -v
 ```
+
+---
+
+## 렌더링 영수증 재생성
+
+구 영수증에 해시만 덧붙이지 말고 실제 렌더링을 다시 실행한다. 번들 repo-flowmap은
+다음 명령이 검증·빌드와 입력/출력 SHA-256(파일 변경 확인값) 기록을 함께 수행한다:
+
+```bash
+python3 scripts/build_repo_flowmap.py --root <output-root> \
+  --input diagrams/<view>.flowmap.json --output diagrams/<view>.flowmap.html
+```
+
+Archify는 native `validate`/`deliver --json` 결과를 보존하고
+`extract_archify_svg.py --json`으로 다시 추출한다. 추출 영수증의 `sourceSha256`도 필수다.
+화면·인쇄 자산은 같은 View의 검증된 파일이어야 하며 바이트 수만 기록한 영수증은 거부한다.
+실행 예제: [receipt-flowmap](examples/receipt-flowmap/README.md).
+상세 계약: [Archify](references/archify-adapter.md), [repo-flowmap](references/repo-flowmap-adapter.md).
 
 ---
 

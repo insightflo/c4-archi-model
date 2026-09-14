@@ -96,19 +96,24 @@
       "size": 11193
     },
     {
+      "path": "LESSONS.md",
+      "sha256": "ccdac828492e1340378bc57c2c7bd71cd9c6ca52edb4d278281ad82c252748b1",
+      "size": 1465
+    },
+    {
       "path": "LICENSE",
       "sha256": "8e9a116e11b6bca124f07347be76122eb63975a2a001dc77be4e58d3577d31d6",
       "size": 1062
     },
     {
       "path": "README.md",
-      "sha256": "a276dbb5c379af76d9562a8d2660b6a30a7faaccfd0ef6bdc33a77967ee321c0",
-      "size": 3413
+      "sha256": "643dae14d7f6cde7611dfe5d719c6cdf5baa712f77d8280c788a76cbd8832b0f",
+      "size": 4353
     },
     {
       "path": "SKILL.md",
-      "sha256": "4f35027bc569a3ef7fffc183c24d29ce00ceda0cc563370df6dbb8c0577deb16",
-      "size": 31139
+      "sha256": "1ec35ef777df55966d8f680053fc232df0cf7cfaa80d3ec93f12d400f5abae0c",
+      "size": 31932
     },
     {
       "path": "VERSION",
@@ -271,14 +276,24 @@
       "size": 1648
     },
     {
+      "path": "examples/receipt-flowmap/README.md",
+      "sha256": "ffa1553677d147d12f1168c79716f95b355598dafed45ffed5a6ff9addbc473b",
+      "size": 2050
+    },
+    {
+      "path": "examples/receipt-flowmap/diagrams/context.flowmap.json",
+      "sha256": "caea9b5d314281d829a206b4f037901b25300933af74d8a611e44b84054eb54b",
+      "size": 622
+    },
+    {
       "path": "references/analysis-profiles.md",
       "sha256": "3ef6b420d7159a6095fa1e2198b504d4fdc45c47d1acbe4b09b0d7eb281f1ffb",
       "size": 2120
     },
     {
       "path": "references/archify-adapter.md",
-      "sha256": "f6aca8506bc9f98562437016b360a60b807ec35b1e32fb1449d5fd5efb4bedc3",
-      "size": 12357
+      "sha256": "aedf682fd590b0d6d5342a8d544dcfbb831319cdc0d41b90d777b6fffa52d237",
+      "size": 13556
     },
     {
       "path": "references/architecture-model.schema.json",
@@ -317,8 +332,8 @@
     },
     {
       "path": "references/html-report-data.schema.json",
-      "sha256": "73f6ddffed4a801c270c25bc77bcb03e023aaa7f14fc4e0c38859e207506f98a",
-      "size": 14076
+      "sha256": "dc2966f8321dc7e690da2770391b274e93af877683c5a220b4224f09d66183c5",
+      "size": 14050
     },
     {
       "path": "references/human-understanding-gates.md",
@@ -347,8 +362,8 @@
     },
     {
       "path": "references/repo-flowmap-adapter.md",
-      "sha256": "cb19fc3cea1c1d22ce9eae03859a81ed117bbc76f42a7e66cf1e1a303c54e372",
-      "size": 6714
+      "sha256": "657f762e201c7e1f95631ff05da7b43cf10fcb7b860b0d13c545650be1464511",
+      "size": 8240
     },
     {
       "path": "references/scene-frame-reporting.md",
@@ -362,8 +377,8 @@
     },
     {
       "path": "references/validation-checklist.md",
-      "sha256": "b9a1112fb9ec5a21229c47850203b145c22ebac3db0194f19ac2602f946c66b2",
-      "size": 6769
+      "sha256": "04044839cd1f9d60f7d0c351937deeecbaa5451266041925a733bff82f51117a",
+      "size": 8453
     },
     {
       "path": "references/visual-budgets.md",
@@ -377,13 +392,18 @@
     },
     {
       "path": "scripts/build_html_report.py",
-      "sha256": "2672f833140673836bc7a7a4f8396f66c414eaf5761a4261eb2ba7c058da9b8f",
-      "size": 23940
+      "sha256": "46fb5a799d1216618c8d6c408fda909eb6b7883eff1ae6b575e449bdff6c34f5",
+      "size": 24029
     },
     {
       "path": "scripts/build_output_manifest.py",
       "sha256": "404422ebc2c6c42970ed240a367bb8667307965f3a536b69a241be2817455d17",
       "size": 3474
+    },
+    {
+      "path": "scripts/build_repo_flowmap.py",
+      "sha256": "9ca9000035ccde6020888fab7703030a6271c2281c879411aaa0c3467a49b3d7",
+      "size": 4966
     },
     {
       "path": "scripts/c4_validation.py",
@@ -397,8 +417,8 @@
     },
     {
       "path": "scripts/extract_archify_svg.py",
-      "sha256": "8502ffae285a78debc55260f83034cbbbb8ccf40739b07caf237f2cfd7e6a5da",
-      "size": 15678
+      "sha256": "36e810fd76c2fadaf04abe941befa95f2fe40000cfc0195c26498824de2ea13d",
+      "size": 15777
     },
     {
       "path": "scripts/generate_manifest.py",
@@ -407,8 +427,8 @@
     },
     {
       "path": "scripts/run_regression_tests.py",
-      "sha256": "79e270d6a4adf989f29ffbf9f3e4025353e7a81d95159a67fe19ea7869b7794d",
-      "size": 13381
+      "sha256": "03d7bc1e0a1a648b1f1136503d222fad8500fb8f4c3d9d81487c049f6f66fca5",
+      "size": 15222
     },
     {
       "path": "scripts/schema_runtime.py",
@@ -417,8 +437,8 @@
     },
     {
       "path": "scripts/validate_all.py",
-      "sha256": "e5b39217e3dcc6b3fa853ab4ea62d887b06ee3e860e9649085cd9cab6d6db875",
-      "size": 2209
+      "sha256": "1b7504b60b224908f9e4038d6051d0195c938f6450200823268bad6444fb818c",
+      "size": 3733
     },
     {
       "path": "scripts/validate_architecture_model.py",
@@ -437,8 +457,8 @@
     },
     {
       "path": "scripts/validate_diagram_inputs.py",
-      "sha256": "f7d38b96a78ef091ccab9a22a9c86f27827a93b441c497450f374ae8065f366f",
-      "size": 16834
+      "sha256": "8e8510592bbf75e65bd0200965d956148f3228fb700b85cc66718329b8d40c69",
+      "size": 20551
     },
     {
       "path": "scripts/validate_evidence_ledger.py",
@@ -467,13 +487,43 @@
     },
     {
       "path": "scripts/validate_render_receipts.py",
-      "sha256": "18695339a2d1b32ff51e7492cad0025c7e04a02d9aafdb7b3923178e406bc747",
-      "size": 16855
+      "sha256": "c259cd0c5d7ebe1c71ddfbf6298c12eab0716b5ed2072337ab67438c748995db",
+      "size": 20996
     },
     {
       "path": "scripts/validate_skill_package.py",
       "sha256": "db9557f3963f036c81286fd5adeea7647f15181b09bfd924b499822160a10d43",
       "size": 1339
+    },
+    {
+      "path": "tests/test_diagram_identity_rereview.py",
+      "sha256": "9a61b9faaca84d73727b1a80d962f6df64dc5873d3fe129ba923cde12a736e89",
+      "size": 11572
+    },
+    {
+      "path": "tests/test_diagram_inputs_review.py",
+      "sha256": "cfd6a0c6185d27461a955366e40bb35be6bd9ebe0fa71528e8c11e29736fa5e7",
+      "size": 11268
+    },
+    {
+      "path": "tests/test_receipt_producers_review.py",
+      "sha256": "18378ff6d3e4eee7bc9689cde2a723ce7b060bf573666501064458e55f390d9e",
+      "size": 6028
+    },
+    {
+      "path": "tests/test_receipt_rereview.py",
+      "sha256": "fa79b2b4348b71b22b8e3afb3e42e648194876bb671592f688995f912c02c549",
+      "size": 13478
+    },
+    {
+      "path": "tests/test_render_receipts_review.py",
+      "sha256": "e35c56b38807ba62247d47f50990e2dcd75c4f6e5cc7ff902d436e3ce51d680d",
+      "size": 9430
+    },
+    {
+      "path": "tests/test_report_integration_review.py",
+      "sha256": "3af459ebb44c20aab37d5116425f10e88e1c44f673beaa88ac83686b6be8943d",
+      "size": 8321
     }
   ]
 }

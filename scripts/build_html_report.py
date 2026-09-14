@@ -27,8 +27,6 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from c4_validation import (
     ValidationReport,
-    aggregate_reports,
-    bundle_reports,
     load_json,
     print_report,
     safe_package_path,
@@ -36,6 +34,8 @@ from c4_validation import (
     validate_svg,
     write_report,
 )
+
+from validate_all import validate_bundle
 
 TOKEN = "__REPORT_DATA_JSON__"
 TEXT_EXTENSIONS = {
@@ -349,36 +349,36 @@ def embed_assets(root: Path, data: dict[str, Any], max_bytes: int, report: Valid
     for index, diagram in enumerate(data.get("diagrams", [])):
         if diagram.get("dataUri"):
             diagram["assetStatus"] = "embedded"
-            continue
-        asset_path = diagram.get("assetPath")
-        if not asset_path:
-            message = "diagram has neither assetPath nor dataUri"
-            if diagram.get("required", True):
-                report.error("HTML-ASSET-001", f"$.diagrams[{index}]", message)
-            else:
-                report.warning("HTML-ASSET-001", f"$.diagrams[{index}]", message)
-            diagram["assetStatus"] = "missing"
-            continue
-        try:
-            path = safe_package_path(root, asset_path)
-        except ValueError as exc:
-            report.error("HTML-ASSET-002", f"$.diagrams[{index}].assetPath", str(exc))
-            continue
-        if not path.is_file():
-            if diagram.get("required", True):
-                report.error("HTML-ASSET-003", asset_path, "required diagram asset not found")
-            else:
-                report.warning("HTML-ASSET-003", asset_path, "optional diagram asset not found")
-            diagram["assetStatus"] = "missing"
-            continue
-        if path.suffix.lower() == ".svg":
-            report.merge(validate_svg(path))
-        try:
-            diagram["dataUri"] = data_uri(path, diagram.get("mimeType"), max_bytes)
-            diagram["sourcePath"] = asset_path
-            diagram["assetStatus"] = "embedded"
-        except (OSError, BuildError) as exc:
-            report.error("HTML-ASSET-004", asset_path, str(exc))
+        else:
+            asset_path = diagram.get("assetPath")
+            if not asset_path:
+                message = "diagram has neither assetPath nor dataUri"
+                if diagram.get("required", True):
+                    report.error("HTML-ASSET-001", f"$.diagrams[{index}]", message)
+                else:
+                    report.warning("HTML-ASSET-001", f"$.diagrams[{index}]", message)
+                diagram["assetStatus"] = "missing"
+                continue
+            try:
+                path = safe_package_path(root, asset_path)
+            except ValueError as exc:
+                report.error("HTML-ASSET-002", f"$.diagrams[{index}].assetPath", str(exc))
+                continue
+            if not path.is_file():
+                if diagram.get("required", True):
+                    report.error("HTML-ASSET-003", asset_path, "required diagram asset not found")
+                else:
+                    report.warning("HTML-ASSET-003", asset_path, "optional diagram asset not found")
+                diagram["assetStatus"] = "missing"
+                continue
+            if path.suffix.lower() == ".svg":
+                report.merge(validate_svg(path))
+            try:
+                diagram["dataUri"] = data_uri(path, diagram.get("mimeType"), max_bytes)
+                diagram["sourcePath"] = asset_path
+                diagram["assetStatus"] = "embedded"
+            except (OSError, BuildError) as exc:
+                report.error("HTML-ASSET-004", asset_path, str(exc))
 
         print_asset = diagram.get("printAssetPath")
         if not print_asset:
@@ -394,7 +394,7 @@ def embed_assets(root: Path, data: dict[str, Any], max_bytes: int, report: Valid
         if print_path.suffix.lower() == ".svg":
             report.merge(validate_svg(print_path))
         try:
-            diagram["printDataUri"] = data_uri(print_path, "image/svg+xml", max_bytes)
+            diagram["printDataUri"] = data_uri(print_path, None, max_bytes)
             diagram["printSourcePath"] = print_asset
         except (OSError, BuildError) as exc:
             report.warning("HTML-ASSET-004", print_asset, f"print asset not embedded: {exc}")
@@ -456,8 +456,8 @@ def main() -> int:
         if not root.is_dir():
             raise BuildError(f"package root is not a directory: {root}")
         report_data = load_json(data_path)
-        bundle, reports = bundle_reports(root, skill_root, report_data)
-        validation = aggregate_reports("c4-html-build", reports)
+        bundle, validation = validate_bundle(root, skill_root, report_data, data_path)
+        validation.name = "c4-html-build"
         if args.validation_output:
             write_report(args.validation_output, validation)
         if validation.errors and not args.lenient:

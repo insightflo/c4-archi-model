@@ -47,6 +47,9 @@
 - [ ] Dynamic View에는 step이 있고 order가 1..N 연속이다.
 - [ ] Dynamic step relationship이 같은 View의 relationshipIds에 있다.
 - [ ] 비-Dynamic View에는 step이 없다.
+- [ ] 다이어그램 입력과 렌더러 영수증은 같은 파일명 해석 규칙을 쓴다. 점을 포함한 View ID를 보존하고, 정확한 ID를 별칭보다 우선하며, 모호한 별칭은 거부한다.
+- [ ] 동명 요소는 canonical ID로 구분한다. 렌더러 임시 ID는 이름으로 한 요소만 식별할 수 있을 때 사용한다.
+- [ ] 관계 검사는 canonical ID·방향·동적 순서를 확인한다. 관계 ID가 없고 끝점이 같은 관계가 여럿이면 표시 라벨(flowmap의 `call`)로 구분한다. 명시적 관계 ID가 있을 때 표시 문구와 모델 설명의 의미 일치까지 보장하지는 않으므로 사람이 확인한다.
 - [ ] 각 View는 답하는 질문과 의도적으로 보여주지 않는 것을 설명한다.
 - [ ] 시각 예산 초과 경고를 확인하고 분리 여부를 결정했다.
 
@@ -87,8 +90,16 @@
 
 - [ ] SVG가 parseable하다.
 - [ ] SVG에 script, javascript URL, foreignObject, 외부 asset URL이 없다.
-- [ ] archify 경로를 썼다면: deliver exit 0 영수증이 qa/에 있고, 통과 후보를 재편집하지
-      않았고, 임베딩 SVG는 extract_archify_svg.py 추출 영수증과 함께 있다.
+- [ ] archify 경로를 썼다면: deliver 성공 영수증이 qa/에 있고, input/specification.sha256과
+      output/artifact.sha256이 현재 파일에 일치한다. 임베딩 SVG는 sourceSha256을 포함한
+      extract_archify_svg.py 추출 영수증과 함께 있다.
+- [ ] repo-flowmap 경로를 썼다면: build_repo_flowmap.py가 검증·빌드 성공과 입력/출력 해시를
+      같은 실행에서 기록했다. 구 영수증을 사후 보충하지 않았다. 인쇄 SVG를 연결했다면
+      repo-flowmap-svg-<view>.json에 원본 HTML 해시·출력 SVG 해시가 추출 시점에 기록되었다.
+- [ ] 화면·인쇄 자산 및 내장 data URI는 모두 같은 canonical View의 검증된 산출물이다.
+      해시 검증과 렌더러 실행 진위 증명을 혼동하지 않았다.
+- [ ] validate JSON에 입력 연결 정보를 제공했다면 `input`과 `specification.sha256`을 함께 기록하고 현재 입력에 맞췄다. `viewId`를 제공했다면 해당 View와 일치한다.
+- [ ] 명시적 인쇄 자산은 SVG/PNG/JPEG/GIF/WebP/BMP 이미지이며 확장자·MIME·바이트 형식이 맞는다. 검증된 HTML도 인쇄 이미지로 사용할 수 없다.
 - [ ] archify 산출물에서 추출한 SVG의 스타일이 고유 id로 스코핑되어 있다.
 - [ ] HTML에 외부 script, CSS, font, image runtime 의존성이 없다.
 - [ ] `__REPORT_DATA_JSON__`, `{{PLACEHOLDER}}`, 미치환 token이 없다.

@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "project": "receipt-contract-example",
+    "title": "Receipt generation example",
+    "last_analyzed_commit": "example-not-a-repository-analysis",
+    "basis": "Synthetic producer fixture; not a canonical architecture analysis"
+  },
+  "layers": [
+    {"id": "client", "label": "Client"},
+    {"id": "system", "label": "System"}
+  ],
+  "nodes": [
+    {"id": "user", "label": "User", "layer": "client"},
+    {"id": "api", "label": "API", "layer": "system"}
+  ],
+  "flows": [
+    {
+      "id": "request",
+      "title": "Request",
+      "steps": [{"from": "user", "to": "api", "call": "HTTPS"}]
+    }
+  ]
+}

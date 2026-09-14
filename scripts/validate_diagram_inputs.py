@@ -3,21 +3,25 @@
 
 External review P0-1 (2026-09): nothing verified that rendered diagram inputs still
 describe the canonical model — the pipeline relied on agent discipline only. This
-validator re-derives, per discovered diagram source, the expected element name set,
-relationship direction pairs, and dynamic step order from the canonical model, and
-compares them with the diagram input. Matching is name-based (renderer-local IDs are
-irrelevant), so it works for every renderer that consumes the documented source
-formats. Node labels may carry renderer decorations ("공개 독자 [Person]") or human
-shortenings ("CMS 논리 DB" for canonical "CMS 전용 논리 DB"); a label resolves to the
-unique canonical name it equals, contains, is contained by, or is a token subset of.
+validator re-derives, per discovered diagram source, the expected element ID set,
+relationship identities, and dynamic step order from the canonical model, and
+compares them with the diagram input. Element labels must equal canonical names
+(case/whitespace normalization and known C4 type suffixes are allowed). Semantic
+shortenings and arbitrary suffixes are not aliases. File stems retain their separate
+human-friendly alias policy. Relationships resolve by relationshipId, a canonical
+edge id, or an exact description; endpoints alone suffice only when unambiguous.
+Canonical node IDs are preserved and their names verified. Renderer-local node IDs
+resolve by name only when unambiguous within the View. This is structural identity
+validation, not equality of all display prose when an identity is already explicit.
 
 Discovered sources (under ``<root>/diagrams/``):
   * archify IR: ``*.architecture.json | *.sequence.json | *.workflow.json | *.dataflow.json | *.lifecycle.json``
   * flowmap:    ``*.flowmap.json``
 
-A file stem (name up to the first ``.``) maps to a canonical view by name: a leading
-numeric index prefix is stripped (``01-system-context`` -> ``system-context``) and the
-result must resolve to exactly one view id (exact match or unique token-subset match).
+A file stem removes only the recognized full source suffix, preserving embedded dots.
+Raw View IDs take priority over normalized aliases and unique token-subset matches.
+A leading numeric index prefix is stripped only as a fallback with no matches;
+ambiguous aliases fail rather than falling through to another interpretation.
 
 Checks (documented contract):
   DIA-001  ERROR  diagram source cannot be tied to a canonical view (unknown or
@@ -27,10 +31,10 @@ Checks (documented contract):
   DIA-003  ERROR  a diagram node label resolves to no (or ambiguously many) canonical
                    element names — an invented node
   DIA-004  ERROR  two or more diagram nodes resolve to the same canonical element
-  DIA-005  ERROR  static view: directed relationship (source name, destination name)
-                   pairs differ from the diagram edges (missing or extra pairs)
-  DIA-006  ERROR  dynamic view: diagram edge sequence does not match the canonical
-                   step order (the relationshipId order of view.steps)
+  DIA-005  ERROR  static view: relationship identities/directions differ, or an edge
+                   cannot be unambiguously identified
+  DIA-006  ERROR  dynamic view: diagram relationship sequence does not match canonical
+                   steps sorted by numeric order, or an edge identity is ambiguous
   DIA-007  ERROR  a diagram edge references a node id that does not exist in the diagram
 
 Packages without any diagram input (text-fallback path) PASS. A package may render a
@@ -81,14 +85,20 @@ def label_tokens(value: Any) -> frozenset:
     return frozenset(normalize_label(value).split())
 
 
+def semantic_label(value: str) -> str:
+    """Normalize presentation whitespace/case, not meaning or punctuation."""
+    return " ".join(value.casefold().split())
+
+
+_TYPE_SUFFIX = re.compile(
+    r"\s+(?:\[(?:person|software\s*system|container|component|deployment\s*node|"
+    r"infrastructure\s*node)\]|\((?:person|software\s*system|container|component|"
+    r"deployment\s*node|infrastructure\s*node)\))$", re.IGNORECASE)
+
+
 def name_matches(canonical: str, label: str) -> bool:
-    a, b = normalize_label(canonical), normalize_label(label)
-    if not a or not b:
-        return False
-    if a == b or a in b or b in a:
-        return True
-    ta, tb = label_tokens(canonical), label_tokens(label)
-    return bool(ta and tb and (ta <= tb or tb <= ta))
+    a, b = semantic_label(canonical), semantic_label(label)
+    return bool(a and b and (a == b or a == _TYPE_SUFFIX.sub("", b)))
 
 
 def stem_key(stem: str) -> str:
@@ -97,20 +107,43 @@ def stem_key(stem: str) -> str:
     return match.group(1).strip() if match else stem.strip()
 
 
-def alias_match(stem: str, candidates: list) -> str | None:
-    """Resolve `stem` to the one candidate that is equal or a unique token-subset match."""
+def source_stem(path: Path) -> str:
+    """Remove a recognized full diagram-source suffix without truncating dotted IDs."""
+    for suffix in (FLOWMAP_SUFFIX, *ARCHIFY_IR_SUFFIXES):
+        if path.name.endswith(suffix):
+            return path.name[:-len(suffix)]
+    return path.name
+
+
+def _alias_candidates(stem: str, candidates: list[str]) -> list[str]:
+    if stem in candidates:
+        return [stem]
     target = normalize_label(stem)
-    exact = [c for c in candidates if normalize_label(c) == target]
-    if len(exact) == 1:
-        return exact[0]
+    exact = sorted({c for c in candidates if normalize_label(c) == target})
+    if exact:
+        return exact
     target_tokens = set(target.split())
     matches = []
     for candidate in candidates:
         candidate_tokens = set(normalize_label(candidate).split())
         if target_tokens and candidate_tokens and (target_tokens <= candidate_tokens or candidate_tokens <= target_tokens):
             matches.append(candidate)
-    unique = sorted(set(matches))
-    return unique[0] if len(unique) == 1 else None
+    return sorted(set(matches))
+
+
+def alias_match(stem: str, candidates: list[str]) -> str | None:
+    """Resolve raw ID first, then an unambiguous normalized or token-subset alias."""
+    matches = _alias_candidates(stem, candidates)
+    return matches[0] if len(matches) == 1 else None
+
+
+def resolve_view(stem: str, view_ids: list[str]) -> str | None:
+    """Shared DIA/RCP View resolution; ambiguity never triggers a fallback."""
+    for candidate_stem in dict.fromkeys((stem, stem_key(stem))):
+        matches = _alias_candidates(candidate_stem, view_ids)
+        if matches:
+            return matches[0] if len(matches) == 1 else None
+    return None
 
 
 def discover_inputs(root: Path) -> list:
@@ -173,51 +206,66 @@ def _parse_flowmap(data: dict):
     """flowmap.json: nodes[] + flows[] with nested ordered steps[]."""
     nodes = data.get("nodes") if isinstance(data.get("nodes"), list) else []
     ordered_edges: list = []
-    flows = data.get("flows") if isinstance(data.get("flows"), list) else []
-    for flow in flows:
+    flows = data.get("flows")
+    for flow in flows if isinstance(flows, list) else []:
         if not isinstance(flow, dict):
             continue
-        steps = flow.get("steps") if isinstance(flow.get("steps"), list) else []
-        for step in steps:
+        steps = flow.get("steps")
+        for step in steps if isinstance(steps, list) else []:
             if isinstance(step, dict):
                 ordered_edges.append(step)
     return nodes or [], ordered_edges
 
 
-def _view_signature(view: dict, elements_by_id: dict, rels_by_id: dict):
-    names: list = []
-    for eid in view.get("elementIds", []):
-        element = elements_by_id.get(eid)
-        if isinstance(element, dict) and isinstance(element.get("name"), str):
-            names.append(element["name"])
-    expected_counts = Counter(names)
-    rel_pairs: Counter = Counter()
-    for rid in view.get("relationshipIds", []):
-        rel = rels_by_id.get(rid)
-        if not isinstance(rel, dict):
-            continue
-        source = elements_by_id.get(rel.get("sourceId"))
-        destination = elements_by_id.get(rel.get("destinationId"))
-        if (isinstance(source, dict) and isinstance(destination, dict)
-                and isinstance(source.get("name"), str) and isinstance(destination.get("name"), str)):
-            rel_pairs[(source["name"], destination["name"])] += 1
-    step_pairs: list = []
-    for step in view.get("steps", []):
-        if not isinstance(step, dict):
-            continue
-        rel = rels_by_id.get(step.get("relationshipId"))
-        if not isinstance(rel, dict):
-            continue
-        source = elements_by_id.get(rel.get("sourceId"))
-        destination = elements_by_id.get(rel.get("destinationId"))
-        if (isinstance(source, dict) and isinstance(destination, dict)
-                and isinstance(source.get("name"), str) and isinstance(destination.get("name"), str)):
-            step_pairs.append((source["name"], destination["name"]))
-    return expected_counts, rel_pairs, step_pairs
+def _view_signature(view: dict) -> tuple[Counter[str], Counter[str], list[str | None]]:
+    expected_counts = Counter(view.get("elementIds", []))
+    relationships = Counter(view.get("relationshipIds", []))
+    steps = [step for step in view.get("steps", []) if isinstance(step, dict)]
+    ordered_steps = sorted(steps, key=lambda step: step.get("order", 0))
+    return expected_counts, relationships, [step.get("relationshipId") for step in ordered_steps]
 
 
-def _resolve_view(stem: str, views_by_id: dict):
-    return alias_match(stem, list(views_by_id.keys()))
+def _edge_label(edge: dict, family: str) -> str | None:
+    # Native flowmaps display call, not label. A present but unusable call must
+    # not be rescued by unused label metadata. Keep legacy label-only inputs.
+    if family == FAMILY_FLOWMAP and "call" in edge:
+        value = edge["call"]
+        return value.strip() if isinstance(value, str) and value.strip() else None
+    return _node_label(edge)
+
+
+def _resolve_relationship(edge: dict, source_id: str, destination_id: str,
+                          rels_by_id: dict, family: str) -> str | None:
+    # Search the entire model: a parallel relationship outside this View must not
+    # silently become the relationship inside it simply because endpoints match.
+    candidates = [rid for rid, relationship in rels_by_id.items()
+                  if relationship.get("sourceId") == source_id
+                  and relationship.get("destinationId") == destination_id]
+    if "relationshipId" in edge:
+        rid = edge["relationshipId"]
+        return rid if isinstance(rid, str) and rid in candidates else None
+    edge_id = edge.get("id")
+    if isinstance(edge_id, str) and edge_id in rels_by_id:
+        return edge_id if edge_id in candidates else None
+    if len(candidates) == 1:
+        return candidates[0]
+    label = _edge_label(edge, family)
+    if label:
+        matches = []
+        for rid in candidates:
+            relationship = rels_by_id[rid]
+            description = relationship.get("description")
+            if not isinstance(description, str) or not description.strip():
+                continue
+            labels = [description]
+            technology = relationship.get("technology")
+            if isinstance(technology, str) and technology.strip():
+                labels.append(f"{description} [{technology}]")
+            if semantic_label(label) in [semantic_label(value) for value in labels]:
+                matches.append(rid)
+        if len(matches) == 1:
+            return matches[0]
+    return None
 
 
 def _check_source(report: ValidationReport, path: Path, family: str, view: dict,
@@ -230,17 +278,26 @@ def _check_source(report: ValidationReport, path: Path, family: str, view: dict,
         return
 
     view_type = view.get("type")
-    expected_counts, rel_pairs, step_pairs = _view_signature(view, elements_by_id, rels_by_id)
-    unique_names = sorted(expected_counts)
+    expected_counts, expected_relationships, expected_steps = _view_signature(view)
+    names_by_id = {eid: elements_by_id[eid]["name"] for eid in expected_counts
+                   if eid in elements_by_id and isinstance(elements_by_id[eid].get("name"), str)}
 
     if family == FAMILY_FLOWMAP:
         nodes, edges = _parse_flowmap(data)
     else:
         nodes, edges = _parse_archify(data)
+        if view_type == "dynamic" and edges is data.get("messages"):
+            # Archify draws messages at their y coordinate; JSON storage order
+            # does not define the visible sequence. Flowmaps retain step order.
+            if all(isinstance(edge, dict) and type(edge.get("y")) in (int, float)
+                   for edge in edges):
+                edges = sorted(edges, key=lambda edge: edge["y"])
+            else:
+                report.error("DIA-006", rel, "sequence messages require numeric y coordinates")
 
-    # Resolve every node label to a canonical element name (DIA-003/DIA-004).
-    node_name_by_id: dict = {}
-    label_counts: Counter = Counter()
+    # Preserve identity through endpoint checks; names alone cannot identify twins.
+    canonical_id_by_node: dict[str, str | None] = {}
+    element_counts: Counter[str] = Counter()
     for index, node in enumerate(nodes):
         node_path = f"{rel}:nodes[{index}]"
         if not isinstance(node, dict):
@@ -251,24 +308,39 @@ def _check_source(report: ValidationReport, path: Path, family: str, view: dict,
         if not isinstance(node_id, str) or not label:
             report.error("DIA-003", node_path, "node has no usable id or label")
             continue
-        matched = [name for name in unique_names if name_matches(name, label)]
-        if len(matched) != 1:
-            detail = "ambiguous with canonical names" if len(matched) > 1 else "no canonical element name matches"
-            report.error("DIA-003", node_path, f"invented node {label!r}: {detail}")
-            node_name_by_id[node_id] = None
+        if node_id in canonical_id_by_node:
+            report.error("DIA-004", node_path, f"duplicate renderer node id {node_id!r}")
+            canonical_id_by_node[node_id] = None
             continue
-        node_name_by_id[node_id] = matched[0]
-        label_counts[matched[0]] += 1
+        if node_id in elements_by_id:
+            # A known canonical ID is authoritative, never a renderer-local alias.
+            matched = ([node_id] if node_id in names_by_id
+                       and name_matches(names_by_id[node_id], label) else [])
+        else:
+            matched = [eid for eid, name in names_by_id.items()
+                       if semantic_label(name) == semantic_label(label)]
+            if not matched:
+                matched = [eid for eid, name in names_by_id.items() if name_matches(name, label)]
+        if len(matched) != 1:
+            detail = ("ambiguous canonical identity" if len(matched) > 1
+                      else "id/name does not match a canonical element in this View")
+            report.error("DIA-003", node_path, f"node {node_id!r} ({label!r}): {detail}")
+            canonical_id_by_node[node_id] = None
+            continue
+        canonical_id_by_node[node_id] = matched[0]
+        element_counts[matched[0]] += 1
 
-    for name, expected in expected_counts.items():
-        actual = label_counts.get(name, 0)
-        if actual == 0:
-            report.error("DIA-002", rel, f"canonical element {name!r} is missing from the diagram nodes")
+    for eid, expected in expected_counts.items():
+        actual = element_counts.get(eid, 0)
+        if actual < expected:
+            report.error("DIA-002", rel,
+                         f"canonical element {eid!r} ({names_by_id.get(eid)!r}) is missing from the diagram nodes "
+                         f"(found {actual}, expected {expected})")
         elif actual > expected:
-            report.error("DIA-004", rel, f"canonical element {name!r} appears {actual}x in the diagram (expected {expected})")
+            report.error("DIA-004", rel, f"canonical element {eid!r} appears {actual}x in the diagram (expected {expected})")
 
-    # Collect directed name pairs from the edges (DIA-007 guards endpoint ids).
-    ordered_pairs: list = []
+    # Resolve relationship identity as well as direction (DIA-007 guards node ids).
+    ordered_relationships: list = []
     for index, edge in enumerate(edges):
         edge_path = f"{rel}:edges[{index}]"
         if not isinstance(edge, dict):
@@ -279,39 +351,36 @@ def _check_source(report: ValidationReport, path: Path, family: str, view: dict,
         if source_id is None or destination_id is None:
             report.error("DIA-007", edge_path, "edge has no resolvable from/to endpoints")
             continue
-        if source_id not in node_name_by_id or destination_id not in node_name_by_id:
+        if source_id not in canonical_id_by_node or destination_id not in canonical_id_by_node:
             report.error("DIA-007", edge_path,
                          f"edge references unknown node id(s): "
-                         f"{[i for i in (source_id, destination_id) if i not in node_name_by_id]}")
+                         f"{[i for i in (source_id, destination_id) if i not in canonical_id_by_node]}")
             continue
-        source_name = node_name_by_id[source_id]
-        destination_name = node_name_by_id[destination_id]
-        if source_name is None or destination_name is None:
-            continue  # already reported as DIA-003; pair comparison would cascade
-        ordered_pairs.append((source_name, destination_name))
+        canonical_source = canonical_id_by_node[source_id]
+        canonical_destination = canonical_id_by_node[destination_id]
+        if canonical_source is None or canonical_destination is None:
+            continue  # already reported as DIA-003/004; pair comparison would cascade
+        relationship_id = _resolve_relationship(edge, canonical_source, canonical_destination, rels_by_id, family)
+        if relationship_id is None:
+            report.error("DIA-006" if view_type == "dynamic" else "DIA-005", edge_path,
+                         f"relationship {canonical_source!r} -> {canonical_destination!r} is unknown or ambiguous; "
+                         "provide a canonical relationshipId or an exact distinguishing relationship label")
+            continue
+        ordered_relationships.append(relationship_id)
 
     if view_type == "dynamic":
-        if len(ordered_pairs) != len(step_pairs):
+        if ordered_relationships != expected_steps:
             report.error("DIA-006", rel,
-                         f"dynamic step count mismatch: canonical {len(step_pairs)}, diagram {len(ordered_pairs)}")
-        else:
-            for index, (expected_pair, actual_pair) in enumerate(zip(step_pairs, ordered_pairs)):
-                if expected_pair != actual_pair:
-                    report.error("DIA-006", rel,
-                                 f"dynamic step order diverges at step {index + 1}: "
-                                 f"canonical {expected_pair[0]!r} -> {expected_pair[1]!r}, "
-                                 f"diagram {actual_pair[0]!r} -> {actual_pair[1]!r}")
-                    break
+                         f"dynamic relationship order/count mismatch: canonical {expected_steps!r}, "
+                         f"diagram {ordered_relationships!r}")
     else:
-        actual_pairs: Counter = Counter(ordered_pairs)
-        missing = rel_pairs - actual_pairs
-        extra = actual_pairs - rel_pairs
+        actual_relationships = Counter(ordered_relationships)
+        missing = expected_relationships - actual_relationships
+        extra = actual_relationships - expected_relationships
         if missing:
-            detail = ", ".join(f"{s!r}->{d!r}" for s, d in sorted(missing))
-            report.error("DIA-005", rel, f"missing canonical relationship pair(s): {detail}")
+            report.error("DIA-005", rel, f"missing canonical relationship(s): {dict(missing)!r}")
         if extra:
-            detail = ", ".join(f"{s!r}->{d!r}" for s, d in sorted(extra))
-            report.error("DIA-005", rel, f"diagram edge(s) not in the view: {detail}")
+            report.error("DIA-005", rel, f"diagram relationship(s) not in the view: {dict(extra)!r}")
 
 
 def run(root: Path, model_path: Path | None = None, data_path: Path | None = None,
@@ -337,15 +406,15 @@ def run(root: Path, model_path: Path | None = None, data_path: Path | None = Non
                      "diagram inputs cannot be cross-checked")
         return report
 
-    views_by_id = {v.get("id"): v for v in model.get("views", []) if isinstance(v, dict) and isinstance(v.get("id"), str)}
+    views_by_id = {v["id"]: v for v in model.get("views", []) if isinstance(v, dict) and isinstance(v.get("id"), str)}
     elements_by_id = {e.get("id"): e for e in model.get("elements", []) if isinstance(e, dict)}
     rels_by_id = {r.get("id"): r for r in model.get("relationships", []) if isinstance(r, dict)}
 
     checked = 0
     for path, family in sources:
-        stem = path.name.split(".")[0]
+        stem = source_stem(path)
         rel = path.relative_to(root).as_posix()
-        view_id = _resolve_view(stem, views_by_id)
+        view_id = resolve_view(stem, list(views_by_id))
         if view_id is None:
             report.error("DIA-001", rel, f"stem {stem!r} does not resolve to exactly one canonical view")
             continue
@@ -353,7 +422,7 @@ def run(root: Path, model_path: Path | None = None, data_path: Path | None = Non
         checked += 1
     if checked:
         report.pass_check("DIA-001", "diagram inputs cross-checked against the canonical model",
-                          f"{checked} source(s), name-based matching")
+                          f"{checked} source(s), canonical identity matching")
     return report
 
 

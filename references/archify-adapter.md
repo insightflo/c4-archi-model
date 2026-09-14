@@ -139,12 +139,13 @@ renderer·validator 소스, 테스트, 벤치마크는 진단에 실패한 뒤�
 
 ```bash
 # 1) 저작 직후와 수정마다
-node <archify-root>/bin/archify.mjs validate <type> <candidate.json> \
-  --quality showcase --json
+mkdir -p qa
+node <archify-root>/bin/archify.mjs validate <type> diagrams/<view>.<type>.json \
+  --quality showcase --json > qa/archify-validate-<view>.json &&
 
 # 2) 통과하면 최종 납품 (인터랙티브 HTML 확정)
-node <archify-root>/bin/archify.mjs deliver <type> <candidate.json> \
-  <output.html> --quality showcase --json
+node <archify-root>/bin/archify.mjs deliver <type> diagrams/<view>.<type>.json \
+  diagrams/<view>.html --quality showcase --json > qa/archify-deliver-<view>.json
 ```
 
 규칙:
@@ -167,6 +168,17 @@ qa/archify-validate-<nn>-<view>.json
 qa/archify-deliver-<nn>-<view>.json
 qa/archify-svg-<nn>-<view>.json   (아래 §7 추출 영수증)
 ```
+
+강화 영수증 계약:
+
+- 명시적 성공(`ok:true` 또는 정수 `exitCode:0`)이 있어야 한다. 둘 다 있으면 둘 다 성공이어야 한다.
+- deliver의 `input` + `specification.sha256`은 현재 View IR 경로·바이트에,
+  `output` + `artifact.sha256`은 현재 HTML 경로·바이트에 일치해야 한다.
+  바이트 수만 있는 영수증은 거부한다. Archify native deliver JSON을 그대로 보존한다.
+- source stem은 canonical View ID 하나에만 대응해야 한다. `viewId`를 기록하면 그 ID와 같아야 한다.
+- screen/print 자산과 직접 내장한 data URI 모두 같은 View의 검증된 산출물이어야 한다.
+- 영수증은 변경 탐지용이며 실행 진위의 암호학적 증명은 아니다. 구 영수증에 현재 해시를
+  사후 보충하지 말고 validate/deliver/extract를 다시 실행한다.
 
 ## 6. 출력 파일 계약
 
@@ -213,6 +225,8 @@ python3 <skill>/scripts/extract_archify_svg.py \
   스타일이 새어나가지 않게 함 (`@media` 내부 포함)
 - 테마 속성(`data-theme`)을 SVG 루트로 옮겨 색상 변수가 유지되게 함
 - `@keyframes`/`animation` 제거 (정적 임베딩)
+- 추출 시 읽은 HTML 원본 바이트의 `sourceSha256`과 출력 바이트의 `svgSha256`을 영수증에 기록
+  (`source`, `output`, `ok:true` 포함). 줄바꿈 정규화 전 원본 바이트를 해시한다.
 
 직접 `<svg>`를 복사해 넣지 않는다. 추출 SVG는 파생 정적 뷰이고,
 인터랙티브 원본은 deliver HTML이며 보고서에서 링크로 연다.

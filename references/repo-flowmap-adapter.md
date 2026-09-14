@@ -9,8 +9,8 @@ source diagram이다 (archify IR, `.puml`, `.dsl`과 같은 지위).
 ```text
 architecture-model.json (canonical)
   → View별 flowmap.json (파생 source)
-    → validate_flowmap.mjs (기계 영수증)
-    → build_flowmap.mjs (인터랙티브 HTML 아티팩트)
+    → build_repo_flowmap.py (번들 validate + build 실행, 해시 영수증)
+    → 인터랙티브 HTML 아티팩트
     → 보고서 embed (data URI iframe, 기본 템플릿 지원)
 ```
 
@@ -21,6 +21,7 @@ architecture-model.json (canonical)
 요구 조건:
 
 - Node.js 18 이상 — `validate_flowmap.mjs`와 `build_flowmap.mjs`는 표준 라이브러리만 쓴다
+- Python 3 — 스킬의 영수증 생성 래퍼 실행 (표준 라이브러리만 사용)
 - 그 외 의존성·설치 불필요 — 번들 자체로 완결이다
 
 가용성 판정:
@@ -67,20 +68,27 @@ flowmap은 `layers`(열) + `nodes`(카드) + `flows`(동작·단계) 모델이�
 ## 3. 검증·빌드 명령
 
 ```bash
-node <skill-root>/assets/repo-flowmap/scripts/validate_flowmap.mjs \
-  <output-root>/diagrams/<view>.flowmap.json
-node <skill-root>/assets/repo-flowmap/scripts/build_flowmap.mjs \
-  <output-root>/diagrams/<view>.flowmap.json \
-  <skill-root>/assets/repo-flowmap/template.html \
-  <output-root>/diagrams/<view>.flowmap.html
+python3 <skill-root>/scripts/build_repo_flowmap.py \
+  --root <output-root> \
+  --input diagrams/<view>.flowmap.json \
+  --output diagrams/<view>.flowmap.html
 ```
 
-둘 다 exit 0이어야 한다. 영수증은 qa/에 저장한다:
+래퍼는 번들 검증기와 빌더를 순서대로 실행한다. 경로는 `--root` 기준이며,
+입출력은 같은 View stem을 가진 `diagrams/` 파일이어야 한다. 성공하려면 두 실행 모두
+exit 0이어야 한다. 영수증은 자동으로 qa/에 저장한다:
 
 ```text
-qa/repo-flowmap-validate-<view>.json   검증기 출력 (오류 목록 포함)
-qa/repo-flowmap-build-<view>.json      빌드 결과 (입력·출력·바이트 수)
+qa/repo-flowmap-validate-<view>.json   ok/exitCode + stdout/stderr
+qa/repo-flowmap-build-<view>.json      ok/exitCode + input/specification.sha256 + output/artifact.sha256
 ```
+
+래퍼는 읽은 입력 바이트를 임시 파일로 동결하고 동일한 파일을 검증·빌드한다.
+새 임시 HTML이 생성되고 원본 입력이 바뀌지 않았을 때만 최종 HTML과 성공 영수증을 확정한다.
+실패하면 이전 HTML은 보존하되 해당 실행의 실패 영수증으로 덮어써 낡은 산출물 재사용을 막는다.
+직접 `build_flowmap.mjs`를 실행한 stdout이나 `outputBytes`만으로는 납품 영수증이 되지 않는다.
+**기존 HTML에 현재 해시를 사후 보충하지 않는다.** 구 영수증은 이 명령으로 실제 재빌드한다.
+해시는 파일 변경 탐지용이며, 편집 가능한 로컬 영수증이 실행 진위를 암호학적으로 증명하지는 않는다.
 
 ## 4. 보고서 임베딩
 
@@ -109,9 +117,14 @@ qa/repo-flowmap-build-<view>.json      빌드 결과 (입력·출력·바이트 
 - **인쇄 폴백(정적 SVG)**: iframe은 인쇄·PDF에서 신뢰할 수 없다(2026-09-14 실측: 캔버스 잘림).
   따라서 저작 시점에 View별 정적 SVG를 추출해 report-data의 `diagrams[].printAssetPath`로 지정한다.
   빌더가 `printDataUri`로 내장하고, 기본 템플릿은 화면에서는 숨기고 인쇄 시에만 iframe 대신 표시한다.
-  추출 방법: headless Chrome으로 flowmap.html을 열고 `#map` 요소를 `getBBox()`로 감싸 직렬화하거나
-  flowmap UI의 「SVG 다운로드」를 쓴다. `printAssetPath`가 없으면 인쇄 시 그림이 빠진다는 한계를
-  HANDOFF에 명시한다.
+  추출은 브라우저에서 실행되는 별도 작업이다. 이 스킬의 빌드 래퍼는 정적 SVG를 만들지 않는다.
+  브라우저 추출기를 사용하는 경우 **그 추출 실행 안에서** 원본 HTML 바이트 해시를 잡고,
+  해당 HTML을 로드해 `#map`을 직렬화하고, 원본이 변하지 않았음을 확인한 뒤
+  `qa/repo-flowmap-svg-<view>.json`을 남겨야 한다. 필수 필드는 `ok:true`,
+  `source`(빌드 HTML 경로), `sourceSha256`, `output`(SVG 경로), `svgSha256`이다.
+  수동 「SVG 다운로드」 파일만 있거나 사후 작성한 해시 영수증이면 인쇄 자산으로 연결하지 않는다.
+  추출기·유효 영수증이 없으면 `printAssetPath`를 생략하고 인쇄 시 그림이 빠진다는 한계를
+  HANDOFF에 명시한다. `extract_archify_svg.py`는 동적 flowmap HTML용 추출기가 아니다.
 - 임베드 안에서는 마우스 드래그 이동이 iframe 영역에서 막힌다(브라우저 한계).
   확대·축소 버튼과 전체 화면은 동작한다.
 
