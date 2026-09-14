@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.7.0 — 2026-09-14
+
+### 수제 렌더러 허점 봉합 (2026-09-14 papercompany 산출물 회귀 방지)
+
+- 증상: archify가 설치되지 않은 환경에서 실행 에이전트가 폴백 체인도 아닌 즉석 작성
+  커스텀 SVG 렌더러(`custom-deterministic-svg/1`)를 만들어 써서 1200×2641px 기형
+  lane 레이아웃 다이어그램을 산출했다.
+- Step 8: archify 미가용 시 사용자에게 설치를 제안하고, 동의를 받으면 에이전트 skills
+  디렉터리에 설치 후 `doctor` 재판정으로 기본 경로를 쓰도록 변경. 동의가 없을 때만
+  폴백 체인(3~5)으로 하락.
+- 즉석 작성 커스텀 SVG·이미지 렌더러 사용을 Validation failure로 명시 (Step 8 + §6).
+- `references/archify-adapter.md`: 미가용 시 설치 제안·표준 설치 위치 절차 추가,
+  금지 목록에 수제 렌더러 대체 명시.
+
 ## 0.6.0 — 2026-09-02
 
 ### Archify 기본 다이어그램 경로 (참고: tt-a1i/archify 2.17, Cocoon-AI/architecture-diagram-generator, antvis/Infographic)

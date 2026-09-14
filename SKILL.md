@@ -353,7 +353,12 @@ archify 경로에서는:
 - `validate` 영수증을 `qa/`에 저장하고, `deliver`로 View별 인터랙티브 HTML 아티팩트를
   확정한다. deliver exit code가 0이 아니면 완료로 보고하지 않는다.
 - 보고서 임베딩용 정적 SVG는 `scripts/extract_archify_svg.py`로 산출물에서 추출한다.
-- Node나 archify가 없으면 이유를 밝히고 폴백 경로(3~5)로 내려간다. 임의 설치하지 않는다.
+- Node나 archify가 없으면 이유를 밝히고 사용자에게 archify 설치를 제안한다. 동의를 받으면
+  사용 중인 에이전트의 skills 디렉터리(예: `~/.pi/agent/skills/archify`)에 archify 스킬 루트를
+  설치하고 `doctor`로 재판정한 뒤 기본 경로를 쓴다. 동의가 없을 때만 폴백 경로(3~5)로 내려간다.
+- 즉석에서 만든 커스텀 SVG·이미지 렌더러로 다이어그램을 대체하지 않는다. 렌더러는 archify 또는
+  폴백 체인(3~5)뿐이다. 수제 레이아웃은 결정적 품질 보장이 없다.
+  이 위반은 Validation failure다 (2026-09-14 papercompany 산출물이 사례).
 - 기존 PlantUML/Mermaid 원본이 입력에 있어도 archify IR로 통역하지 않고
   canonical model에서 새로 저작한다.
 
@@ -613,6 +618,7 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 
 - Container의 parent가 Software System이 아님
 - archify 경로에서 `deliver` exit code가 0이 아닌데 렌더링 완료로 보고함
+- 규정된 렌더러(archify 또는 폴백 체인) 없이 즉석 작성한 커스텀 SVG·이미지 렌더러로 그림을 만듦
 - 통과해 동결된 archify 후보를 임의로 다시 편집함 (freeze 위반)
 - archify 산출물에서 추출한 SVG가 `extract_archify_svg.py` 검사를 통과하지 못함
 - Component가 여러 Container에 걸쳐 있거나 잘못된 parent를 가짐

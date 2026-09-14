@@ -42,11 +42,22 @@ node <archify-root>/bin/archify.mjs doctor
 `doctor`가 전 항목 `[ok]`면 사용 가능하다. Node 버전 미달이나 패키지 손상이면
 archify 미가용로 판정하고 폴백 경로(Structurizr → Mermaid/PlantUML → ASCII)로 내려간다.
 
+미가용일 때:
+
+- 사유를 사용자에게 밝히고 설치를 제안한다. 동의를 받으면 사용 중인 에이전트의 skills
+  디렉터리(예: `~/.pi/agent/skills/archify`)에 archify 패키지 루트(`bin/archify.mjs`가
+  있는 디렉터리)를 설치하고 `doctor`로 재판정한 뒤 기본 경로를 쓴다.
+- 동의가 없을 때만 폴백 경로로 내려간다. 폴백은 정상 경로지만, 요청이 그림 품질을
+  포함하면 설치 제안이 기본이다.
+
 금지:
 
 - 가용성을 확인하지 않고 archify 명령을 문서에 적는 것
 - 사용자 동의 없이 임의로 설치(`npx skills add` 등)하는 것
-- archify 부재를 작업 실패로 취급하는 것 — 폴백은 정상 경로다
+- archify 부재를 작업 실패로 취급하는 것
+- 폴백 체인에 없는 즉석 작성 커스텀 SVG·이미지 렌더러로 다이어그램을 대체하는 것 —
+  수제 lane/카드 레이아웃은 결정적 품질 보장이 없다
+  (2026-09-14 papercompany 산출물 `custom-deterministic-svg/1`이 사례)
 
 ## 2. C4 View → archify 타입 매핑
 
