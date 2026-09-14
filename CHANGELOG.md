@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.9.0 — 2026-09-14
+
+### 외부 리뷰(ChatGPT) 반영 — 검증 강제화와 인쇄 무결성
+
+문서·설계 감사만 수행한 외부 리뷰의 지적을 코드 대조로 검증해 반영/반박했다.
+
+반영 (P0-1, P0-2, P0-3, P2):
+
+- **다이어그램 입력 교차검증**: `scripts/validate_diagram_inputs.py` 신설. archify IR·flowmap의
+  노드·관계·Dynamic step 순서를 canonical model과 이름 기준 대조 (DIA-001~007). 렌더러 로컬 ID
+  변환과 무관하게 검사한다. 지금까지는 에이전트 규율에만 의존했다.
+- **렌더러 영수증 강제**: `scripts/validate_render_receipts.py` 신설. 렌더 경로별 영수증 존재,
+  성공 기록, 산출물 해시/크기 일치를 강제 (RCP-000~008). 미지 렌더러 계열 에셋(RCP-007)은 0.7.0의
+  수제 렌더러 금지 규칙의 기계 검사다. 두 검증기 모두 `validate_all.py`에 연결되고 회귀 픽스처
+  3케이스(변조→탐지)가 추가됐다 (총 14/14 PASS).
+- **인쇄·PDF 무결성**: repo-flowmap iframe은 인쇄에서 캔버스가 잘리는 결함을 실측으로 확인.
+  `diagrams[].printAssetPath`(정적 SVG)를 신설해 화면은 iframe, 인쇄는 SVG로 분리 출력. 저작
+  시점 SVG 추출 절차(headless 브라우저 `getBBox` 직렬화 또는 UI 내보내기)를 어댑터 문서에 추가.
+  단일 파일 이동·file:// 렌더링은 실측 PASS로 유지된다.
+- **환경 진단**: `scripts/doctor.py` 신설 — Python/Node/archify 가용성·번들 repo-flowmap 상태와
+  이 환경에서 선택될 렌더 경로를 요약한다 (`--json` 지원).
+
+반박/연기 (P1 — 대표 픽스처 기반 시각 QA 코퍼스):
+
+- 밀도 예산(`references/visual-budgets.md`), archify 내장 게이트(label-route-clearance,
+  desktop-readability ≥6px, corridor 충돌), flowmap anti-slop 검사가 이미 각 렌더 단계에서
+  측정값으로 동작한다. 한글 장문·복잡 연결 코퍼스는 렌더러 자체 품질 영역으로, 스킬 과제로
+  별도 로드맵 항목으로 보류한다.
+
 ## 0.8.0 — 2026-09-14
 
 ### 번들 폴백 렌더러 repo-flowmap (archify 미가용 시 기본)

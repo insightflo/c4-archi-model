@@ -639,6 +639,10 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 - 규정된 렌더러(archify, 번들 repo-flowmap 또는 폴백 체인) 없이 즉석 작성한 커스텀
   SVG·이미지 렌더러로 그림을 만듦
 - repo-flowmap 경로에서 `validate_flowmap.mjs`가 실패한 JSON을 빌드·보고함
+- 다이어그램 입력(archify IR·flowmap)이 canonical model과 불일치함 — `validate_all.py`의
+  DIA-* 검사가 강제한다
+- 규정된 렌더러 영수증이 없거나 산출물 해시가 영수증과 불일치함 — `validate_all.py`의
+  RCP-* 검사가 강제한다
 - 통과해 동결된 archify 후보를 임의로 다시 편집함 (freeze 위반)
 - archify 산출물에서 추출한 SVG가 `extract_archify_svg.py` 검사를 통과하지 못함
 - Component가 여러 Container에 걸쳐 있거나 잘못된 parent를 가짐

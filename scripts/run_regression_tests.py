@@ -7,6 +7,7 @@ _sys.dont_write_bytecode = True
 
 import argparse
 import copy
+import hashlib
 import json
 import shutil
 import subprocess
@@ -15,6 +16,9 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
+
+from validate_diagram_inputs import run as run_diagram_inputs
+from validate_render_receipts import run as run_render_receipts
 
 from c4_validation import (
     ValidationReport,
@@ -173,6 +177,80 @@ def strict_builder_test() -> TestResult:
         )
 
 
+def diagram_edge_mismatch_test() -> TestResult:
+    """P0-1: an archify IR edge whose endpoint is swapped must trip DIA-005."""
+    with tempfile.TemporaryDirectory(prefix="c4-dia-") as temp:
+        root = Path(temp)
+        (root / "diagrams").mkdir()
+        model = load_json(EXAMPLES / "ordering-system.architecture-model.json")
+        elements = {item["id"]: item for item in model["elements"]}
+        relationships = {item["id"]: item for item in model["relationships"]}
+        view = next(item for item in model["views"] if item["id"] == "ordering-container")
+        components = [{"id": eid, "label": elements[eid]["name"]} for eid in view["elementIds"]]
+        connections = [
+            {"id": rid, "from": relationships[rid]["sourceId"], "to": relationships[rid]["destinationId"]}
+            for rid in view["relationshipIds"]
+        ]
+        victim = next(item for item in connections if item["id"] == "web-to-api")
+        victim["from"] = "order-api"  # both endpoints exist; the directed pair no longer does
+        ir = {
+            "schemaVersion": 1,
+            "diagram_type": "architecture",
+            "meta": {"title": "ordering container"},
+            "components": components,
+            "connections": connections,
+        }
+        (root / "diagrams" / "ordering-container.architecture.json").write_text(
+            json.dumps(ir, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        report = run_diagram_inputs(root, model_path=EXAMPLES / "ordering-system.architecture-model.json")
+    return expect_code("dia-edge-endpoint-mismatch", report, "DIA-005")
+
+
+def _receipt_fixture(root: Path) -> None:
+    """Minimal consistent archify source + validate receipt (+ deliver receipt)."""
+    (root / "diagrams").mkdir()
+    (root / "qa").mkdir()
+    ir = {
+        "schemaVersion": 1,
+        "diagram_type": "architecture",
+        "meta": {"title": "ctx"},
+        "components": [],
+        "connections": [],
+    }
+    (root / "diagrams" / "ctx.architecture.json").write_text(json.dumps(ir), encoding="utf-8")
+    (root / "qa" / "archify-validate-ctx.json").write_text(
+        json.dumps({"schemaVersion": 1, "ok": True, "command": "validate"}), encoding="utf-8")
+
+
+def receipt_missing_deliver_test() -> TestResult:
+    """P0-2: deleting the deliver receipt must trip RCP-003."""
+    with tempfile.TemporaryDirectory(prefix="c4-rcp-") as temp:
+        root = Path(temp)
+        _receipt_fixture(root)
+        report = run_render_receipts(root)
+    return expect_code("receipt-missing-deliver", report, "RCP-003")
+
+
+def receipt_artifact_tamper_test() -> TestResult:
+    """P0-2: mutating the delivered artifact after the receipt must trip RCP-005."""
+    with tempfile.TemporaryDirectory(prefix="c4-rcp-") as temp:
+        root = Path(temp)
+        _receipt_fixture(root)
+        artifact = root / "diagrams" / "ctx.html"
+        artifact.write_text("<html><body>delivered</body></html>", encoding="utf-8")
+        deliver = {
+            "schemaVersion": 1,
+            "ok": True,
+            "command": "deliver",
+            "output": "diagrams/ctx.html",
+            "artifact": {"sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(), "bytes": artifact.stat().st_size},
+        }
+        (root / "qa" / "archify-deliver-ctx.json").write_text(json.dumps(deliver), encoding="utf-8")
+        artifact.write_text(artifact.read_text(encoding="utf-8") + "<!--tampered-->", encoding="utf-8")
+        report = run_render_receipts(root)
+    return expect_code("receipt-artifact-hash-mismatch", report, "RCP-005")
+
+
 def run() -> list[TestResult]:
     results = [baseline_test()]
     results.append(model_mutation_test(
@@ -214,6 +292,9 @@ def run() -> list[TestResult]:
     ))
     results.append(malicious_svg_test())
     results.append(strict_builder_test())
+    results.append(diagram_edge_mismatch_test())
+    results.append(receipt_missing_deliver_test())
+    results.append(receipt_artifact_tamper_test())
     return results
 
 

@@ -61,6 +61,9 @@ skill 디렉토리에 `SKILL.md`가 있으면 자동으로 인식하는 에이�
 ## Validate (self-check)
 
 ```bash
+# 환경 진단 — 선택될 렌더 경로 표시 (archify / 번들 repo-flowmap / 폴백)
+python3 scripts/doctor.py
+
 # 스킬 패키지 자체 검증
 python3 scripts/validate_skill_package.py --root .
 

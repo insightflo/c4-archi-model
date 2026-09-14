@@ -2,7 +2,7 @@
   "$schema": "references/package-manifest.schema.json",
   "schemaVersion": "1.0",
   "packageName": "c4-archi-model",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "entrypoint": "SKILL.md",
   "language": "ko",
   "agentIndependent": true,
@@ -92,8 +92,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "3f8940641b228a73036a570b1bf67ad9d78e788fdf3afe6167ceb7fba71ee248",
-      "size": 9127
+      "sha256": "41c1366b8faa73fd1412de3195b9aea1fb57be800322a863913df75ca4884e11",
+      "size": 11193
     },
     {
       "path": "LICENSE",
@@ -102,17 +102,17 @@
     },
     {
       "path": "README.md",
-      "sha256": "69c477a0c0dc6a2382ae264b82d13a0e72f50f70909bd51cce6913ebaaf886a5",
-      "size": 3294
+      "sha256": "a276dbb5c379af76d9562a8d2660b6a30a7faaccfd0ef6bdc33a77967ee321c0",
+      "size": 3413
     },
     {
       "path": "SKILL.md",
-      "sha256": "8a22cc44b19f18a99830e59928c088e28dcbea5b7dad031e5bd2ead9b866d3f7",
-      "size": 30855
+      "sha256": "4f35027bc569a3ef7fffc183c24d29ce00ceda0cc563370df6dbb8c0577deb16",
+      "size": 31139
     },
     {
       "path": "VERSION",
-      "sha256": "a66780da23103beaf12432b418508966b31a2a3a787f9468a5b6cdaa8667c1ef",
+      "sha256": "9d8c94f1ad3ea96b1e2ac4914fda4cb93c76b4a3e0d8cc6dd8976d6c0b227d15",
       "size": 6
     },
     {
@@ -147,8 +147,8 @@
     },
     {
       "path": "assets/html-report-template.html",
-      "sha256": "6a47bcd559cb632df9d153cbfeb5235245208db64ce3ff95c43c6bd8d6a2b7e3",
-      "size": 54571
+      "sha256": "4295ceb6f3e09ea2b110e37ad23aaff2a874bdc9e3ac5c305f922cba8b122df2",
+      "size": 54958
     },
     {
       "path": "assets/human-understanding.template.json",
@@ -317,8 +317,8 @@
     },
     {
       "path": "references/html-report-data.schema.json",
-      "sha256": "f02737ee1100bbbe585ebe1f35c569c5c9026dc843745daabe892971c646cd42",
-      "size": 13938
+      "sha256": "73f6ddffed4a801c270c25bc77bcb03e023aaa7f14fc4e0c38859e207506f98a",
+      "size": 14076
     },
     {
       "path": "references/human-understanding-gates.md",
@@ -347,8 +347,8 @@
     },
     {
       "path": "references/repo-flowmap-adapter.md",
-      "sha256": "0fb498bf56b8f0107c4ad39440261c3c16ac737b030756485084d4525ed1d02a",
-      "size": 6337
+      "sha256": "cb19fc3cea1c1d22ce9eae03859a81ed117bbc76f42a7e66cf1e1a303c54e372",
+      "size": 6714
     },
     {
       "path": "references/scene-frame-reporting.md",
@@ -377,8 +377,8 @@
     },
     {
       "path": "scripts/build_html_report.py",
-      "sha256": "ab87bfa6d9f7e5bc8a97959eb5a3380e4272af631442d564319f6d93afd91cfe",
-      "size": 23051
+      "sha256": "2672f833140673836bc7a7a4f8396f66c414eaf5761a4261eb2ba7c058da9b8f",
+      "size": 23940
     },
     {
       "path": "scripts/build_output_manifest.py",
@@ -389,6 +389,11 @@
       "path": "scripts/c4_validation.py",
       "sha256": "4a218ccd50fae84e8e8721cccaf5f2de10083a0f7aa4fbed2a9184605dc1f7c8",
       "size": 62061
+    },
+    {
+      "path": "scripts/doctor.py",
+      "sha256": "bb57e97a23f02e79ff440e67f73abecd92b30d0e076b9976eb7401bd15a3b674",
+      "size": 4929
     },
     {
       "path": "scripts/extract_archify_svg.py",
@@ -402,8 +407,8 @@
     },
     {
       "path": "scripts/run_regression_tests.py",
-      "sha256": "f1305392af2bfb36540cb8f6742b5752baa6a0bec9a80e3f94714caadadf7375",
-      "size": 9520
+      "sha256": "79e270d6a4adf989f29ffbf9f3e4025353e7a81d95159a67fe19ea7869b7794d",
+      "size": 13381
     },
     {
       "path": "scripts/schema_runtime.py",
@@ -412,8 +417,8 @@
     },
     {
       "path": "scripts/validate_all.py",
-      "sha256": "89dda6c09271370f15ab2d71d644b50813de958500f54383aa2f83fdc2cd7eec",
-      "size": 1078
+      "sha256": "e5b39217e3dcc6b3fa853ab4ea62d887b06ee3e860e9649085cd9cab6d6db875",
+      "size": 2209
     },
     {
       "path": "scripts/validate_architecture_model.py",
@@ -429,6 +434,11 @@
       "path": "scripts/validate_coverage.py",
       "sha256": "649ce9f4337d76e7874fc0655c7568cf4613dc4d3af67f69e04516e4c1d14956",
       "size": 1060
+    },
+    {
+      "path": "scripts/validate_diagram_inputs.py",
+      "sha256": "f7d38b96a78ef091ccab9a22a9c86f27827a93b441c497450f374ae8065f366f",
+      "size": 16834
     },
     {
       "path": "scripts/validate_evidence_ledger.py",
@@ -454,6 +464,11 @@
       "path": "scripts/validate_package.py",
       "sha256": "6b10909c96998b0b1794012af389a7aeb4c36055dbcfac1ab59e73b18bc6ea37",
       "size": 1593
+    },
+    {
+      "path": "scripts/validate_render_receipts.py",
+      "sha256": "18695339a2d1b32ff51e7492cad0025c7e04a02d9aafdb7b3923178e406bc747",
+      "size": 16855
     },
     {
       "path": "scripts/validate_skill_package.py",

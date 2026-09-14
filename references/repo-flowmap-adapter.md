@@ -106,9 +106,12 @@ qa/repo-flowmap-build-<view>.json      빌드 결과 (입력·출력·바이트 
 - 빌더의 `--data` 인자는 `--root` 기준 상대경로로 해석된다 (2026-09-14 실측).
 - iframe은 불투명 origin에서 동작한다. repo-flowmap의 localStorage 접근은 try/catch로
   감싸져 있어 연결점 저장이 비활성될 뿐 렌더링은 정상이다.
-- **정적 SVG 추출은 이 경로에 없다.** 이미지가 필요하면 브라우저에서 flowmap UI의
-  SVG 다운로드를 쓰고, 그 결과를 `시각 검토` 대상으로 취급한다. 검증되지 않은
-  SVG를 "렌더링 완료"로 보고하지 않는다.
+- **인쇄 폴백(정적 SVG)**: iframe은 인쇄·PDF에서 신뢰할 수 없다(2026-09-14 실측: 캔버스 잘림).
+  따라서 저작 시점에 View별 정적 SVG를 추출해 report-data의 `diagrams[].printAssetPath`로 지정한다.
+  빌더가 `printDataUri`로 내장하고, 기본 템플릿은 화면에서는 숨기고 인쇄 시에만 iframe 대신 표시한다.
+  추출 방법: headless Chrome으로 flowmap.html을 열고 `#map` 요소를 `getBBox()`로 감싸 직렬화하거나
+  flowmap UI의 「SVG 다운로드」를 쓴다. `printAssetPath`가 없으면 인쇄 시 그림이 빠진다는 한계를
+  HANDOFF에 명시한다.
 - 임베드 안에서는 마우스 드래그 이동이 iframe 영역에서 막힌다(브라우저 한계).
   확대·축소 버튼과 전체 화면은 동작한다.
 

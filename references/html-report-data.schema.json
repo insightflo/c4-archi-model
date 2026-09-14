@@ -263,6 +263,7 @@
         "id",
         "viewId",
         "assetPath",
+        "printAssetPath",
         "dataUri",
         "mimeType",
         "required",
@@ -276,6 +277,12 @@
           "$ref": "#/$defs/id"
         },
         "assetPath": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "printAssetPath": {
           "type": [
             "string",
             "null"

@@ -380,6 +380,25 @@ def embed_assets(root: Path, data: dict[str, Any], max_bytes: int, report: Valid
         except (OSError, BuildError) as exc:
             report.error("HTML-ASSET-004", asset_path, str(exc))
 
+        print_asset = diagram.get("printAssetPath")
+        if not print_asset:
+            continue
+        try:
+            print_path = safe_package_path(root, print_asset)
+        except ValueError as exc:
+            report.error("HTML-ASSET-002", f"$.diagrams[{index}].printAssetPath", str(exc))
+            continue
+        if not print_path.is_file():
+            report.warning("HTML-ASSET-003", print_asset, "print asset not found (screen artifact still embedded)")
+            continue
+        if print_path.suffix.lower() == ".svg":
+            report.merge(validate_svg(print_path))
+        try:
+            diagram["printDataUri"] = data_uri(print_path, "image/svg+xml", max_bytes)
+            diagram["printSourcePath"] = print_asset
+        except (OSError, BuildError) as exc:
+            report.warning("HTML-ASSET-004", print_asset, f"print asset not embedded: {exc}")
+
     for index, artifact in enumerate(data.get("artifacts", [])):
         if artifact.get("content") is not None:
             artifact["status"] = "embedded"
