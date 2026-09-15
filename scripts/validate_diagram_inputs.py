@@ -418,6 +418,21 @@ def run(root: Path, model_path: Path | None = None, data_path: Path | None = Non
         if view_id is None:
             report.error("DIA-001", rel, f"stem {stem!r} does not resolve to exactly one canonical view")
             continue
+        if family == FAMILY_FLOWMAP:
+            try:
+                source_data = load_json(path)
+                if "c4" in source_data:
+                    from repo_flowmap_adapter import project
+                    import hashlib
+                    canonical_path = Path(model_path).resolve()
+                    expected = project(model, canonical_path.relative_to(root).as_posix(),
+                                       hashlib.sha256(canonical_path.read_bytes()).hexdigest(), view_id)
+                    if source_data != expected:
+                        report.error("DIA-008", rel, "typed flowmap differs from the authoritative canonical View projection/path/hash")
+                    else:
+                        report.pass_check("DIA-008", "typed canonical facts, members, boundaries, targets and ordered messages match", view_id)
+            except (OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
+                report.error("DIA-008", rel, f"typed canonical projection failed: {exc}")
         _check_source(report, root / rel, family, views_by_id[view_id], elements_by_id, rels_by_id)
         checked += 1
     if checked:

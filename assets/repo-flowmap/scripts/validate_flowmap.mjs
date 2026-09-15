@@ -124,7 +124,75 @@ export function validateFlowmap(data) {
       }
     });
   });
+  if (Object.hasOwn(data, "c4")) validateTypedView(data, errors);
   return errors;
+}
+
+// Local maintained fork: additive typed C4/UML view validation. Legacy inputs are unchanged.
+function validateTypedView(data, errors) {
+  if (data.c4 == null || !isPlainObject(data.c4)) { errors.push('c4: typed extension object required'); return; }
+  const c = data.c4, view = c.view;
+  const modeFor = {systemLandscape:'structure',systemContext:'structure',container:'structure',component:'structure',code:'class',dynamic:'sequence',deployment:'deployment'};
+  if (c.extensionVersion !== 1 || !isPlainObject(view) || modeFor[view.type] !== c.mode) {
+    errors.push('c4: unsupported extension version / View type / mode'); return;
+  }
+  if (!['structure','class','sequence','deployment'].includes(c.mode)) errors.push('c4.mode: unsupported');
+  if (c.viewId !== view.id || typeof c.modelPath !== 'string' || !/^[a-f0-9]{64}$/.test(c.modelSha256 || '')) errors.push('c4: exact View/model SHA-256 binding required');
+  if (typeof c.modelPath==='string' && (path.isAbsolute(c.modelPath)||c.modelPath.split(/[\\/]/).includes('..'))) errors.push('c4.modelPath: package-relative path required');
+  if (!Array.isArray(c.boundaries) || !Array.isArray(c.targets)) errors.push('c4: boundary/target arrays required');
+  if (!Array.isArray(data.nodes) || !Array.isArray(data.flows) || data.flows.length !== 1) { errors.push('c4: one complete native flow per View required'); return; }
+  if (JSON.stringify(data.nodes.map(n=>n.id)) !== JSON.stringify(view.elementIds)) errors.push('c4: canonical participant/element order and IDs differ');
+  if (data.nodes.length>24 || (view.relationshipIds||[]).length>32 || (view.steps||[]).length>40) errors.push('c4: split View exceeding 24 nodes / 32 relations / 40 steps');
+  const logicalPlacement=c.mode==='deployment' && c.deploymentPresentation==='logical-placement';
+  const hasLogical=data.nodes.some(n=>['softwareSystem','container'].includes(n.element?.type));
+  if (c.mode==='deployment' && (c.deploymentPresentation!=null && !['physical-instances','logical-placement'].includes(c.deploymentPresentation) || logicalPlacement && !hasLogical)) errors.push('deploymentPresentation: unsupported or inconsistent presentation');
+  if (c.mode!=='deployment' && c.deploymentPresentation!=null) errors.push('deploymentPresentation: deployment only');
+  const nodes=new Map(data.nodes.map(n=>[n.id,n]));
+  const elements=[...data.nodes.map(n=>n.element),...(c.boundaries||[])];
+  const byId=new Map(elements.filter(Boolean).map(e=>[e.id,e]));
+  for(const n of data.nodes) {
+    if (!isPlainObject(n.element) || n.element.id!==n.id || n.label!==n.element.name || n.desc!==n.element.description) { errors.push('c4: node canonical ID/name/description mismatch'); continue; }
+    if (!['person','softwareSystem','container','component','codeElement','deploymentNode','infrastructureNode'].includes(n.element.type)) errors.push('c4: unsupported canonical element type');
+    if (!Array.isArray(n.element.claimIds) || !n.element.claimIds.length) errors.push('c4: node evidence claim required');
+    if (c.mode==='class') {
+      const d=n.element.codeDetails;
+      if (n.element.type!=='codeElement' || !d || !['class','interface'].includes(d.kind)) {errors.push('class: explicit class/interface codeDetails required');continue;}
+      for (const key of ['attributes','methods']) {
+        if (d[key]!==null && !Array.isArray(d[key])) {errors.push('class: null or explicit member list required');continue;}
+        for(const m of d[key]||[]) if (!m || typeof m.declaration!=='string' || !m.declaration.trim() || !Array.isArray(m.claimIds) || !m.claimIds.length) errors.push('class: member declaration and evidence required');
+      }
+    }
+    if (c.mode==='deployment') {
+      const allowed=logicalPlacement?['deploymentNode','infrastructureNode','softwareSystem','container']:['deploymentNode','infrastructureNode'];
+      if (!allowed.includes(n.element.type)) errors.push('deployment: explicit deployment boundaries/instances required');
+      if (logicalPlacement && ['softwareSystem','container'].includes(n.element.type) && n.element.instanceOfId) errors.push('deployment: logical element cannot masquerade as an instance');
+      if (n.element.instanceOfId && !(c.targets||[]).some(t=>t.id===n.element.instanceOfId && ['softwareSystem','container'].includes(t.type))) errors.push('deployment: unsupported deployment target');
+    }
+  }
+  for(const e of elements.filter(Boolean)) {
+    let p=e.parentId; const seen=new Set([e.id]);
+    while(p && byId.has(p)) {if(seen.has(p)){errors.push('c4: cyclic containment');break;}seen.add(p);p=byId.get(p).parentId;}
+  }
+  const steps=data.flows[0]?.steps;
+  if (!Array.isArray(steps)) return;
+  const canonical=c.mode==='sequence' ? [...(view.steps||[])].sort((a,b)=>a.order-b.order) : null;
+  if (c.mode==='sequence' && (data.nodes.length>12 || steps.length!==canonical.length)) errors.push('sequence: participant budget/order count mismatch');
+  steps.forEach((s,i)=>{
+    const r=s.relationship;
+    if(!r || r.id!==s.relationshipId || r.sourceId!==s.from || r.destinationId!==s.to || r.description!==s.call) {errors.push('c4: relationship ID/endpoints/display call disagree');return;}
+    if(s.order!==i+1) errors.push('c4: native displayed order must be consecutive');
+    if(canonical && (!s.canonicalStep || JSON.stringify(s.canonicalStep)!==JSON.stringify(canonical[i]) || s.relationshipId!==canonical[i]?.relationshipId)) errors.push('sequence: canonical step identity/order mismatch');
+    if(canonical && s.canonicalStep?.kind!=='interaction') errors.push('sequence: decision/failure/recovery fragments unsupported');
+    if(canonical) {
+      const step=canonical[i];
+      const note=step?.condition ? '조건: '+step.condition+(step.note?'\n'+step.note:'') : step?.note;
+      if(s.note!==note) errors.push('sequence: display note must preserve original condition prefix and note');
+    }
+    if(c.mode==='class' && (!r.codeRelation || !['inheritance','realization','association','composition','dependency'].includes(r.codeRelation.kind))) errors.push('class: explicit supported UML relationship kind required');
+    for(const key of ['return','async','alt','par']) if(key in s) errors.push('sequence: unsupported explicit '+key);
+  });
+  const expected=c.mode==='sequence'?canonical.map(s=>s.relationshipId):view.relationshipIds;
+  if(JSON.stringify(steps.map(s=>s.relationshipId))!==JSON.stringify(expected)) errors.push('c4: full ordered relationship set mismatch');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

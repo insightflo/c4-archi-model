@@ -11,7 +11,23 @@ const output = path.resolve(process.argv[4] || "docs/flowmap/flowmap.html");
 const marker = "/* FLOWMAP_JSON */";
 
 try {
+  const same = (a,b) => {
+    if (path.resolve(a) === path.resolve(b)) return true;
+    if (fs.existsSync(a) && fs.existsSync(b)) {
+      const sa=fs.statSync(a), sb=fs.statSync(b);
+      return fs.realpathSync(a) === fs.realpathSync(b) || (sa.ino===sb.ino && sa.dev===sb.dev);
+    }
+    return false;
+  };
+  if (same(input,output) || same(template,output) ||
+      (fs.existsSync(output) && fs.lstatSync(output).isSymbolicLink())) {
+    throw new Error("input/template/output path collision (no files written)");
+  }
   const data = JSON.parse(fs.readFileSync(input, "utf8"));
+  if(data.c4 && typeof data.c4.modelPath==='string') {
+    const canonical=path.resolve(path.dirname(input),'..',data.c4.modelPath);
+    if(same(canonical,output))throw new Error("declared canonical/output path collision (no files written)");
+  }
   const errors = validateFlowmap(data);
   if (errors.length) throw new Error(`스키마 오류:\n- ${errors.join("\n- ")}`);
 

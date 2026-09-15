@@ -196,11 +196,16 @@ def _find_receipt(stem: str, entries: list):
 
 
 def _check_source(report: ValidationReport, root: Path, source: Path, family: str,
-                  stem: str, receipts: dict, view_id: str | None) -> list:
+                  stem: str, receipts: dict, view_id: str | None, renderer_root: Path | None = None) -> list:
     validate_prefix, build_prefix = ((ARCHIFY_VALIDATE_PREFIX, ARCHIFY_DELIVER_PREFIX)
                                     if family == FAMILY_ARCHIFY else
                                     (FLOWMAP_VALIDATE_PREFIX, FLOWMAP_BUILD_PREFIX))
     before = len(report.errors)
+    typed = False
+    try:
+        typed = family == FAMILY_FLOWMAP and "c4" in load_json(source)
+    except (OSError, ValueError, TypeError):
+        pass
     validate = _find_receipt(stem, receipts[validate_prefix])
     if validate is None:
         report.error("RCP-001", str(source), "required validate receipt missing or ambiguous")
@@ -228,6 +233,17 @@ def _check_source(report: ValidationReport, root: Path, source: Path, family: st
             report.error("RCP-004", str(build), failure)
         elif data is not None:
             _verify_input(report, root, build, data, source)
+            if typed:
+                from repo_flowmap_adapter import implementation_hash
+                try:
+                    current_renderer = implementation_hash((renderer_root or SKILL_ROOT) / "assets/repo-flowmap")
+                except (OSError, ValueError) as exc:
+                    report.error("RCP-010", str(build), f"native renderer unavailable: {exc}")
+                    current_renderer = None
+                if (data.get("renderer") != "repo-flowmap" or data.get("forkVersion") != 1
+                        or data.get("viewId") != view_id or current_renderer is None
+                        or data.get("rendererSha256") != current_renderer):
+                    report.error("RCP-010", str(build), "typed repo-flowmap requires current native renderer implementation/View binding")
             if "viewId" in data and data["viewId"] != view_id:
                 report.error("RCP-009", str(build), "receipt viewId disagrees with source/View association")
             artifact = _verify_artifact(report, root, build, data)
@@ -382,7 +398,7 @@ def run(root: Path, data_path: Path | None = None, skill_root: Path | None = Non
         view_id = resolve_view(stem, view_ids)
         if view_ids and view_id is None:
             report.error("RCP-009", str(source), "source cannot resolve to one View")
-        outputs = _check_source(report, root, source, family, stem, receipts, view_id)
+        outputs = _check_source(report, root, source, family, stem, receipts, view_id, skill_root)
         if view_id is not None:
             for output in outputs:
                 try:

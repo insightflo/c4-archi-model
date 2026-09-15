@@ -78,7 +78,7 @@ archify 패키지와 Node 18+가 가용함 (doctor 통과)
 → archify JSON IR 저작·검증·deliver (기본 경로)
 
 archify 미가용이고 Node 18+가 있음 (사용자가 다른 형식을 지정하지 않음)
-→ 번들 repo-flowmap으로 flowmap.json 저작·검증·빌드 (번들 폴백 기본)
+→ 번들 repo-flowmap 명시적 포크에서 canonical 매핑·native 검증·빌드 (번들 폴백 기본; legacy 입력도 유지)
 
 C4-aware 렌더러와 검증기가 사용 가능함
 → model-as-code 생성·검증 후 렌더링
@@ -217,7 +217,7 @@ html/report-data.json
 ### 내장 규칙
 
 - 렌더링된 SVG를 우선해 data URI로 내장한다.
-- text/html 인터랙티브 다이어그램(repo-flowmap 산출물)은 data URI iframe으로 내장한다.
+- text/html 인터랙티브 다이어그램(repo-flowmap 산출물)은 data URI에 원본 bytes를 내장하고 sandbox allow-scripts iframe의 srcdoc에 전달한다.
   기본 템플릿이 `mimeType === 'text/html'` 다이어그램을 `sandbox="allow-scripts"` iframe으로
   렌더링한다. iframe 내부 스크립트는 정상 내용이므로 SVG 위생 검사를 적용하지 않는다.
 - PNG만 있으면 충분한 해상도의 PNG를 내장한다.

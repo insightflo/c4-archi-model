@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -583,6 +583,81 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
 .fbtn.stale{opacity:.62}
 .fstale{margin:6px 0 2px;padding:6px 9px;border-left:3px solid #8a6d3b;background:rgba(138,109,59,.10);font-size:12px;line-height:1.5}
 .fstale b{color:#8a6d3b}
+
+/* Maintained repo-flowmap fork: typed views. Legacy workflow styles stay intact. */
+.c4-view text.c4-text{font-family:system-ui,sans-serif;font-weight:400;fill:var(--text);text-anchor:start;letter-spacing:0}
+.c4-view text.c4-title{font-weight:700}.c4-view text.c4-kind{fill:var(--accent);font-weight:700}
+.c4-view text.c4-id,.c4-view text.c4-tech{fill:var(--text-3)}
+.c4-view text.c4-uncertain{fill:#b16616}
+.c4-view .c4-body{fill:var(--panel);stroke:var(--border-2);stroke-width:2}
+.c4-view .c4-inner{fill:none;stroke:var(--accent);stroke-width:1}
+.c4-view .c4-person,.c4-view .c4-tab,.c4-view .c4-component-mark,.c4-view .c4-instance-mark{fill:var(--panel);stroke:var(--accent);stroke-width:2}
+.c4-view .c4-boundary>rect{fill:var(--panel-2);fill-opacity:.55;stroke:var(--accent);stroke-width:2;stroke-dasharray:10 5}
+.c4-view .c4-boundary.c4-unresolved>rect{stroke:#b16616;stroke-dasharray:3 7}
+.c4-view .c4-divider{stroke:var(--border-2);stroke-width:1.4}
+.c4-view path.c4-edge{stroke:var(--text);stroke-width:1.8;fill:none;animation:none;opacity:1;stroke-dashoffset:0}
+.c4-view path.c4-edge.hot{stroke:var(--accent);stroke-width:3;animation:none}
+.c4-view path.c4-edge[data-kind=dependency],.c4-view path.c4-edge[data-kind=realization]{stroke-dasharray:8 5}
+.c4-view path.c4-edge:not([data-kind=dependency]):not([data-kind=realization]){stroke-dasharray:none}
+.c4-view .c4-relation-row>rect{fill:var(--panel);stroke:var(--border-2);stroke-width:1}
+.c4-view .c4-lifeline{stroke:var(--text-3);stroke-width:1.3;stroke-dasharray:6 6}
+.c4-view .c4-message-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.c4-view .c4-message.c4-hot .c4-message-line{stroke:var(--accent);stroke-width:3}
+.c4-view .c4-label-bg{fill:var(--panel);stroke:none}
+.c4-view .c4-message-label{paint-order:stroke;stroke:var(--panel);stroke-width:3;stroke-linejoin:round}
+html[data-repo-flowmap-typed] .stage{min-height:560px}
+@media(max-width:600px){html[data-repo-flowmap-typed] .stage{min-height:500px}}
+
+
+.c4-view path.c4-edge{marker-end:url(#c4-open);marker-start:none}
+.c4-view path.c4-edge[data-kind=association]{marker-end:none}
+.c4-view path.c4-edge[data-kind=composition]{marker-start:url(#c4-diamond);marker-end:none}
+.c4-view path.c4-edge[data-kind=inheritance],.c4-view path.c4-edge[data-kind=realization]{marker-end:url(#c4-triangle)}
+
+html[data-repo-flowmap-typed] header{flex-wrap:wrap}
+html[data-repo-flowmap-typed] header>div:first-child{min-width:0}
+html[data-repo-flowmap-typed] h1{overflow-wrap:anywhere}
+html[data-repo-flowmap-typed]:not([data-repo-flowmap-typed=sequence]) #play{display:none}
+html[data-repo-flowmap-typed] .hint{font-size:11px;max-width:calc(100% - 16px);pointer-events:none}
+@media(max-width:760px){
+ html[data-repo-flowmap-typed] body:not(.desktop-canvas-mode) .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto}
+ html[data-repo-flowmap-typed] body:not(.desktop-canvas-mode) .flows{max-height:170px;overflow:auto;border-bottom:1px solid var(--border)}
+ html[data-repo-flowmap-typed] body:not(.desktop-canvas-mode) .stage{height:560px;width:100%;min-width:0}
+ html[data-repo-flowmap-typed] .desktop-context{flex-wrap:wrap;min-width:0}
+ html[data-repo-flowmap-typed] .desktop-flow-copy{min-width:0;overflow-wrap:anywhere}
+ html[data-repo-flowmap-typed] .hint{top:48px}
+ html[data-repo-flowmap-typed] .header-actions{flex-wrap:wrap}
+}
+
+/* Typed native views no longer inherit the upstream desktop-only 1080px minimum.
+   Reader mode has real grid rows (no min-height overflow into the step panel).
+   Canvas/drawers remain the upstream camera and interaction implementation. */
+html[data-repo-flowmap-typed]{height:auto;min-height:100%;overflow:auto;overflow-x:hidden}
+html[data-repo-flowmap-typed] body{min-width:0;max-width:100%;height:auto;min-height:100vh;overflow:visible}
+html[data-repo-flowmap-typed] body:not(.desktop-canvas-mode) .app{grid-template-rows:auto 620px auto}
+html[data-repo-flowmap-typed] body:not(.desktop-canvas-mode) .stage{height:620px;min-height:0}
+html[data-repo-flowmap-typed] .desktop-context{display:flex;flex-wrap:wrap}
+html[data-repo-flowmap-typed] .desktop-flow-copy{flex:1;min-width:120px}
+html[data-repo-flowmap-typed] body.desktop-canvas-mode{height:100vh;min-height:0;overflow:hidden}
+html[data-repo-flowmap-typed] body.desktop-canvas-mode .app{min-height:0;grid-template-rows:minmax(0,1fr)}
+html[data-repo-flowmap-typed] body.desktop-canvas-mode .stage{height:auto;min-height:0}
+html[data-repo-flowmap-typed] body.desktop-canvas-mode .steps{max-width:94vw}
+html[data-repo-flowmap-typed] body.desktop-canvas-mode .flows{max-width:92vw}
+html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wrap}
+@media(max-width:900px){
+ html[data-repo-flowmap-typed] body:not(.desktop-canvas-mode) .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto 600px auto}
+ html[data-repo-flowmap-typed] body:not(.desktop-canvas-mode) .desktop-context{grid-column:1;grid-row:1}
+ html[data-repo-flowmap-typed] body:not(.desktop-canvas-mode) .flows{grid-column:1;grid-row:2;max-height:160px}
+ html[data-repo-flowmap-typed] body:not(.desktop-canvas-mode) .stage{grid-column:1;grid-row:3;height:600px}
+ html[data-repo-flowmap-typed] body:not(.desktop-canvas-mode) .steps{grid-column:1;grid-row:4}
+ html[data-repo-flowmap-typed] .header-actions{justify-content:flex-start}
+ html[data-repo-flowmap-typed] body.desktop-canvas-mode .desktop-context button[data-action=prev],
+ html[data-repo-flowmap-typed] body.desktop-canvas-mode .desktop-context button[data-action=next],
+ html[data-repo-flowmap-typed] body.desktop-canvas-mode .desktop-progress{display:none}
+ html[data-repo-flowmap-typed] body.desktop-canvas-mode .desktop-flow-copy{min-width:0;flex-basis:100%;order:-1}
+ html[data-repo-flowmap-typed] body.desktop-canvas-mode .zoomctl{top:auto;bottom:12px}
+ html[data-repo-flowmap-typed] body.desktop-canvas-mode .hint{display:none}
+}
 </style>
 </head>
 <body>
@@ -1385,7 +1460,7 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
   // ── 평행 노선(strands) ──────────────────────────
   // 같은 복도를 지나는 선을 겹쳐 그리면 맨 위 한 줄만 보인다(3개가 1개로 읽힘).
   // 복도는 공유하되 가닥은 STRAND_GAP 만큼 어긋나게 밀어 나란히 보낸다.
-  var STRAND_GAP = 6;        // 카드 규칙: 선 굵기(1.9~3.2)의 약 2배
+  var STRAND_GAP = DATA.c4 ? 32 : 6;        // 카드 규칙: 선 굵기(1.9~3.2)의 약 2배
   var STRAND_MIN_RUN = 26;   // 이보다 짧은 구간은 포트 스텁이라 건드리지 않는다
   function strandAxis(a, b) {
     var dx = Math.abs(a.x - b.x), dy = Math.abs(a.y - b.y);
@@ -1486,7 +1561,7 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
     if (!flow) return routes;
     // 전체 지도는 각 선의 최단 경로(B), 관련 모듈만 보기는
     // 선 간 혼잡도까지 계산해 차선을 분리하는 경로(C)를 사용한다.
-    var routingVariant = state.compact ? 'C' : 'B';
+    var routingVariant = state.compact || DATA.c4 ? 'C' : 'B';
 
     var demand = {};
     flow.steps.forEach(function (step, index) {
@@ -1685,8 +1760,256 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
     return RANK[s.to] < RANK[s.from] ? 'back' : 'fwd';
   }
 
+  // ── Maintained repo-flowmap fork: typed C4/UML views ────────────────────
+  // Uses this renderer's NODE/state/port routing/#vp/camera/pan/export/list/panel.
+  // No external graphics generator, no pre-rendered SVG injection.
+  var c4MeasureCanvas = document.createElement('canvas');
+  var c4MeasureContext = c4MeasureCanvas.getContext('2d');
+  var C4_NAMES = {person:'Person · 사람',softwareSystem:'Software System · 시스템',container:'Container · 컨테이너',component:'Component · 컴포넌트',codeElement:'Code · 코드',deploymentNode:'Deployment node · 배치 경계',infrastructureNode:'Infrastructure · 인프라'};
+  function c4Lines(value, width, size, bold) {
+    var lines=[];
+    c4MeasureContext.font=(bold?'700 ':'400 ')+size+'px system-ui';
+    String(value==null?'':value).split('\n').forEach(function(para){
+      var line='';
+      Array.from(para).forEach(function(ch){
+        if(line && c4MeasureContext.measureText(line+ch).width > width-6){lines.push(line);line=ch;}
+        else line+=ch;
+      });
+      lines.push(line || ' ');
+    });
+    return lines;
+  }
+  function c4Text(lines,x,y,size,cls) {
+    return lines.map(function(line,i){return '<text class="c4-text '+(cls||'')+'" x="'+x+'" y="'+(y+i*(size+6))+'" style="font-size:'+size+'px">'+esc(line)+'</text>';}).join('');
+  }
+  function c4Block(text,width,size,bold,cls) {
+    var lines=c4Lines(text,width,size,bold);
+    return {lines:lines,size:size,h:lines.length*(size+6),cls:cls||''};
+  }
+  function c4LeafMetric(n) {
+    var e=n.element, w=300, rows=[], person=e.type==='person';
+    var title=c4Block(n.label,w-32,17,true,'c4-title');
+    var kind = e.codeDetails ? '«'+e.codeDetails.kind+'»' : C4_NAMES[e.type];
+    if(e.instanceOfId) kind='«instance» · 실제 인스턴스';
+    rows.push(c4Block(kind,w-32,12,false,'c4-kind')); rows.push(title);
+    rows.push(c4Block(e.id,w-32,11,false,'c4-id'));
+    if(DATA.c4.mode==='class') {
+      [['attributes','속성'],['methods','메서드']].forEach(function(pair){
+        var values=e.codeDetails[pair[0]];
+        rows.push({divider:true,h:12});
+        rows.push(c4Block(pair[1]+(values===null?' · 자료 없음':values.length?'':' · 명시적 빈 목록'),w-32,12,true,'c4-kind'));
+        (values||[]).forEach(function(m){rows.push(c4Block(m.declaration,w-32,14,false,'c4-member'));});
+      });
+    } else {
+      rows.push(c4Block(e.technology || '기술 · 미확인',w-32,12,false,'c4-tech'));
+      rows.push(c4Block(e.description,w-32,14,false,'c4-desc'));
+      if(e.instanceOfId) {
+        var target=(DATA.c4.targets||[]).find(function(t){return t.id===e.instanceOfId;});
+        rows.push(c4Block('대상: '+(target?target.name:e.instanceOfId)+' ['+e.instanceOfId+']',w-32,13,true,'c4-target'));
+      }
+      if(e.derivation==='unresolved'||e.confidence==='UNVERIFIED'||e.confidence==='CONFLICT') rows.push(c4Block('미확정 · '+e.confidence,w-32,12,true,'c4-uncertain'));
+    }
+    return {n:n,w:w,h:24+rows.reduce(function(s,r){return s+r.h+4;},0)+(person?64:0),rows:rows,person:person};
+  }
+  function c4LeafMarkup(p) {
+    var m=p.metric,e=m.n.element, y=p.y+(m.person?64:0), h=p.h-(m.person?64:0);
+    var cls='node c4-node'+(state.node===e.id?' sel':'');
+    var base='<g class="'+cls+'" data-node="'+esc(e.id)+'" data-canonical-id="'+esc(e.id)+'" data-type="'+esc(e.type)+'" tabindex="0" role="button" aria-label="'+esc(m.n.label)+'">';
+    if(m.person) {
+      var cx=p.x+p.w/2;
+      base+='<circle class="c4-person" cx="'+cx+'" cy="'+(p.y+17)+'" r="16"/><path class="c4-person" d="M'+(cx-38)+','+(p.y+59)+' Q'+(cx-36)+','+(p.y+35)+' '+cx+','+(p.y+35)+' Q'+(cx+36)+','+(p.y+35)+' '+(cx+38)+','+(p.y+59)+' Z"/>';
+    }
+    base+='<rect class="body c4-body" x="'+p.x+'" y="'+y+'" width="'+p.w+'" height="'+h+'" rx="'+(DATA.c4.mode==='class'?0:8)+'"/>';
+    if(e.type==='softwareSystem') base+='<rect class="c4-inner" x="'+(p.x+5)+'" y="'+(y+5)+'" width="'+(p.w-10)+'" height="'+(h-10)+'" rx="4"/>';
+    if(e.type==='container') base+='<rect class="c4-tab" x="'+(p.x+18)+'" y="'+(y-10)+'" width="85" height="10"/>';
+    if(e.type==='component') base+='<path class="c4-component-mark" d="M'+(p.x-8)+','+(y+15)+' h16 v12 h-16 Z M'+(p.x-8)+','+(y+36)+' h16 v12 h-16 Z"/>';
+    if(e.instanceOfId) base+='<path class="c4-instance-mark" d="M'+(p.x+p.w-38)+','+(y-8)+' h30 v20 h-30 Z M'+(p.x+p.w-32)+','+(y-14)+' h30 v20"/>';
+    var cy=y+23;
+    m.rows.forEach(function(r){
+      if(r.divider) base+='<line class="c4-divider" x1="'+p.x+'" y1="'+(cy-6)+'" x2="'+(p.x+p.w)+'" y2="'+(cy-6)+'"/>';
+      else base+=c4Text(r.lines,p.x+16,cy,r.size,r.cls);
+      cy+=r.h+4;
+    });
+    return base+'</g>';
+  }
+  function c4TreeLayout() {
+    var c=DATA.c4, all=new Map(), metrics=new Map(), parent=new Map(), children=new Map();
+    DATA.nodes.forEach(function(n){all.set(n.id,n);});
+    c.boundaries.forEach(function(e){if(!all.has(e.id))all.set(e.id,{id:e.id,label:e.name,desc:e.description,element:e});});
+    all.forEach(function(n,id){var pid=n.element.parentId;parent.set(id,all.has(pid)?pid:null);});
+    if(c.mode==='class') all.forEach(function(n,id){parent.set(id,null);});
+    all.forEach(function(n,id){var pid=parent.get(id);if(!children.has(pid))children.set(pid,[]);children.get(pid).push(id);});
+    function measure(id) {
+      var n=all.get(id), kids=children.get(id)||[];
+      if(!kids.length && n.element.type!=='deploymentNode') {var m=c4LeafMetric(n);metrics.set(id,m);return m;}
+      var kidMetrics=kids.map(measure), cols=kidMetrics.length>1?2:1, padding=36, gap=76;
+      var cw=[],rh=[];
+      kidMetrics.forEach(function(k,i){var col=i%cols,row=Math.floor(i/cols);cw[col]=Math.max(cw[col]||0,k.w);rh[row]=Math.max(rh[row]||0,k.h);});
+      var w=Math.max(380,cw.reduce(function(a,b){return a+b;},0)+gap*Math.max(0,cw.length-1)+padding*2);
+      var unresolved=n.element.derivation==='unresolved'||n.element.confidence==='UNVERIFIED'||n.element.confidence==='CONFLICT';
+      var lines=c4Lines((unresolved?'미확정 경계 · ':'')+n.label+' ['+n.element.type+']',w-40,16,true);
+      var sub=c4Lines([n.id,n.element.technology||'기술 미확인',n.element.environment].filter(Boolean).join(' · '),w-40,12,false);
+      if(c.deploymentPresentation==='logical-placement') sub=sub.concat(c4Lines(n.element.description,w-40,12,false));
+      var header=lines.length*22+sub.length*18+30;
+      var h=header+rh.reduce(function(a,b){return a+b;},0)+gap*Math.max(0,rh.length-1)+padding;
+      if(!kids.length) h=header+52;
+      var m={n:n,w:w,h:h,boundary:true,kids:kids,cw:cw,rh:rh,cols:cols,header:header,lines:lines,sub:sub,unresolved:unresolved};metrics.set(id,m);return m;
+    }
+    var roots=children.get(null)||[], rms=roots.map(measure), cols=rms.length>1?2:1, cw=[],rh=[];
+    rms.forEach(function(m,i){cw[i%cols]=Math.max(cw[i%cols]||0,m.w);rh[Math.floor(i/cols)]=Math.max(rh[Math.floor(i/cols)]||0,m.h);});
+    var width=Math.max(860,cw.reduce(function(a,b){return a+b;},0)+120*Math.max(0,cw.length-1)+96);
+    var titleLines=c4Lines(c.view.title,width-96,22,true);
+    var intro=c4Lines(c.mode.toUpperCase()+' · '+c.view.type+' · 구조 관계의 번호는 시간순이 아닙니다',width-96,13,false);
+    if(c.deploymentPresentation==='logical-placement') intro=intro.concat(c4Lines('논리 요소·배치 관계 보기 · 실제 인스턴스 배치 아님 · 상자는 원래 parentId 경계이며 관계는 재배치하지 않습니다',width-96,13,false));
+    var top=40+titleLines.length*28+intro.length*19+40;
+    var L={pos:{},routePos:{},groups:[],width:width,height:0,heads:[],title:titleLines,intro:intro};
+    function place(id,x,y){
+      var m=metrics.get(id),p={id:id,x:x,y:y,w:m.w,h:m.h,metric:m};L.pos[id]=p;
+      if(m.boundary){
+        L.groups.push(p);
+        // Logical placement edges attach to the canonical boundary header, not
+        // an invented instance. Other modes retain their non-endpoint obstacle.
+        var routeId=c.deploymentPresentation==='logical-placement'?id:'__header:'+id;
+        L.routePos[routeId]={id:routeId,x:x,y:y,w:m.w,h:m.header-12};
+        var cy=y+m.header;
+        m.kids.forEach(function(child,i){var col=i%m.cols,row=Math.floor(i/m.cols);var cx=x+36;for(var k=0;k<col;k++)cx+=m.cw[k]+76;var yy=cy;for(var j=0;j<row;j++)yy+=m.rh[j]+76;place(child,cx,yy);});
+      } else L.routePos[id]=p;
+    }
+    roots.forEach(function(id,i){var x=48,y=top;for(var a=0;a<i%cols;a++)x+=cw[a]+120;for(var b=0;b<Math.floor(i/cols);b++)y+=rh[b]+100;place(id,x,y);});
+    L.routePos.__pageHeader={id:'__pageHeader',x:0,y:0,w:L.width,h:top-32};
+    L.height=top+rh.reduce(function(a,b){return a+b;},0)+100*Math.max(0,rh.length-1)+160;
+    return L;
+  }
+  function c4BoundaryMarkup(p) {
+    var m=p.metric;
+    return '<g class="c4-boundary'+(m.unresolved?' c4-unresolved':'')+'" data-boundary="'+esc(p.id)+'"><rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.h+'" rx="'+(DATA.c4.mode==='deployment'?2:12)+'"/>'+c4Text(m.lines,p.x+20,p.y+26,16,'c4-title')+c4Text(m.sub,p.x+20,p.y+26+m.lines.length*22,12,'c4-id')+'</g>';
+  }
+  function c4Defs(){return '<defs>'+
+    '<marker id="c4-open" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="9" markerHeight="9" orient="auto"><path d="M1,1 L11,6 L1,11" fill="none" stroke="var(--text)" stroke-width="1.6"/></marker>'+
+    '<marker id="c4-triangle" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="12" markerHeight="12" orient="auto"><path d="M1,1 L13,7 L1,13 Z" fill="var(--panel)" stroke="var(--text)" stroke-width="1.3"/></marker>'+
+    '<marker id="c4-diamond" viewBox="0 0 20 12" refX="1" refY="6" markerWidth="15" markerHeight="10" orient="auto"><path d="M1,6 L9,1 L17,6 L9,11 Z" fill="var(--text)" stroke="var(--text)"/></marker>'+
+    '</defs>';}
+  function c4EdgeAttrs(step) {
+    var kind=step.relationship.codeRelation && step.relationship.codeRelation.kind;
+    if(!kind) return 'marker-end="url(#c4-open)"';
+    if(kind==='inheritance')return 'marker-end="url(#c4-triangle)"';
+    if(kind==='realization')return 'stroke-dasharray="8 5" marker-end="url(#c4-triangle)"';
+    if(kind==='dependency')return 'stroke-dasharray="8 5" marker-end="url(#c4-open)"';
+    if(kind==='composition')return 'marker-start="url(#c4-diamond)"';
+    return ''; // UML association: no invented navigability.
+  }
+  function c4LegendTable(flow,L,top) {
+    var html='',y=top;
+    html+=c4Text(['관계 설명 · 번호로 선과 대응 / 속성·메서드·다중성은 입력 근거만 표시'],48,y,15,'c4-title');y+=34;
+    flow.steps.forEach(function(s,i){
+      var r=s.relationship,cr=r.codeRelation;
+      var text='['+(i+1)+'] '+nodeLabel(s.from)+' → '+nodeLabel(s.to)+' · '+(cr?cr.kind:'관계')+' · '+r.description;
+      if(r.technology)text+=' ['+r.technology+']';
+      if(cr && (cr.sourceMultiplicity||cr.destinationMultiplicity))text+=' · 다중성 '+(cr.sourceMultiplicity||'미제공')+' → '+(cr.destinationMultiplicity||'미제공');
+      var lines=c4Lines(text,L.width-112,14,false),h=lines.length*20+42;
+      html+='<g class="c4-relation-row" data-relation="'+esc(r.id)+'"><rect x="40" y="'+(y-18)+'" width="'+(L.width-80)+'" height="'+h+'" rx="6"/>'+c4Text(lines,54,y,14,'')+c4Text([r.id],54,y+lines.length*20+6,11,'c4-id')+'</g>';
+      y+=h+14;
+    });
+    return {html:html,bottom:y};
+  }
+  function c4StaticMap(flow) {
+    var L=c4TreeLayout(),markup=c4Text(L.title,48,38,22,'c4-title')+c4Text(L.intro,48,38+L.title.length*28,13,'c4-id');
+    markup+=L.groups.map(c4BoundaryMarkup).join('');
+    var routes=buildEdgeRoutes(flow,{pos:L.routePos,width:L.width,height:L.height});
+    markup+='<g class="edges">'+routes.map(function(r,i){if(!r)return '';return '<path class="edge c4-edge'+(state.step===i?' hot':'')+'" data-i="'+i+'" data-relation="'+esc(r.step.relationshipId)+'" data-kind="'+esc((r.step.relationship.codeRelation||{}).kind||'relation')+'" d="'+routePath(r,[])+'" '+c4EdgeAttrs(r.step)+'/>';}).join('')+'</g>';
+    Object.keys(L.pos).forEach(function(id){var p=L.pos[id];if(!p.metric.boundary)markup+=c4LeafMarkup(p);});
+    var table=c4LegendTable(flow,L,L.height-90);markup+=table.html;L.height=table.bottom+30;
+    markup+='<g class="badges"></g>';
+    return {L:L,markup:markup,routes:routes};
+  }
+  function c4SequenceMap(flow) {
+    var L={pos:{},groups:[],width:0,height:0,heads:[],messageBoxes:[]},markup='',x=48,top=126,headH=0;
+    var metrics=DATA.nodes.map(c4LeafMetric);
+    metrics.forEach(function(m){headH=Math.max(headH,m.h);});
+    metrics.forEach(function(m){L.pos[m.n.id]={id:m.n.id,x:x,y:top,w:m.w,h:m.h,metric:m};x+=m.w+130;});
+    L.width=Math.max(900,x-130+48);
+    var title=c4Lines(DATA.c4.view.title,L.width-96,22,true);
+    // Participant top is below variable-height heading, not a fixed magic constant.
+    top=50+title.length*28+54;Object.keys(L.pos).forEach(function(id){L.pos[id].y=top;});
+    markup+=c4Text(title,48,38,22,'c4-title')+c4Text(['SEQUENCE · 위 → 아래 시간순 / 각 번호는 canonical step.order'],48,42+title.length*28,13,'c4-id');
+    var y=top+headH+68,msgs='',lineEnd=0;
+    flow.steps.forEach(function(s,i){
+      var a=L.pos[s.from],b=L.pos[s.to],ax=a.x+a.w/2,bx=b.x+b.w/2,self=s.from===s.to;
+      var left=self?ax+126:Math.min(ax,bx)+16, width=self?340:Math.max(60,Math.abs(bx-ax)-32);
+      var label=(i+1)+'. '+s.call+(s.relationship.technology?' ['+s.relationship.technology+']':'');
+      if(s.note)label+=' · '+s.note;
+      var lines=c4Lines(label,width,14,false),textH=lines.length*20;
+      var lineY=y+textH+12, bottom=lineY+(self?42:0);
+      var d=self?'M'+ax+','+lineY+' H'+(ax+100)+' V'+(lineY+42)+' H'+ax:'M'+ax+','+lineY+' H'+bx;
+      var cr='c4-message'+(state.step===i?' c4-hot':'');
+      msgs+='<g class="'+cr+'" data-step-id="'+esc(s.id)+'" data-order="'+s.order+'" data-self="'+self+'">';
+      msgs+='<rect class="c4-label-bg" x="'+(left-5)+'" y="'+(y-16)+'" width="'+(width+10)+'" height="'+(textH+8)+'"/>'+c4Text(lines,left,y,14,'c4-message-label');
+      msgs+='<path class="c4-message-line" data-relation="'+esc(s.relationshipId)+'" d="'+d+'" marker-end="url(#c4-open)"/>';
+      msgs+='<g class="badge'+(state.step===i?' hot':'')+'" data-i="'+i+'" tabindex="0" role="button" aria-label="'+(i+1)+'단계"><circle cx="'+(ax-15)+'" cy="'+(lineY-2)+'" r="11"/><text x="'+(ax-15)+'" y="'+(lineY+2)+'">'+(i+1)+'</text></g></g>';
+      L.width=Math.max(L.width,left+width+54,self?ax+154:bx+48);
+      L.messageBoxes.push({x:Math.min(ax,bx)-20,y:y-24,w:Math.max(Math.abs(bx-ax)+40,self?width+160:0),h:bottom-y+50});
+      y=bottom+72;lineEnd=y;
+    });
+    Object.keys(L.pos).forEach(function(id){var p=L.pos[id],cx=p.x+p.w/2;markup+='<line class="c4-lifeline" data-participant="'+esc(id)+'" x1="'+cx+'" y1="'+(p.y+p.h)+'" x2="'+cx+'" y2="'+lineEnd+'"/>';});
+    markup+=msgs;
+    Object.keys(L.pos).forEach(function(id){markup+=c4LeafMarkup(L.pos[id]);});
+    L.height=lineEnd+50;
+    return {L:L,markup:markup};
+  }
+  function c4PlaceBadges(L) {
+    var host=el.map.querySelector('.badges');if(!host)return;
+    var placed=[],rects=Object.keys(L.routePos||{}).map(function(id){return L.routePos[id];});
+    var paths=el.map.querySelectorAll('path.c4-edge');
+    paths.forEach(function(path){
+      var len=path.getTotalLength(),best=null;
+      for(var j=1;j<=96 && !best;j++){
+        var f=j%2?0.5+(j-1)/200:0.5-j/200;
+        var p=path.getPointAtLength(len*f);
+        // A route may run in the 10px outer gutter; its 12px-radius badge
+        // must not. Reject edge-of-canvas candidates before selecting a slot.
+        if(p.x<16 || p.y<16)continue;
+        if(rects.some(function(r){return p.x>r.x-17&&p.x<r.x+r.w+17&&p.y>r.y-17&&p.y<r.y+r.h+17;}))continue;
+        if(placed.some(function(q){return Math.hypot(q.x-p.x,q.y-p.y)<32;}))continue;
+        var touchesOther=Array.prototype.some.call(paths,function(other){
+          if(other===path)return false;var ol=other.getTotalLength();
+          for(var at=0;at<=ol;at+=7){var q=other.getPointAtLength(at);if(Math.hypot(q.x-p.x,q.y-p.y)<16)return true;}return false;
+        });
+        if(touchesOther)continue;
+        best=p;
+      }
+      if(!best) throw new Error('typed view: cannot place a non-overlapping relationship badge; split View');
+      placed.push(best);var i=+path.dataset.i;
+      host.innerHTML+='<g class="badge'+(state.step===i?' hot':'')+'" data-i="'+i+'" tabindex="0" role="button" aria-label="관계 '+(i+1)+'"><circle cx="'+best.x+'" cy="'+best.y+'" r="12"/><text x="'+best.x+'" y="'+(best.y+4)+'">'+(i+1)+'</text></g>';
+    });
+  }
+  function renderTypedMap() {
+    var flow=DATA.flows[0], result;
+    try{
+      result=DATA.c4.mode==='sequence'?c4SequenceMap(flow):c4StaticMap(flow);
+      var L=result.L;lastLayout=L;
+      el.map.setAttribute('data-view-kind',DATA.c4.mode);el.map.setAttribute('data-view-id',DATA.c4.viewId);
+      el.map.innerHTML=c4Defs()+'<g id="vp" class="c4-view">'+result.markup+'</g>';
+      c4PlaceBadges(L);
+      // Measure the ACTUAL SVG glyphs and paths, including last self-call labels.
+      // Extent growth is done before camera painting/export, after text insertion.
+      var bbox=vp().getBBox();
+      if(bbox.x<0 || bbox.y<0) throw new Error('typed view geometry escapes top/left canvas; split View');
+      L.width=Math.max(L.width,Math.ceil(bbox.x+bbox.width+32));
+      L.height=Math.max(L.height,Math.ceil(bbox.y+bbox.height+32));
+      el.map.dataset.contentWidth=L.width;el.map.dataset.contentHeight=L.height;
+      el.map.dataset.renderStatus='pass';el.map.removeAttribute('data-render-error');
+      el.hint.textContent='repo-flowmap · '+DATA.c4.mode+' · 드래그 이동 / 휠 확대 / 1:100%';el.hint.style.display='';
+      paintView();
+    }catch(error){
+      el.map.dataset.renderStatus='fail';el.map.dataset.renderError=error.message;
+      el.map.innerHTML='<text x="24" y="40" fill="red">'+esc('렌더 실패: '+error.message)+'</text>';
+      console.error(error);
+    }
+  }
+
   // ── 지도 렌더 ───────────────────────────────────
   function renderMap() {
+    if (DATA.c4) return renderTypedMap();
     var flow = state.flow ? flowById(state.flow) : null;
     var involved = new Set();
     if (flow) flow.steps.forEach(function (s) { involved.add(s.from); involved.add(s.to); });
@@ -2087,7 +2410,7 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
     paintView();
   }
 
-  function downloadCurrentSvg() {
+  function serializeCurrentSvg() {
     if (!lastLayout || !el.map.querySelector('#vp')) return;
 
     var width = Math.max(1, Math.ceil(lastLayout.width));
@@ -2104,7 +2427,7 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
     clone.setAttribute('height', height);
     clone.setAttribute('data-theme', theme);
     cloneVp.setAttribute('transform', 'translate(0,0) scale(1)');
-    cloneVp.setAttribute('class', 'nofx');
+    cloneVp.classList.add('nofx');
     Array.prototype.forEach.call(clone.querySelectorAll('circle.port'), function (port) {
       port.remove();
     });
@@ -2130,6 +2453,11 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
 
     var source = '<?xml version="1.0" encoding="UTF-8"?>\n' +
       new XMLSerializer().serializeToString(clone);
+    return source;
+  }
+  function downloadCurrentSvg() {
+    var source=serializeCurrentSvg();if(!source)return;
+    var flow = state.flow ? flowById(state.flow) : null;
     var blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
     var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
@@ -2154,7 +2482,7 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
   var MINK = 0.12, MAXK = 3.2;
 
   function vp() { return el.map.querySelector('#vp'); }
-  function clampK(k) { return Math.max(MINK, Math.min(MAXK, k)); }
+  function clampK(k) { return Math.max(DATA.c4?0.015:MINK, Math.min(MAXK, k)); }
   function transformStr() {
     return 'translate(' + view.tx.toFixed(2) + ',' + view.ty.toFixed(2) + ') scale(' + view.k.toFixed(4) + ')';
   }
@@ -2198,14 +2526,32 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
   function fitBox(b, pad, maxK, animate) {
     var cw = el.stage.clientWidth, ch = el.stage.clientHeight;
     if (!b || !cw || !ch) return;
+    if(DATA.c4){
+      // The native canvas has fixed hint/context/zoom overlays. Fit into the
+      // unobscured rectangle rather than placing a title underneath the toolbar.
+      var top=document.body.classList.contains('desktop-canvas-mode')?118:54;
+      var bottom=cw<600?72:24;
+      var availableH=Math.max(80,ch-top-bottom),availableW=Math.max(80,cw-48);
+      var typedK=Math.min(availableW/Math.max(b.w,1),availableH/Math.max(b.h,1),maxK);
+      moveTo(typedK,24+(availableW-b.w*typedK)/2-b.x*typedK,
+             top+(availableH-b.h*typedK)/2-b.y*typedK,animate);
+      return;
+    }
     // 창이 작을 때 여백이 화면을 다 잡아먹지 않도록 제한
     pad = Math.min(pad, Math.min(cw, ch) * 0.1);
     var k = Math.min((cw - pad * 2) / Math.max(b.w, 1), (ch - pad * 2) / Math.max(b.h, 1));
     k = clampK(Math.min(k, maxK));
     moveTo(k, cw / 2 - k * (b.x + b.w / 2), ch / 2 - k * (b.y + b.h / 2), animate);
   }
+  function c4ReadingView() {
+    if(!lastLayout)return;
+    var width=el.stage.clientWidth;
+    var k=width<600?1:Math.min(1,Math.max(.72,(width-48)/lastLayout.width));
+    moveTo(k,24,document.body.classList.contains('desktop-canvas-mode')?118:46,false);
+  }
   function fitAll(animate) { fitBox(boxAll(), 30, 1.2, animate); }
   function fitFlow(animate) {
+    if (DATA.c4) return fitAll(animate);
     var f = state.flow ? flowById(state.flow) : null;
     if (!f) return fitAll(animate);
     var ids = new Set();
@@ -2213,6 +2559,9 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
     fitBox(boxNodes(ids), 52, 1.35, animate);
   }
   function fitStep(i, animate) {
+    if (DATA.c4 && DATA.c4.mode==='sequence' && lastLayout && lastLayout.messageBoxes[i]) {
+      return fitBox(lastLayout.messageBoxes[i],30,1.5,animate);
+    }
     var f = state.flow ? flowById(state.flow) : null;
     if (!f || i < 0 || i >= f.steps.length) return fitFlow(animate);
     var s = f.steps[i];
@@ -2246,7 +2595,7 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
       return '<div class="grp">' + esc(g) + '</div>' + byGroup[g].map(function (f) {
         return '<button class="fbtn' + (state.flow === f.id ? ' on' : '') + (f.status === 'stale' ? ' stale' : '') + '" data-flow="' + esc(f.id) + '">' +
                '<span class="t">' + esc(f.title) + '</span>' +
-               '<span class="c">' + f.steps.length + '단계</span></button>';
+               '<span class="c">' + f.steps.length + (DATA.c4 && DATA.c4.mode!=='sequence'?'관계':'단계') + '</span></button>';
       }).join('');
     }).join('');
   }
@@ -2334,7 +2683,7 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
     } else if (location.hash) {
       var url = new URL(location.href);
       url.hash = '';
-      history.replaceState(null, '', url.pathname + url.search);
+      try { history.replaceState(null, '', url.pathname + url.search); } catch (err) { /* opaque report iframe */ }
     }
     renderList(); renderMap(); renderPanel();
     if (id) fitFlow(true); else fitAll(true);
@@ -2490,7 +2839,8 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
 
   if (window.ResizeObserver) {
     var ro = new ResizeObserver(function () {
-      if (state.flow) fitFlow(false);
+      if (DATA.c4) c4ReadingView();
+      else if (state.flow) fitFlow(false);
       else fitAll(false);
     });
     ro.observe(el.stage);
@@ -2587,12 +2937,46 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
     });
   });
 
+  // Typed views share native state/list/panel/camera/export. Manual port editing is
+  // meaningful for legacy workflow cards only, not canonical sequence positions.
+  if(DATA.c4){
+    state.flow=DATA.flows[0].id;state.step=-1;state.compact=false;
+    el.compact.disabled=true;el.compact.title='Canonical View의 전체 요소를 유지합니다';
+    el.editConnections.disabled=true;el.editConnections.title='Typed View는 자동 배치합니다. Legacy 연결 편집은 유지됩니다';
+    document.documentElement.dataset.repoFlowmapTyped=DATA.c4.mode;
+    el.q.placeholder='보기와 관계 검색';
+    var legend=document.querySelector('.legend');
+    var descriptions=DATA.c4.mode==='class'
+      ? ['▷ 실선: 상속 / 점선: 구현','◆ 소유자 쪽: 합성','— 연관 (항행 방향 추측 없음)','⇢ 점선: 의존','속성·메서드·다중성: 입력 근거만']
+      : DATA.c4.mode==='sequence'
+      ? ['참가자 아래 점선: 생명선','번호: 위 → 아래 시간순','되돌아가는 루프: 자기호출','반복 관계도 각각 다른 단계','return/alt 장식은 생성하지 않음']
+      : DATA.c4.mode==='deployment'
+      ? (DATA.c4.deploymentPresentation==='logical-placement'
+        ? ['논리 요소·배치 관계: 실제 인스턴스 배치 아님','점선 상자: 원래 parentId 경계','화살표: 원문 관계, 후보 문구 그대로','논리 요소를 호스트 안으로 옮기지 않음','명시된 instanceOfId만 인스턴스 표식']
+        : ['점선 상자: 배치 경계','겹친 탭: 배치된 인스턴스','대상: 논리 요소의 canonical ID','미확정 경계는 미확정으로 표시'])
+      : ['사람 실루엣 / 이중 시스템 외곽선','탭: 컨테이너 / 옆 표시: 컴포넌트','포함 경계: canonical parentId','관계 번호는 시간순이 아닌 참조 번호'];
+    legend.innerHTML='<h3>'+esc(DATA.c4.mode)+' 표기</h3>'+descriptions.map(function(d){return '<div class="lg">'+esc(d)+'</div>';}).join('')+'<h3>캔버스 조작</h3><div class="lg">드래그 이동 · 휠 확대</div><div class="lg">1: 실제 크기 · 0: 전체 맞춤</div>';
+    el.map.setAttribute('aria-label',DATA.c4.mode+' '+DATA.c4.view.title);
+
+  }
+  window.repoFlowmap = {exportSvg:serializeCurrentSvg,
+    state:function(){return {viewId:DATA.c4?DATA.c4.viewId:null,flow:state.flow,step:state.step,camera:{k:view.k,tx:view.tx,ty:view.ty}};},
+    ready:function(){return !DATA.c4 || el.map.dataset.renderStatus==='pass';}};
+  window.addEventListener('message',function(e){
+    if(e.source!==window.parent || !e.data || e.data.type!=='repo-flowmap-camera')return;
+    if(DATA.c4 && e.data.viewId!==DATA.c4.viewId)return;
+    if(e.data.action==='in')zoomCenter(1.25);
+    else if(e.data.action==='out')zoomCenter(0.8);
+    else if(e.data.action==='fit')fitAll(false);
+    else if(e.data.action==='one')moveTo(1,24,24,false);
+  });
   runAntiSlopGuard();
   renderList();
   renderMap();
   renderPanel();
   fitAll(false);
   requestAnimationFrame(function () { if (!state.flow) fitAll(false); });
+  if(DATA.c4) document.fonts.ready.then(function(){renderMap();c4ReadingView();});
 
   var m = /flow=([\w-]+)/.exec(location.hash);
   if (m && flowById(m[1])) setFlow(m[1]);
@@ -2617,7 +3001,8 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
   var mapFocusKey = '';
   var drawerReturnFocus = null;
   var params = new URLSearchParams(location.search);
-  var currentMode = params.get('mode') === 'canvas' ? 'canvas' : 'reader';
+  var typed=!!document.documentElement.dataset.repoFlowmapTyped;
+  var currentMode=params.get('mode')==='reader'?'reader':params.get('mode')==='canvas'||(typed&&(innerWidth<1000||window.parent!==window))?'canvas':'reader';
 
   document.documentElement.setAttribute('data-workflow-view', 'true');
 
@@ -2753,7 +3138,7 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
       var url = new URL(location.href);
       if (currentMode === 'canvas') url.searchParams.set('mode', 'canvas');
       else url.searchParams.delete('mode');
-      history.replaceState(null, '', url.pathname + url.search + url.hash);
+      try { history.replaceState(null, '', url.pathname + url.search + url.hash); } catch (err) { /* opaque report iframe */ }
     }
     requestAnimationFrame(function () { window.dispatchEvent(new Event('resize')); });
   }

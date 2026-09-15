@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.10.0 — repo-flowmap typed-view fork (적용 후보, 2026-09-15)
+
+- 0e2aef4 기준. Archify 우선/repo-flowmap 폴백 및 기존 native CLI/legacy 기능을 유지한다.
+- 번들 repo-flowmap template 자체에 구조/클래스/시퀀스/배치를 추가한다. 별도 엔진은 추가하지 않는다.
+- 선택 codeDetails/codeRelation 및 Claim 검증, authoritative projection DIA-008,
+  native 구현 해시 RCP-010을 추가하고 기존 provenance/strict 게이트를 유지한다.
+- 생산자/보고서/SVG 추출의 입력·출력·영수증 충돌을 첫 쓰기 전에 거부한다.
+- 마지막 참가자의 긴 자기호출을 실제 glyph bbox와 native SVG export 범위에 포함한다.
+- iframe native 카메라 bridge, 좁은 화면, 선택 브라우저 추출 및 재현 검사 명령을 추가한다.
+- 가상 샘플 generator와 실행 로그를 남기는 테스트를 추가한다. 모든 환경의 가독성/file://
+  또는 인쇄 완전성을 보장하지 않는다. 각 실행 PASS/FAIL/NOT_RUN을 별도 보고한다.
+- 포크 범위/원출처/라이선스 미확인 제한/3-way update 정책을 VENDORED.md에 명시한다.
+
 ## 0.9.0 — 2026-09-14
 
 ### 외부 리뷰(ChatGPT) 반영 — 검증 강제화와 인쇄 무결성

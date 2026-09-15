@@ -1,3 +1,16 @@
+# 로컬 포크 변경 — 2026-09-15 (extension v1)
+
+- 기존 template renderMap에 structure/class/sequence/deployment를 추가했다.
+- deployment의 logical-placement 표시 계약: 원래 경계·논리 요소·관계 유지, 경계 머리글 라우팅, 실제 인스턴스 배치가 아님을 화면/SVG에 명시한다. 물리 모드 제한은 유지한다.
+- interaction 조건을 원문 보존 note 접두어로 표시하고 Node에서도 검증한다. decision/failure/recovery는 계속 거부한다.
+- 카메라/지도/직각 라우팅/flow 목록/상세 패널/legacy 편집/테마/SVG를 유지한다.
+- 입력/출력 별칭 사전 차단과 typed native 검증, 긴 한국어 bbox 및 iframe 지원을 추가했다.
+- 출처·라이선스 제한·정식 포크 유지보수 규칙은 VENDORED.md, 원본 파일 지문은 UPSTREAM-HASHES.json.
+
+---
+
+## 아래는 보존한 upstream 변경 이력
+
 # 변경 기록
 
 ## 렌더러 — 선 읽기 개선

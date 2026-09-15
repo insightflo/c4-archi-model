@@ -1,3 +1,21 @@
+## Typed View의 추가 규칙 — 같은 native renderer
+
+아래 기존 값은 legacy에 적용한다. Typed 구조/class/deployment는 기존 buildEdgeRoutes의
+혼잡도 포함 C 경로와 32px strand 간격을 재사용한다. Canonical 부모 경계는 바탕/헤더로,
+leaf 본문은 회피 장애물로 사용한다. 같은 컬럼 카드 대신 유형별 실루엣/구획/경계를 그린다.
+긴 관계 설명은 번호별 설명표에 표시하며 번호는 시간순이 아니다. 시퀀스는 명시 order에 따른
+참가자/생명선/메시지와 반복/자기호출이다. 양끝이 같다는 이유로 메시지를 내부 카드로 생략하지 않는다.
+실제 text bbox를 export 전에 측정해 마지막 자기호출의 오른쪽 끝을 포함한다.
+원래 camera/state/pan/selection/export를 그대로 쓰며 source-bound SVG는 exportSvg() 실행 결과다.
+좁은 화면은 1:1과 native 팬을 제공하고, 전체 맞춤 버튼은 개요용이다. Typed 수동 포트 편집과
+관련 노드 필터는 꺼두며, legacy의 같은 기능은 그대로 남는다.
+Deployment logical-placement는 원래 부모 경계와 논리 요소를 유지하며 경계 머리글을
+관계 연결점으로 사용한다. 호스팅 문구를 포함 관계로 바꾸지 않는다. 화면/SVG는
+실제 인스턴스 배치가 아님을 명시한다. physical-instances의 타입/경계 제한은 유지한다.
+Interaction 조건은 그 메시지의 원문 note 접두어로만 표시하며 alt/opt 프레임을 만들지 않는다.
+
+---
+
 # 렌더러 규칙
 
 사용자가 화면에서 확인하거나 조작할 수 있는 고정 동작이다.

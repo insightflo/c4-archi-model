@@ -208,6 +208,10 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
             default_text = step.get("note") or (f"통신 방식: {technical}" if technical else "")
             steps.append({
                 "id": step["id"],
+                "relationshipId": step["relationshipId"],
+                "sourceId": rel.get("sourceId"),
+                "destinationId": rel.get("destinationId"),
+                "claimIds": step_claim_ids,
                 "number": step["order"],
                 "lane": f"{source.get('name', rel.get('sourceId', ''))} → {destination.get('name', rel.get('destinationId', ''))}",
                 "title": rel.get("description", step["relationshipId"]),
@@ -456,6 +460,45 @@ def main() -> int:
         if not root.is_dir():
             raise BuildError(f"package root is not a directory: {root}")
         report_data = load_json(data_path)
+        # Protect every file consumed by this report before even validation-output
+        # is written. The native renderer applies the same preflight to its outputs.
+        from build_repo_flowmap import assert_distinct_paths
+        reads = {"report data": data_path, "template": template_path}
+        # Validation consumes reference schemas from --skill-root, while imported
+        # validators/renderers may use the executing installation. Protect both
+        # dependency trees, not the entire root (packages may live in examples/).
+        for dependency_root in {skill_root, SCRIPT_DIR.parent.resolve()}:
+            for tree in ("references", "assets", "scripts"):
+                directory = dependency_root / tree
+                if directory.is_dir():
+                    for path in directory.rglob("*"):
+                        if path.is_file():
+                            reads[f"skill dependency: {path}"] = path
+            for name in ("SKILL.md", "manifest.json", "VERSION"):
+                path = dependency_root / name
+                if path.is_file():
+                    reads[f"skill dependency: {path}"] = path
+        build = report_data.get("build", {}) if isinstance(report_data, dict) else {}
+        for key, value in build.items():
+            if key.endswith("Path") and isinstance(value, str):
+                reads["build." + key] = root / value
+        for index, diagram in enumerate(report_data.get("diagrams", [])):
+            if isinstance(diagram, dict):
+                for key in ("assetPath", "printAssetPath"):
+                    if isinstance(diagram.get(key), str):
+                        reads[f"diagram[{index}].{key}"] = root / diagram[key]
+        for index, artifact in enumerate(report_data.get("artifacts", [])):
+            if isinstance(artifact, dict) and isinstance(artifact.get("contentPath"), str):
+                reads[f"artifact[{index}].contentPath"] = root / artifact["contentPath"]
+        for directory in (root / "diagrams", root / "qa"):
+            if directory.is_dir():
+                for path in directory.rglob("*"):
+                    if path.is_file():
+                        reads[str(path)] = path
+        writes = {"HTML": args.output.absolute()}
+        if args.validation_output:
+            writes["validation report"] = args.validation_output.absolute()
+        assert_distinct_paths(reads, writes)
         bundle, validation = validate_bundle(root, skill_root, report_data, data_path)
         validation.name = "c4-html-build"
         if args.validation_output:

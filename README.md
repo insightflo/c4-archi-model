@@ -21,6 +21,7 @@ Single offline HTML report
 - **분석 Profile**: `guided`(빠른 전체 구조) / `focus`(특정 영역 심층) / `full`(전체 범위)
 - **검증 파이프라인**: Schema → C4 semantic → Evidence → Coverage → Human Understanding Gate → HTML
 - **단일 HTML 보고서**: 외부 CDN·웹폰트 없이 로컬에서 바로 열리는 오프라인 파일
+- **단계별 읽기**: 실행 흐름에서 단계를 선택하고 이전·다음 또는 방향키로 설명을 읽는다. 관련 원본 그림으로 이동하며 조건·주의·출처를 보존한다. 인쇄에는 모든 단계를 표시한다. 구성요소의 역할은 원문 그대로 구분하고, 미확인 사항과 다음 확인은 기존 근거 범위를 유지한다.
 
 ---
 
@@ -134,3 +135,24 @@ c4-architecture/
 ## License
 
 [MIT](LICENSE) · © 2026 inflo
+
+
+## Repo-flowmap 보기 종류 확장 (명시적 포크)
+
+Archify 우선 / 번들 repo-flowmap 폴백은 유지한다. 새 엔진으로 교체하지 않고,
+기존 `assets/repo-flowmap/template.html` 안에 구조/클래스/시퀀스/배치를 확장했다.
+출처와 라이선스 제한은 [포크 기록](assets/repo-flowmap/VENDORED.md),
+지원 범위·schema·실행·NOT_RUN 계약은 [어댑터](references/repo-flowmap-adapter.md)를 따른다.
+
+```bash
+python3 scripts/generate_repo_flowmap_demo.py --output /tmp/new-flowmap-demo
+python3 scripts/build_repo_flowmap.py --root /tmp/new-flowmap-demo \
+  --model model/architecture-model.json --view ordering-sequence
+python3 -B -m unittest discover -s tests -v
+python3 scripts/run_regression_tests.py
+python3 scripts/validate_skill_package.py --root .
+```
+
+데모는 가상 사실이다. 실제 코드 분석 결과로 인용하지 않는다. 브라우저용 선택 도구는
+`export_repo_flowmap_svg.py`, `check_repo_flowmap_browser.py`이며 둘 다 기본은 file://다.
+Node HTML 생성 성공은 브라우저 표시/상호작용 성공을 의미하지 않는다.

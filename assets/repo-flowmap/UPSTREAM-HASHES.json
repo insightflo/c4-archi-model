@@ -1,0 +1,14 @@
+{
+  "basis": "0e2aef45ed9c01a329b6af2f71039c11e19f482c",
+  "originRecordedInBaseline": "/Users/kwak/Projects/ref/knowledge/skills/repo-flowmap",
+  "files": {
+    "CHANGELOG.md": "fb1d7b1bd0f5d181d5c2fe78b56c12cd9646b1772211c0e6221830b20d8e443a",
+    "SCHEMA.md": "f35f96e6d7378d57e34dee0b0762a746fb90ce54c67e9301270ed3255a050447",
+    "SKILL.md": "1bf5151caf1d9a9a98c9ddd03291df3dd966a8d381a3ae07e124195a6822aa5a",
+    "VENDORED.md": "e6da096162c13e43188c5e2be5f67c5d4efb03deb9201713a2c2a0128e15875a",
+    "references/RENDERER_RULES.md": "cdb354eff6f2a43a93c7e694f82b4bf8190fbf757ae8b9e0d440a67b8d7a563d",
+    "scripts/build_flowmap.mjs": "04adb9ca3c92e70b7c34fc7a452aef4ad6596ba1b3fa49e75bb27b795a796c7d",
+    "scripts/validate_flowmap.mjs": "e3b3c6f7cdab1fd2dae1a6ef8707a1f169e629ed1cc61cb87ca156253863eb0c",
+    "template.html": "d40d8cd53564c856bad1addfc0856c53b4f349b4e8cbba3b9c98fad246a7584d"
+  }
+}

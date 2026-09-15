@@ -368,14 +368,17 @@ repo-flowmap 경로에서는:
 
 - `references/repo-flowmap-adapter.md`를 따른다. 스킬에 번들된 repo-flowmap
   (`assets/repo-flowmap/`)을 쓰므로 별도 설치 없이 Node 18+만으로 동작한다.
-- canonical model에서 View별 flowmap.json을 저작하고, `scripts/build_repo_flowmap.py`로
+- canonical model의 정확한 View를 `scripts/build_repo_flowmap.py --model ... --view ...`로 매핑한다.
+  어댑터는 데이터 매핑만 하고, 같은 repo-flowmap template 내부가 structure/class/sequence/deployment를 그린다.
+  기존 legacy View별 flowmap.json도 `scripts/build_repo_flowmap.py`로
   번들 검증기·빌더를 실행해 HTML과 qa/ 영수증을 함께 만든다. 명령·경로 규칙은 어댑터 §3을 따른다.
   입력/출력 SHA-256(파일 변경 확인값)은 해당 실행 중 기록하며, 기존 산출물의 사후 해시 보충은 금지한다.
 - 보고서 임베딩은 mimeType `text/html` 다이어그램(assetPath 지정)으로 하며, 기본 템플릿이
   iframe(sandbox allow-scripts)으로 렌더링한다. 번들 래퍼는 인쇄 SVG를 만들지 않는다.
-  별도 브라우저 추출기와 `repo-flowmap-svg-<view>.json` 영수증이 없으면 printAssetPath를 생략하고
+  `scripts/export_repo_flowmap_svg.py`의 실제 native export 실행과 `repo-flowmap-svg-<view>.json` 영수증이 없으면 printAssetPath를 생략하고
   인쇄 시 그림 누락 한계를 밝힌다. 수동 다운로드 파일만으로 인쇄 자산을 등록하지 않는다.
-- 번들 `template.html`은 repo-flowmap 고정 계약상 수정하지 않는다.
+- 번들은 명시적 유지보수 포크다. `assets/repo-flowmap/VENDORED.md`의 출처/라이선스/변경 정책을 따른다.
+  개별 그림 생성 중 template을 임의 수정하지 않는다. 정식 포크 변경은 테스트·manifest와 함께 갱신한다.
 - 기존 PlantUML/Mermaid 원본이 입력에 있어도 archify IR로 통역하지 않고
   canonical model에서 새로 저작한다.
 

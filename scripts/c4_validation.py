@@ -198,6 +198,10 @@ def _model_claim_ids(model: dict[str, Any]) -> set[str]:
             if not isinstance(item, dict):
                 continue
             found.update(v for v in item.get("claimIds", []) if isinstance(v, str))
+            details = item.get("codeDetails") or {}
+            for member in (details.get("attributes") or []) + (details.get("methods") or []):
+                found.update(member.get("claimIds", []))
+            found.update((item.get("codeRelation") or {}).get("claimIds", []))
             for step in item.get("steps", []):
                 if isinstance(step, dict):
                     found.update(v for v in step.get("claimIds", []) if isinstance(v, str))
@@ -299,6 +303,8 @@ def validate_model(data: dict[str, Any], schema_path: Path, ledger: dict[str, An
             if parent is not None and (parent not in element_by_id or element_by_id[parent]["type"] != "deploymentNode"):
                 report.error("MOD-003", path + ".parentId", "infrastructureNode parent must be a deploymentNode or null")
                 parent_errors += 1
+        if element.get("codeDetails") is not None and etype != "codeElement":
+            report.error("MOD-CODE-001", path, "codeDetails belongs only to codeElement")
         instance_of = element["instanceOfId"]
         if instance_of is not None and instance_of not in element_by_id:
             report.error("MOD-004", path + ".instanceOfId", f"unknown instanceOfId {instance_of!r}")
@@ -319,6 +325,16 @@ def validate_model(data: dict[str, Any], schema_path: Path, ledger: dict[str, An
         if rel["destinationId"] not in element_by_id:
             report.error("MOD-007", path + ".destinationId", f"unknown element {rel['destinationId']!r}")
             rel_errors += 1
+        detail = rel.get("codeRelation")
+        if detail:
+            a = element_by_id.get(rel["sourceId"], {})
+            b = element_by_id.get(rel["destinationId"], {})
+            if a.get("type") != "codeElement" or b.get("type") != "codeElement":
+                report.error("MOD-CODE-002", path, "codeRelation endpoints must be codeElements")
+            if detail["kind"] == "realization" and (b.get("codeDetails") or {}).get("kind") != "interface":
+                report.error("MOD-CODE-003", path, "realization destination must be an explicit interface")
+            if detail["kind"] in {"inheritance", "realization", "dependency"} and any(k in detail for k in ("sourceMultiplicity", "destinationMultiplicity")):
+                report.error("MOD-CODE-004", path, "multiplicity applies only to association/composition")
         if rel["sourceId"] == rel["destinationId"] and not rel["rationale"]:
             report.warning("MOD-008", path, "self-relationship should explain its rationale")
         normalized = re.sub(r"[\s.。]+", "", rel["description"].strip().lower())

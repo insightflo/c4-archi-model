@@ -3,6 +3,15 @@ name: repo-flowmap
 description: 레포의 패키지·모듈·컴포넌트 사이 동작을 근거 코드에서 추출해 JSON 기반 인터랙티브 단일 HTML 흐름도로 생성하거나 git diff 기준으로 갱신한다. 최초 생성(init), 사용자 확인형 증분 갱신(update), 삭제 없는 자동 갱신(auto), 흐름도 규칙·연결점·SVG 출력이 필요한 저장소 문서화 작업에 사용한다.
 ---
 
+## 이 번들에 적용되는 포크 계약 (extension v1)
+
+사용자의 명시적 renderer 개선 요청에 따라 template 및 native validate/build를 확장했다.
+아래 기존 workflow 계약은 `c4`가 없는 legacy 입력에 그대로 적용한다. Typed 계약은
+`SCHEMA.md`의 확장 절 및 프로젝트의 `references/repo-flowmap-adapter.md`를 따른다.
+자동 분석 중 template을 임의 수정하는 행위는 계속 금지한다. 정식 유지보수 변경은
+`VENDORED.md`에 따라 코드/검증/출처 기록을 함께 갱신한다. 별도 renderer는 추가하지 않는다.
+
+
 # Repo Flowmap
 
 레포의 실제 호출 관계를 `docs/flowmap/flowmap.json` 하나로 관리하고 고정 렌더러로

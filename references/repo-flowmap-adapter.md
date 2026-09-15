@@ -1,149 +1,163 @@
-# Repo-flowmap 어댑터 — 번들 폴백 다이어그램 경로
+# Repo-flowmap 어댑터 — 기존 렌더러의 typed-view 확장
 
-repo-flowmap은 flowmap JSON을 결정적으로 검증해 자가완결 인터랙티브 HTML로 빌드하는
-Node.js 기반 렌더러다. **archify가 미가용일 때의 기본 경로**이며, 스킬에
-`assets/repo-flowmap/`으로 번들되어 별도 설치가 필요 없다.
-canonical model은 여전히 유일한 진실의 원본이고, flowmap.json은 View별 파생
-source diagram이다 (archify IR, `.puml`, `.dsl`과 같은 지위).
+**Archify 우선 / repo-flowmap 번들 폴백** 정책은 그대로다. 사용자가 repo-flowmap을
+명시하면 이 경로를 따른다. `assets/repo-flowmap/`은 원본 0e2aef4 번들의 명시적 포크이며,
+출처·라이선스·변경 파일·업데이트 정책은 그 안의 `VENDORED.md`에 있다.
 
-```text
-architecture-model.json (canonical)
-  → View별 flowmap.json (파생 source)
-    → build_repo_flowmap.py (번들 validate + build 실행, 해시 영수증)
-    → 인터랙티브 HTML 아티팩트
-    → 보고서 embed (data URI iframe, 기본 템플릿 지원)
-```
-
----
-
-## 1. 요구 조건과 가용성
-
-요구 조건:
-
-- Node.js 18 이상 — `validate_flowmap.mjs`와 `build_flowmap.mjs`는 표준 라이브러리만 쓴다
-- Python 3 — 스킬의 영수증 생성 래퍼 실행 (표준 라이브러리만 사용)
-- 그 외 의존성·설치 불필요 — 번들 자체로 완결이다
-
-가용성 판정:
+## 1. 실제 실행 경로와 의존성
 
 ```text
-1. assets/repo-flowmap/scripts/ 가 존재하고 node가 실행되면 사용 가능
-2. Node가 없거나 스크립트가 손상되면 Structurizr → Mermaid/PlantUML → ASCII 체인으로 내려간다
+canonical model + evidence ledger
+  → scripts/repo_flowmap_adapter.py (JSON 매핑만; 그래픽 생성 없음)
+  → diagrams/<View-ID>.flowmap.json
+  → scripts/build_repo_flowmap.py (동결 입력, 실제 Node validate/build, 실행 영수증)
+  → assets/repo-flowmap/scripts/build_flowmap.mjs (기존 단일 마커 주입)
+  → assets/repo-flowmap/template.html (기존 renderMap / 직각 라우팅 / #vp / camera)
+  → diagrams/<View-ID>.flowmap.html
+  → 기본 보고서 iframe (내장 bytes를 srcdoc에 전달, sandbox=allow-scripts)
 ```
 
-`archify가 가용하면 repo-flowmap을 쓰지 않는다` — repo-flowmap은 폴백이다. 사용자가
-명시적으로 repo-flowmap을 지정하면 그것을 따른다.
+Python 3.9+와 Node 18+가 필요하다. 생성 런타임은 양쪽 표준 라이브러리만 사용한다.
+**브라우저 검증·SVG 추출만** 선택 의존성인 Python Playwright/Chromium을 사용한다.
+외부 CDN, 원격 폰트 요청, 분석용 추적 코드는 추가하지 않는다. 원래 template의 내장
+폰트 및 고지는 그대로 보존한다. Node가 없으면 기존 폴백 체인을 따른다.
 
-금지:
+## 2. 호환성: legacy와 typed는 같은 repo-flowmap
 
-- 번들 `template.html`을 수정하는 것 (repo-flowmap 고정 계약)
-- 가용성 확인 없이 빌드 명령을 문서에 적는 것
-- validate를 통과하지 않은 JSON을 빌드하는 것
+`c4` 필드가 없는 기존 `layers/nodes/flows` JSON과 기존 CLI는 그대로 지원한다.
+기존 지도/동작 선택/단계/관련 모듈/연결 편집/테마/줌/팬/SVG 기능은 legacy에서 유지한다.
 
-## 2. C4 View → flowmap 매핑
+새 canonical 매핑에는 `c4.extensionVersion: 1`이 들어간다. 그래픽은 외부 어댑터가
+그리지 않고, 같은 native template 내부의 보기별 분기가 그린다. typed에서는 canonical
+요소를 조용히 생략하지 않도록 관련 모듈 필터와 수동 포트 편집을 비활성화하며 이유를 표시한다.
+정적 구조의 번호는 시간순이 아닌 **관계 설명표 참조 번호**다. 시퀀스 번호만 step.order다.
 
-flowmap은 `layers`(열) + `nodes`(카드) + `flows`(동작·단계) 모델이다.
-
-| C4 View | 매핑 |
+| View | native mode / 표현 |
 |---|---|
-| System Context / Landscape | layers = 요소 유형(Person / 시스템 경계), nodes = View 요소, flows = View 관계 (1 관계 = 1 flow, steps 1개) |
-| Container | layers = Software System 경계 또는 실행 계층, nodes = Container, flows = View 관계 |
-| Component | 대상 Container 하나의 확대. layers = 역할 그룹, nodes = Component |
-| Dynamic | flow 1개, steps = order 순서 그대로. `call` = 관계 technology, `data` = 전달 내용, `note` = canonical step note |
-| Deployment | layers = 배치 경계 후보, nodes = 배치 대상. 소유권·리전 사실이 없으면 "후보"로 라벨링 |
+| Landscape / Context / Container / Component | `structure`: 사람 실루엣, 시스템 이중선, 컨테이너 탭, 컴포넌트 표식; parentId 경계; 기술·설명; 기존 라우터와 번호/설명표 |
+| Code | `class`: 이름·속성·메서드 구획, 명시 UML 관계 종류별 선/끝표시 |
+| Dynamic | `sequence`: 참가자·생명선·위→아래 메시지, 자기호출·반복 호출을 독립 step으로 유지 |
+| Deployment | `deployment`: `physical-instances`는 기존 중첩 경계·명시 instanceOfId, `logical-placement`는 원래 부모 경계·논리 요소·원문 배치 관계를 유지하고 실제 인스턴스 배치가 아님을 명시 |
 
-저작 규칙:
+선 위 긴 문구는 구조/클래스/배치의 번호별 설명표로 옮겨 겹침을 줄인다. 다중성은 입력이
+있을 때만 관계 설명표에 양 끝 ID와 함께 표시한다. 임의의 1/* 또는 항행 방향을 추가하지 않는다.
 
-- 노드 `label`은 canonical 요소 name, `desc`는 유형·기술 요약. canonical에 없는
-  노드·플로우·단계를 발명하지 않는다.
-- flow `steps`의 `state`(`failover`/`blocked`/`cond`)는 canonical 관계·step에 그 사실이
-  근거로 있을 때만 쓴다. 근거 없는 분기·차단 표현을 장식으로 넣지 않는다.
-- `meta.title`에 View title을 쓰고, `meta.basis`에 "derived from architecture-model.json
-  (modelRevision)"을 쓴다.
-- `meta.last_analyzed_commit`은 스키마 필수 필드다. 코드 리포지토리 분석이 아니면
-  실제 커밋 대신 근거 지시자(예: `sources-<sha256 앞 8자>`)를 쓴다.
-- canonical ID가 `^[A-Za-z0-9_-]+$`이면 그대로 쓰고, 아니면 슬러그로 변환해
-  `file` 필드 또는 flow `summary`에 원본 canonical ID를 보존한다.
+## 3. 코드 상세의 선택적 canonical 확장
 
-## 3. 검증·빌드 명령
-
-```bash
-python3 <skill-root>/scripts/build_repo_flowmap.py \
-  --root <output-root> \
-  --input diagrams/<view>.flowmap.json \
-  --output diagrams/<view>.flowmap.html
-```
-
-래퍼는 번들 검증기와 빌더를 순서대로 실행한다. 경로는 `--root` 기준이며,
-입출력은 같은 View stem을 가진 `diagrams/` 파일이어야 한다. 성공하려면 두 실행 모두
-exit 0이어야 한다. 영수증은 자동으로 qa/에 저장한다:
-
-```text
-qa/repo-flowmap-validate-<view>.json   ok/exitCode + stdout/stderr
-qa/repo-flowmap-build-<view>.json      ok/exitCode + input/specification.sha256 + output/artifact.sha256
-```
-
-래퍼는 읽은 입력 바이트를 임시 파일로 동결하고 동일한 파일을 검증·빌드한다.
-새 임시 HTML이 생성되고 원본 입력이 바뀌지 않았을 때만 최종 HTML과 성공 영수증을 확정한다.
-실패하면 이전 HTML은 보존하되 해당 실행의 실패 영수증으로 덮어써 낡은 산출물 재사용을 막는다.
-직접 `build_flowmap.mjs`를 실행한 stdout이나 `outputBytes`만으로는 납품 영수증이 되지 않는다.
-**기존 HTML에 현재 해시를 사후 보충하지 않는다.** 구 영수증은 이 명령으로 실제 재빌드한다.
-해시는 파일 변경 탐지용이며, 편집 가능한 로컬 영수증이 실행 진위를 암호학적으로 증명하지는 않는다.
-
-## 4. 보고서 임베딩
-
-`html/report-data.json`의 `diagrams[]`에 다음처럼 지정한다:
+schemaVersion 0.4.0의 기존 필수 필드는 그대로다. `codeElement.codeDetails`는 선택이다.
+단, class를 실제 렌더링하려면 명시해야 한다.
 
 ```json
 {
-  "id": "diagram-01-context",
-  "viewId": "01-context",
-  "assetPath": "diagrams/01-context.flowmap.html",
-  "mimeType": "text/html",
-  "required": true,
-  "presentation": { "...": "기존 계약과 동일" }
+  "codeDetails": {
+    "kind": "class",
+    "attributes": [{"declaration": "- quantity: int", "claimIds": ["CL-01"]}],
+    "methods": [{"declaration": "+ subtotal(): Decimal", "claimIds": ["CL-01"]}]
+  }
 }
 ```
 
-- 빌더가 파일을 `data:text/html;base64` data URI로 내장하고, 기본 템플릿은
-  `mimeType === 'text/html'` 다이어그램을 `<iframe sandbox="allow-scripts">`로 렌더링한다.
-- assetPath를 SVG에서 flowmap HTML로 바꿀 때는 `presentation.caption`·`alt`도 새 렌더러에
-  맞게 갱신한다. 이전 렌더러 문구가 남으면 사실 왜곡 소지가 있다.
-- 임베드 확인은 산출 HTML에서 `data:text/html;base64` 발생 수로 센다. `<iframe` 리터럴은
-  런타임 생성이라 정적 HTML에 나타나지 않는다.
-- 빌더의 `--data` 인자는 `--root` 기준 상대경로로 해석된다 (2026-09-14 실측).
-- iframe은 불투명 origin에서 동작한다. repo-flowmap의 localStorage 접근은 try/catch로
-  감싸져 있어 연결점 저장이 비활성될 뿐 렌더링은 정상이다.
-- **인쇄 폴백(정적 SVG)**: iframe은 인쇄·PDF에서 신뢰할 수 없다(2026-09-14 실측: 캔버스 잘림).
-  따라서 저작 시점에 View별 정적 SVG를 추출해 report-data의 `diagrams[].printAssetPath`로 지정한다.
-  빌더가 `printDataUri`로 내장하고, 기본 템플릿은 화면에서는 숨기고 인쇄 시에만 iframe 대신 표시한다.
-  추출은 브라우저에서 실행되는 별도 작업이다. 이 스킬의 빌드 래퍼는 정적 SVG를 만들지 않는다.
-  브라우저 추출기를 사용하는 경우 **그 추출 실행 안에서** 원본 HTML 바이트 해시를 잡고,
-  해당 HTML을 로드해 `#map`을 직렬화하고, 원본이 변하지 않았음을 확인한 뒤
-  `qa/repo-flowmap-svg-<view>.json`을 남겨야 한다. 필수 필드는 `ok:true`,
-  `source`(빌드 HTML 경로), `sourceSha256`, `output`(SVG 경로), `svgSha256`이다.
-  수동 「SVG 다운로드」 파일만 있거나 사후 작성한 해시 영수증이면 인쇄 자산으로 연결하지 않는다.
-  추출기·유효 영수증이 없으면 `printAssetPath`를 생략하고 인쇄 시 그림이 빠진다는 한계를
-  HANDOFF에 명시한다. `extract_archify_svg.py`는 동적 flowmap HTML용 추출기가 아니다.
-- 임베드 안에서는 마우스 드래그 이동이 iframe 영역에서 막힌다(브라우저 한계).
-  확대·축소 버튼과 전체 화면은 동작한다.
+kind는 class/interface. 구획 null은 자료 없음, []는 명시적 빈 목록이다.
+관계에는 `codeRelation: {kind, claimIds, sourceMultiplicity?, destinationMultiplicity?}`를
+명시한다. kind는 inheritance/realization/association/composition/dependency다.
+상속·구현은 source가 하위/구현체, destination이 상위/인터페이스이며, 합성은 source가
+소유자(채운 마름모)다. 연관에 방향을 추측하지 않는다. 다중성은 association/composition만
+허용한다. 모든 멤버/관계 Claim은 실제 ledger에 있어야 한다. 샘플의 멤버는 가상이라고 명시한다.
 
-## 5. 위생 검사
+## 4. 생성 명령과 strict 검증
 
-- archify SVG와 달리 flowmap HTML은 `<script>`를 포함하는 것이 정상이다.
-  HTML-STATIC 검사의 외부 의존성·placeholder·`javascript:` 규칙은 그대로 적용된다.
-- flowmap JSON·HTML에 외부 URL, 원격 자산, 추적 코드를 넣지 않는다 (repo-flowmap
-  원본 계약과 동일).
-- 추출 없이 내장되므로 `extract_archify_svg.py`는 이 경로에서 실행하지 않는다.
+```bash
+# canonical에서 native 입력을 매핑하고 실제 repo-flowmap으로 생성
+python3 <skill>/scripts/build_repo_flowmap.py \
+  --root <package> --model model/architecture-model.json --view exact-view-id
 
-## 6. 렌더링 보고 항목
+# 기존 명령도 유지. typed 입력이면 authoritative model/ledger를 다시 대조한다.
+python3 <skill>/scripts/build_repo_flowmap.py \
+  --root <package> --input diagrams/exact-view-id.flowmap.json \
+  --output diagrams/exact-view-id.flowmap.html
 
-```text
-Repo-flowmap availability: bundled-ok / node-missing / broken (사유)
-Repo-flowmap IR authored per view: <View 목록>
-Repo-flowmap validate: pass/fail per view (오류 수)
-Repo-flowmap build: exit 0 per view / 실패 사유
-Repo-flowmap report embed: embedded/missing per view
+python3 <skill>/scripts/validate_all.py --root <package> --data html/report-data.json
+python3 <skill>/scripts/build_html_report.py --root <package> --data html/report-data.json \
+  --template <skill>/assets/html-report-template.html --output <package>/index.html
 ```
 
-`not run`은 실패가 아니다. 실행하지 않은 검사를 통과했다고 쓰지 않는다.
+ledger 기본 경로는 qa/evidence-ledger.json이며 `--ledger`로 지정할 수 있다.
+새 입력의 filename은 exact View ID로 생성한다. Canonical ID를 슬러그로 바꾸지 않는다.
+출력은 실제 root/diagrams 안에서 동일 stem이어야 한다.
+
+모든 입력/출력/영수증 경로의 resolve 및 inode 충돌(심볼릭·하드링크 포함)을 **첫 쓰기 전**
+거부한다. 충돌 실패는 입력과 기존 결과 바이트를 보존한다. 다른 검증/실행 실패는 기존
+HTML을 남겨도 성공 영수증을 무효화한다. 적대적 파일시스템 동시 변경에 대한 락/암호학적
+진위 보증을 주장하지 않는다.
+
+DIA-008은 authoritative model 경로·현재 bytes SHA·exact View·전체 projection을 비교한다.
+노드/부모/instance target/관계/멤버/Claim/step/order와 표시 문구도 복제 사실로 대조한다.
+input hash를 새로 적어도 canonical과 다르면 실패한다. 기존 DIA/RCP와 공통 strict 게이트를
+생략하지 않는다. RCP-010은 native template/validate/build 구현 해시와 View 연결을 확인한다.
+영수증은 기존 repo-flowmap family를 사용하고 input/output SHA-256·성공 상태를 기록한다.
+문서상 숫자나 테스트 PASS를 렌더링/사람 이해도 PASS로 바꾸어 기록하지 않는다.
+
+## 5. 보고서 임베딩과 native SVG 추출
+
+보고서 diagram은 `assetPath`, `mimeType: "text/html"`, exact `viewId`를 사용한다.
+빌더는 원본 HTML bytes를 data URI로 저장한다. template은 그 bytes를 그대로 decode해
+iframe `srcdoc`에 넣으며 `sandbox="allow-scripts"`를 유지한다. 부모 버튼은 View ID가
+일치하는 native 카메라 메시지를 보내므로 iframe 자체를 확대해 버튼을 잘라내지 않는다.
+
+```bash
+# 기본은 실제 file://로 생성 HTML 실행. 지원 환경이 없으면 NOT_RUN/실패한다.
+python3 <skill>/scripts/export_repo_flowmap_svg.py --root <package> \
+  --html diagrams/exact-view-id.flowmap.html --chromium /path/to/chromium
+```
+
+추출기는 **기존 renderer의 exportSvg()**를 실행한다. 별도 SVG 엔진이 아니다.
+실행 중 원본 bytes를 잡고 HTML이 바뀌지 않았을 때만 sourceSha256/output SVG hash
+영수증을 만든다. 성공 후 report-data의 `printAssetPath`를 해당 `.flowmap.svg`로 연결하고
+strict builder를 재실행한다. null/생략은 인쇄 그림 미제공이며 한계를 HANDOFF에 남긴다.
+
+환경 정책으로 file://가 막히면 통과로 처리하지 않는다. 진단용
+`--transport injected-test`는 동일 bytes를 about:blank에 주입하는 **별도 테스트 운송 방식**이다.
+영수증에 fileUrlVerified=false를 기록하며, 이것을 file:// 검증으로 계산하지 않는다.
+
+## 6. 지원 범위와 실패
+
+한 View 24요소 / 32관계 / 40step, sequence 12참가자 이하의 읽기 예산을 사용한다.
+초과하거나 안전한 관계 번호 배치가 불가능하면 오류로 알리고 View 분리를 요구한다.
+긴 텍스트는 줄바꿈해 높이를 늘리고 실제 glyph bbox를 다시 측정한다. 마지막 자기호출을
+포함한 실제 geometry 밖으로 export canvas가 작아지지 않도록 너비·높이를 확장한다.
+
+class 상세가 없는 codeElement, 함수/ERD를 class로 바꾸는 입력, decision/failure/recovery/return/alt 등의
+시퀀스 fragment, 논리 요소를 배치 인스턴스로 간주하는 입력은 명시적으로 실패한다.
+structure와 physical-instances에서 펼친 경계 자체를 관계 endpoint로 쓰는 View는 계속 거부한다.
+logical-placement에서만 원래 경계의 머리글을 관계 연결점으로 사용한다. Async/return은 추측하지 않는다.
+
+`interaction`의 `condition`은 fragment와 다르다. 어댑터는 원문 조건을 해당 단계의
+표시용 `note` 앞에 `조건: <원문>`으로 붙이고, `canonicalStep.condition`,
+`canonicalStep.note`, 관계 설명과 Claim은 그대로 보존한다. 조건 범위를 후속 단계 전체로
+확장하거나 alt/opt 분기를 만들어내지 않는다. Native Node 검증기도 같은 표시용 note 규칙과
+원본 단계 일치를 확인하며, 조건 삭제·변조 및 decision/failure/recovery는 거부한다.
+
+논리 요소와 배치 후보 관계가 있는 deployment View는 잘못된 canonical 모델이라는 뜻이
+아니다. 논리 softwareSystem/container가 포함되면 어댑터는 명시적인
+`c4.deploymentPresentation: "logical-placement"`를 출력한다. 원래 parentId 중첩 경계,
+선택 요소, 관계 방향·ID·설명·Claim을 그대로 표시한다. 경계 끝점은 머리글에 연결한다.
+화면·SVG에 **실제 인스턴스 배치 아님**을 표시하며 후보인지 여부는 원문 관계 설명에 맡긴다.
+`host-*`라는 ID나 설명만 보고 parentId를 바꾸거나 infrastructureNode/instanceOfId를 만들지 않는다.
+논리 요소가 없으면 `physical-instances`이며 기존 타입·대상·경계 끝점 제한을 유지한다.
+기존 native 입력에서 필드 생략은 물리 모드로 취급한다. 명시 논리 모드는 논리 요소가 있어야 한다.
+실제 인스턴스 모델로 바꾸려면 작성자의 확인과 근거가 필요하며, 자동 변환하지 않는다.
+Runtime에서 배치 실패 시 렌더 오류를 표시한다. CLI의 validate/build는 입력과 HTML 생성 검사이며,
+브라우저 표시 확인을 대신하지 않는다. 손상되지 않은 HTML 영수증은 임의 그래프의 가독성 보증이 아니다.
+
+## 7. 재현 가능한 검사
+
+```bash
+python3 <skill>/scripts/generate_repo_flowmap_demo.py --output <new-empty-directory>
+python3 <skill>/scripts/check_repo_flowmap_browser.py --root <package> \
+  --output <new-qa-directory-outside-package> --chromium /path/to/chromium
+```
+
+브라우저 검사는 실제 text/path/node bbox, 마지막 자기호출의 export 경계, 1440/360 화면,
+native 줌/팬/표시, 보고서 iframe/줌/전체 화면, 인쇄 이미지 decode, 외부 요청 여부를 기록한다.
+printAssetPath를 연결하기 전이면 print 검사는 실패하므로 먼저 추출하거나 해당 단계를 미실행으로
+분리해 실행한다. 여러 브라우저·PDF 페이지 분할·실제 사람 이해도는 별도 검사다.

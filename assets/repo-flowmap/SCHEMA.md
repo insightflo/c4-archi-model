@@ -1,3 +1,30 @@
+## 선택적 typed-view 확장 (extension v1)
+
+원래 meta/layers/nodes/flows 계약은 그대로다. 새 `c4` 객체가 있으면 native validator는
+extensionVersion=1, mode(structure/class/sequence/deployment), modelPath/modelSha256,
+exact viewId, canonical view/boundaries/targets를 요구한다. 각 native node의 `element`,
+각 step의 `relationship`/`canonicalStep`은 canonical 원문 복제이며 ID/label/call/order와
+일치해야 한다. 더 강한 authoritative model·SHA·전체 projection 검사는 프로젝트 DIA-008이 한다.
+외부 어댑터는 이 데이터만 매핑하며, 좌표/SVG를 주입하지 않는다. class codeDetails 및
+codeRelation의 필드·근거 규칙은 프로젝트 adapter와 모델 스키마를 따른다.
+Native typed 단계는 return/async/alt/par를 지원하는 것처럼 조용히 표시하지 않는다.
+`interaction.condition`은 원문 그대로 `조건: <condition>\n<note>` 표시용 note에 붙인다
+(원문 note가 없으면 줄바꿈 없음). canonicalStep은 변경하지 않으며 Node가 둘을 대조한다.
+decision/failure/recovery 단계는 지원하지 않는다.
+
+Deployment의 `c4.deploymentPresentation`:
+- `physical-instances` (생략 시 기본): deploymentNode/infrastructureNode만 허용한다.
+- `logical-placement`: softwareSystem/container가 하나 이상 있어야 하며 그 논리 요소에
+  instanceOfId를 넣을 수 없다. 허용 타입은 위 물리 타입과 softwareSystem/container뿐이다.
+  parentId와 관계를 그대로 유지한다. 펼친 경계 끝점은 해당 머리글에 연결하며,
+  실제 인스턴스 배치가 아님을 화면·SVG에 명시한다. 물리 호스트 안으로 논리 요소를 옮기지 않는다.
+- 다른 mode의 deploymentPresentation 또는 알 수 없는 값은 오류다.
+
+이 필드는 표시 계약이며 canonical 스키마/모델 변경이 아니다. 물리 인스턴스를 추론하지 않는다.
+아래는 기존 legacy schema다.
+
+---
+
 # flowmap.json 스키마
 
 `flowmap.json`은 상태의 단일 진실 공급원이다. 빌드 스크립트가 JSON을

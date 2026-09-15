@@ -2,7 +2,7 @@
   "$schema": "references/package-manifest.schema.json",
   "schemaVersion": "1.0",
   "packageName": "c4-archi-model",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "entrypoint": "SKILL.md",
   "language": "ko",
   "agentIndependent": true,
@@ -91,14 +91,44 @@
       "size": 114
     },
     {
+      "path": ".ruff_cache/.gitignore",
+      "sha256": "9e3a60f1e6ec4ae60215c11d54b171392745ec25e9dded433d5bd921363af316",
+      "size": 35
+    },
+    {
+      "path": ".ruff_cache/0.14.14/11909868581826626694",
+      "sha256": "618c9e41db05cf462c8d6ee2154904815a59f1b44b4ac52a6b87becfa8340489",
+      "size": 147
+    },
+    {
+      "path": ".ruff_cache/0.14.14/12979676651140405989",
+      "sha256": "0d0592e73a976611b6924251ba786c6d9385193d6254ee646004f0a995fb6b26",
+      "size": 149
+    },
+    {
+      "path": ".ruff_cache/0.14.14/4346919244687474882",
+      "sha256": "97e92a1d8623a4d9798cbfdf5ceff3b7a9d83fde1588c1695a939b9e56d3cc63",
+      "size": 203
+    },
+    {
+      "path": ".ruff_cache/0.14.14/7921651010709637688",
+      "sha256": "70876bd1f7e8101c3285e193bf315aaa7dc9279caca5b80d5335b97a28c779d9",
+      "size": 224
+    },
+    {
+      "path": ".ruff_cache/CACHEDIR.TAG",
+      "sha256": "5953156d7e0c564a427251316eaf26f8870e6483ae2197f916b630e4f93e31ae",
+      "size": 43
+    },
+    {
       "path": "CHANGELOG.md",
-      "sha256": "41c1366b8faa73fd1412de3195b9aea1fb57be800322a863913df75ca4884e11",
-      "size": 11193
+      "sha256": "8f33223d11283ae00441c0f358e7b63050d298dfff88b320f111d2c1f7e57c21",
+      "size": 12352
     },
     {
       "path": "LESSONS.md",
-      "sha256": "ccdac828492e1340378bc57c2c7bd71cd9c6ca52edb4d278281ad82c252748b1",
-      "size": 1465
+      "sha256": "2c3fff42db14fea0a71cc93d48d5ff1e4d109a0204532df2ea8af90e6c9473b3",
+      "size": 7518
     },
     {
       "path": "LICENSE",
@@ -107,18 +137,18 @@
     },
     {
       "path": "README.md",
-      "sha256": "643dae14d7f6cde7611dfe5d719c6cdf5baa712f77d8280c788a76cbd8832b0f",
-      "size": 4353
+      "sha256": "cadb74c91bab5f97936eb79cc3f02487f5c2639217e97d726653eb96adc986e2",
+      "size": 5856
     },
     {
       "path": "SKILL.md",
-      "sha256": "1ec35ef777df55966d8f680053fc232df0cf7cfaa80d3ec93f12d400f5abae0c",
-      "size": 31932
+      "sha256": "f83fe40d6898bb35e9048dd572c587ef03de1fedbddb800a241cfc79b30671a1",
+      "size": 32378
     },
     {
       "path": "VERSION",
-      "sha256": "9d8c94f1ad3ea96b1e2ac4914fda4cb93c76b4a3e0d8cc6dd8976d6c0b227d15",
-      "size": 6
+      "sha256": "dc24feb5bd35084d8ae32a4eafbec12352707d4662401fcbcc9bbd696cde77a9",
+      "size": 7
     },
     {
       "path": "assets/HANDOFF.template.md",
@@ -152,8 +182,8 @@
     },
     {
       "path": "assets/html-report-template.html",
-      "sha256": "4295ceb6f3e09ea2b110e37ad23aaff2a874bdc9e3ac5c305f922cba8b122df2",
-      "size": 54958
+      "sha256": "f2ff69287f94989aa620ca747ed69a4620ec105356534cfbb052a9f94bb652b9",
+      "size": 62442
     },
     {
       "path": "assets/human-understanding.template.json",
@@ -167,43 +197,48 @@
     },
     {
       "path": "assets/repo-flowmap/CHANGELOG.md",
-      "sha256": "fb1d7b1bd0f5d181d5c2fe78b56c12cd9646b1772211c0e6221830b20d8e443a",
-      "size": 5821
+      "sha256": "13ff603b0aaa59b111e9fc3ec2a6ec6294d49c912363c70dcca95b172ae2aaf5",
+      "size": 6733
     },
     {
       "path": "assets/repo-flowmap/SCHEMA.md",
-      "sha256": "f35f96e6d7378d57e34dee0b0762a746fb90ce54c67e9301270ed3255a050447",
-      "size": 5587
+      "sha256": "5cbf36479d5e6891bf0278ec30faa43367ca350cdc0687cc1f1d9182eaeb8343",
+      "size": 7568
     },
     {
       "path": "assets/repo-flowmap/SKILL.md",
-      "sha256": "1bf5151caf1d9a9a98c9ddd03291df3dd966a8d381a3ae07e124195a6822aa5a",
-      "size": 4523
+      "sha256": "7a3d79951a52175b7c20958b0d49e9e427f7cff669d28989bb6fb8e96840c049",
+      "size": 5125
+    },
+    {
+      "path": "assets/repo-flowmap/UPSTREAM-HASHES.json",
+      "sha256": "6fefa125f1a746e868d0f54901fd0eeeec6407608e5d13c7ddd5bda4743b5459",
+      "size": 905
     },
     {
       "path": "assets/repo-flowmap/VENDORED.md",
-      "sha256": "e6da096162c13e43188c5e2be5f67c5d4efb03deb9201713a2c2a0128e15875a",
-      "size": 1729
+      "sha256": "e473164e661a4583d03e8aefc2ea4ab0c0d3b1890d9fa3dedd2a1ba5faefe263",
+      "size": 3606
     },
     {
       "path": "assets/repo-flowmap/references/RENDERER_RULES.md",
-      "sha256": "cdb354eff6f2a43a93c7e694f82b4bf8190fbf757ae8b9e0d440a67b8d7a563d",
-      "size": 5461
+      "sha256": "9f2844f13b26ad1abe86222fe90d37a9dc55a8f780a3b832c8938f93c8ece0a8",
+      "size": 7008
     },
     {
       "path": "assets/repo-flowmap/scripts/build_flowmap.mjs",
-      "sha256": "04adb9ca3c92e70b7c34fc7a452aef4ad6596ba1b3fa49e75bb27b795a796c7d",
-      "size": 1232
+      "sha256": "4489b1225e6c6622cc4bbf217bddbb1998d3728f85821200a8a9ef7c55532b76",
+      "size": 1997
     },
     {
       "path": "assets/repo-flowmap/scripts/validate_flowmap.mjs",
-      "sha256": "e3b3c6f7cdab1fd2dae1a6ef8707a1f169e629ed1cc61cb87ca156253863eb0c",
-      "size": 6436
+      "sha256": "0fb9d0cfaad6f19af0cb6b83a75b8971400bac63b34abdab9aaa93a680607b40",
+      "size": 12964
     },
     {
       "path": "assets/repo-flowmap/template.html",
-      "sha256": "d40d8cd53564c856bad1addfc0856c53b4f349b4e8cbba3b9c98fad246a7584d",
-      "size": 258275
+      "sha256": "9667182531d2ee737549f2da5af24ccb22d58025d8576dbb285f125a8a75ad86",
+      "size": 286841
     },
     {
       "path": "assets/report-template.md",
@@ -297,8 +332,8 @@
     },
     {
       "path": "references/architecture-model.schema.json",
-      "sha256": "e3086ed2ba0f17ae840a16bc21a6e9ed5ee047e38870a5725b1be7ca1dce4020",
-      "size": 8109
+      "sha256": "9bc101572c521721f5b37bb2ed2aab25de6a7844a7f89e6d14f0ecadafb49a61",
+      "size": 10186
     },
     {
       "path": "references/architecture-session.schema.json",
@@ -357,13 +392,13 @@
     },
     {
       "path": "references/renderer-adapters.md",
-      "sha256": "0d1cb30dde57b7266d0ed579931a3ecf5bb2c5dd8d8b6604a755a4f496849ac0",
-      "size": 11300
+      "sha256": "17bec5f4f986b9d9d2a6f218fc153c0bc29869f687592c5e48db401c9478dcd7",
+      "size": 11407
     },
     {
       "path": "references/repo-flowmap-adapter.md",
-      "sha256": "657f762e201c7e1f95631ff05da7b43cf10fcb7b860b0d13c545650be1464511",
-      "size": 8240
+      "sha256": "c85dfff0e588c0a021dce2f3c496959f3117c2fecb1e2c5900105af56cc171d6",
+      "size": 11266
     },
     {
       "path": "references/scene-frame-reporting.md",
@@ -392,8 +427,8 @@
     },
     {
       "path": "scripts/build_html_report.py",
-      "sha256": "46fb5a799d1216618c8d6c408fda909eb6b7883eff1ae6b575e449bdff6c34f5",
-      "size": 24029
+      "sha256": "018c3320910712c6db5bc135439e71d0f90c947c1388ba9bf05b1ccfc573ff4c",
+      "size": 26634
     },
     {
       "path": "scripts/build_output_manifest.py",
@@ -402,18 +437,28 @@
     },
     {
       "path": "scripts/build_repo_flowmap.py",
-      "sha256": "9ca9000035ccde6020888fab7703030a6271c2281c879411aaa0c3467a49b3d7",
-      "size": 4966
+      "sha256": "6186111ab566214a29297dd17e01306409e2c98972445289c10658d15c0dee35",
+      "size": 12342
     },
     {
       "path": "scripts/c4_validation.py",
-      "sha256": "4a218ccd50fae84e8e8721cccaf5f2de10083a0f7aa4fbed2a9184605dc1f7c8",
-      "size": 62061
+      "sha256": "27bec81379203bc76c8a72bb3e779ca18a37550a9f4c44ba0ac52fe1c47a747b",
+      "size": 63347
+    },
+    {
+      "path": "scripts/check_repo_flowmap_browser.py",
+      "sha256": "f13223f2c8c5063c36203a3dfc9b7c6d21b73060bf6b97ddc70deb7306dad0aa",
+      "size": 20045
     },
     {
       "path": "scripts/doctor.py",
       "sha256": "bb57e97a23f02e79ff440e67f73abecd92b30d0e076b9976eb7401bd15a3b674",
       "size": 4929
+    },
+    {
+      "path": "scripts/export_repo_flowmap_svg.py",
+      "sha256": "1276a5ce7b7dffb734f4e3ddbe7f7e32aca8abd63a90a48fa135a2c061b41c11",
+      "size": 5891
     },
     {
       "path": "scripts/extract_archify_svg.py",
@@ -424,6 +469,16 @@
       "path": "scripts/generate_manifest.py",
       "sha256": "c7b5c9f426250d927ba24d7b1150614ed4189cf0e34940cead5f5ef2aa2954f8",
       "size": 4843
+    },
+    {
+      "path": "scripts/generate_repo_flowmap_demo.py",
+      "sha256": "91e9825d7fd6c0da1de382c6f2ada7017b67563f094b7835aa6cb9d09baac4f5",
+      "size": 13930
+    },
+    {
+      "path": "scripts/repo_flowmap_adapter.py",
+      "sha256": "6543674e10f27a3059951676892c6b6c80cf7111bc4dc0857c635dfe974b2241",
+      "size": 7524
     },
     {
       "path": "scripts/run_regression_tests.py",
@@ -457,8 +512,8 @@
     },
     {
       "path": "scripts/validate_diagram_inputs.py",
-      "sha256": "8e8510592bbf75e65bd0200965d956148f3228fb700b85cc66718329b8d40c69",
-      "size": 20551
+      "sha256": "12842b7c62e3d6aabdefc2e3decacd8d0f8cfb62e3dd9032a4f00e9dff16f09c",
+      "size": 21576
     },
     {
       "path": "scripts/validate_evidence_ledger.py",
@@ -487,8 +542,8 @@
     },
     {
       "path": "scripts/validate_render_receipts.py",
-      "sha256": "c259cd0c5d7ebe1c71ddfbf6298c12eab0716b5ed2072337ab67438c748995db",
-      "size": 20996
+      "sha256": "d6845db575540531efde6ee3785def47083e98ac23a0856427bdc2a46b85bfdf",
+      "size": 22008
     },
     {
       "path": "scripts/validate_skill_package.py",
@@ -521,9 +576,29 @@
       "size": 9430
     },
     {
+      "path": "tests/test_repo_flowmap_real_browser.py",
+      "sha256": "174578a74b880035208684b6e06feaacfdebfc1deb2c9ef641ee21602f00d7ac",
+      "size": 11268
+    },
+    {
+      "path": "tests/test_repo_flowmap_real_inputs.py",
+      "sha256": "3b1d163481146154eb7c21cf78d89a8e978fc38c9afe6af253ca3326666dd86b",
+      "size": 9447
+    },
+    {
+      "path": "tests/test_repo_flowmap_typed_views.py",
+      "sha256": "9750fb4774fc6b2d367412d163d33b5413915b6c3e70cea6197ce711f945f4c7",
+      "size": 27989
+    },
+    {
       "path": "tests/test_report_integration_review.py",
       "sha256": "3af459ebb44c20aab37d5116425f10e88e1c44f673beaa88ac83686b6be8943d",
       "size": 8321
+    },
+    {
+      "path": "tests/test_report_story.py",
+      "sha256": "d1427c3b932df2c729384f7d2a0aee07b6181e8a94178bc305ee5c8f6c0dac27",
+      "size": 9463
     }
   ]
 }
