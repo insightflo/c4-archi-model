@@ -4,6 +4,7 @@ import base64
 import copy
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -18,6 +19,11 @@ from repo_flowmap_adapter import project
 from c4_validation import validate_model
 from validate_diagram_inputs import run as dia
 from validate_render_receipts import run as rcp
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    sync_playwright = None
+ANCHOR_CHROME = os.environ.get('C4_BROWSER') or shutil.which('chromium') or '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 @unittest.skipUnless(shutil.which('node'),'Node required; actual native builds not mocked')
 class NativeTypedTests(unittest.TestCase):
@@ -324,5 +330,210 @@ class NativeTypedTests(unittest.TestCase):
 
     def test_42_archify_priority_unchanged(self):
         self.assertNotIn('c4-semantic',(SCRIPTS/'doctor.py').read_text())
+
+    @unittest.skipUnless(sync_playwright and Path(ANCHOR_CHROME).is_file(), 'actual Chrome and Playwright required')
+    def test_53_unrouteable_relations_warn_in_dom_and_export_without_losing_legend(self):
+        # Fault fixture changes only input/layout, never routing, warning or export code.
+        # Removing the warning, escaping, layout reservation or legend must fail.
+        ids = ['blocked-<image href="x" onerror="alert(1)"/> & 한글', 'blocked-second-' + 'R' * 180]
+        source = (self.root/'diagrams/ordering-context.flowmap.html').read_text()
+        source = source.replace('  function c4StaticMap(flow) {', '''  function c4StaticMap(flow) {
+    flow.steps = %s.map(function(id){
+      var s=JSON.parse(JSON.stringify(flow.steps[0]));
+      s.relationshipId=id;s.relationship.id=id;return s;
+    });''' % json.dumps(ids, ensure_ascii=False).replace('<', '\\u003c'), 1)
+        layout_end = '    return L;\n  }\n  function c4BoundaryMarkup'
+        self.assertIn(layout_end, source)
+        source = source.replace(layout_end, '''    var terminals=Object.keys(L.pos).map(function(id){return L.pos[id];});
+    var a=terminals[0],b=terminals[1];
+    b.x=a.x;b.y=a.y;b.w=a.w;b.h=a.h;
+    return L;
+  }
+  function c4BoundaryMarkup''', 1)
+        fixture = self.root/'overlapped.html';fixture.write_text(source)
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(executable_path=ANCHOR_CHROME, headless=True)
+            page = browser.new_page(viewport={'width':1440,'height':1000}, offline=True)
+            errors=[];page.on('pageerror', lambda error: errors.append(str(error)))
+            try:
+                page.goto(fixture.as_uri())
+                page.wait_for_function('window.repoFlowmap !== undefined')
+                warning = page.locator('#vp .c4-route-warning')
+                self.assertEqual(warning.count(), 1, 'unrouteable relationships must visibly warn')
+                self.assertTrue(warning.is_visible())
+                text = warning.text_content()
+                self.assertIn('경고', text)
+                for relation_id in ids: self.assertIn(relation_id, text)
+                self.assertEqual(page.locator('#vp .c4-edge').count(), 0, 'no empty or unsafe paths')
+                self.assertEqual(page.locator('#vp .c4-relation-row').count(), 2)
+                self.assertEqual(page.locator('#vp image').count(), 0, 'IDs are text, not active SVG')
+                self.assertEqual(page.locator('svg[data-render-status]').get_attribute('data-render-status'), 'pass')
+                exported = page.evaluate('window.repoFlowmap.exportSvg()')
+                export_path=self.root/'warning.svg';export_path.write_text(exported)
+                page.goto(export_path.as_uri())
+                result=page.evaluate('''() => {
+                  const warning=document.querySelector('.c4-route-warning');
+                  const legend=document.querySelector('.c4-relation-row');
+                  const box=warning.getBBox(), row=legend.getBBox();
+                  const view=document.documentElement.viewBox.baseVal;
+                  return {text:warning.textContent, rows:document.querySelectorAll('.c4-relation-row').length,
+                    injected:document.querySelectorAll('image,parsererror').length,
+                    visible:getComputedStyle(warning).display!=='none' && box.width>0 && box.height>0,
+                    inBounds:box.x>=0 && box.y>=0 && box.x+box.width<=view.width && box.y+box.height<=view.height,
+                    beforeLegend:box.y+box.height<row.y};
+                }''')
+                for relation_id in ids: self.assertIn(relation_id, result['text'])
+                self.assertEqual(result['rows'], 2)
+                self.assertEqual(result['injected'], 0)
+                self.assertTrue(result['visible'])
+                self.assertTrue(result['inBounds'])
+                self.assertTrue(result['beforeLegend'])
+                self.assertEqual(errors, [])
+            finally:
+                browser.close()
+
+    @unittest.skipUnless(sync_playwright and Path(ANCHOR_CHROME).is_file(), 'actual Chrome and Playwright required')
+    def test_54_badge_starved_safe_routes_keep_numbered_identity_in_dom_and_svg(self):
+        # Removing the explicit numbered fallback, dropping the safe path, or
+        # admitting a badge over a card must fail. Only canonical input/layout
+        # changes below; badge placement, routing and export are production code.
+        m = self.load('model/architecture-model.json')
+        relation = next(r for r in m['relationships'] if r['id'] == 'customer-to-system')
+        relation['destinationId'] = relation['sourceId']
+        self.save('model/architecture-model.json', m)
+        built = self.build('ordering-context')
+        self.assertEqual(built.returncode, 0, built.stderr)
+        self_fixture = self.root/'diagrams/ordering-context.flowmap.html'
+        # A 32px gap admits the real route but not a badge's two 17px exclusions.
+        # This is the deployment regression's narrow-corridor constraint without
+        # depending on the optional, private actual input package.
+        source = (self.seed/'diagrams/ordering-context.flowmap.html').read_text()
+        layout_end = '    return L;\n  }\n  function c4BoundaryMarkup'
+        source = source.replace(layout_end, '''    var a=L.pos.customer,b=L.pos['ordering-system'];
+    b.x=a.x+a.w+32;b.y=a.y+(a.h-b.h)/2;
+    return L;
+  }
+  function c4BoundaryMarkup''', 1)
+        malicious = 'narrow-<image href="x" onerror="alert(1)"/> & 한글-' + 'R'*180
+        source = source.replace('  function c4StaticMap(flow) {', '''  function c4StaticMap(flow) {
+    flow.steps[0].relationshipId=%s;flow.steps[0].relationship.id=%s;''' % (
+            json.dumps(malicious, ensure_ascii=False).replace('<', '\\u003c'),
+            json.dumps(malicious, ensure_ascii=False).replace('<', '\\u003c')), 1)
+        narrow_fixture = self.root/'narrow.html';narrow_fixture.write_text(source)
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(executable_path=ANCHOR_CHROME, headless=True)
+            try:
+                for fixture, relation_id in ((self_fixture, 'customer-to-system'), (narrow_fixture, malicious)):
+                    for width in (1440, 390):
+                        with self.subTest(fixture=fixture.name, width=width):
+                            page = browser.new_page(viewport={'width':width, 'height':1000}, offline=True)
+                            errors=[];page.on('pageerror', lambda error: errors.append(str(error)))
+                            page.goto(fixture.as_uri())
+                            page.wait_for_function('window.repoFlowmap !== undefined')
+                            self.assertTrue(page.evaluate('window.repoFlowmap.ready()'),
+                                            page.locator('#map').get_attribute('data-render-error'))
+                            edge = page.locator('#vp path.c4-edge')
+                            self.assertEqual(edge.count(), 1, 'a safe edge must not be dropped')
+                            self.assertEqual(edge.get_attribute('data-relation'), relation_id)
+                            self.assertIn('[1]', edge.locator('title').text_content())
+                            self.assertIn(relation_id, edge.locator('title').text_content())
+                            self.assertEqual(page.locator('#vp .badges .badge').count(), 0,
+                                             'no overlapping on-route badge may be accepted')
+                            row = page.locator('#vp .c4-relation-row')
+                            self.assertEqual(row.count(), 1)
+                            self.assertEqual(row.locator('.badge').count(), 1)
+                            self.assertEqual(row.locator('.badge').get_attribute('data-i'), '0')
+                            self.assertIn('선 위 번호 공간 부족', row.text_content())
+                            self.assertIn(relation_id, row.text_content())
+                            self.assertIn('customer', row.text_content())
+                            self.assertIn('ordering-system' if fixture == narrow_fixture else 'customer', row.text_content())
+                            self.assertEqual(page.locator('#vp image').count(), 0)
+                            if fixture == narrow_fixture:
+                                self.assertAlmostEqual(edge.evaluate('(e)=>e.getTotalLength()'), 32, delta=0.01)
+                            # The relocated number remains a real keyboard control,
+                            # and selecting it must survive the ensuing re-render.
+                            row.locator('.badge').focus();page.keyboard.press('Enter')
+                            self.assertEqual(page.evaluate('window.repoFlowmap.state().step'), 0)
+                            self.assertEqual(page.locator('#vp .c4-edge.hot').count(), 1)
+                            self.assertEqual(page.locator('#vp .c4-relation-row .badge.hot').count(), 1)
+                            svg = page.evaluate('window.repoFlowmap.exportSvg()')
+                            exported = self.root/'badge-fallback.svg';exported.write_text(svg)
+                            page.goto(exported.as_uri())
+                            result = page.evaluate('''() => {
+                              const row=document.querySelector('.c4-relation-row'), badge=row.querySelector('.badge');
+                              const b=badge.getBBox(), r=row.querySelector('rect').getBBox();
+                              const v=document.documentElement.viewBox.baseVal;
+                              return {text:row.textContent, title:document.querySelector('.c4-edge title').textContent,
+                                count:document.querySelectorAll('.c4-edge').length,
+                                injected:document.querySelectorAll('image,parsererror').length,
+                                visible:getComputedStyle(badge).display!=='none' && b.width>0 && b.height>0,
+                                inRow:b.x>=r.x && b.y>=r.y && b.x+b.width<=r.x+r.width && b.y+b.height<=r.y+r.height,
+                                inBounds:r.x>=0 && r.y>=0 && r.x+r.width<=v.width && r.y+r.height<=v.height};
+                            }''')
+                            self.assertEqual(result['count'], 1)
+                            self.assertEqual(result['injected'], 0)
+                            self.assertTrue(result['visible'])
+                            self.assertTrue(result['inRow'])
+                            self.assertTrue(result['inBounds'])
+                            self.assertIn('선 위 번호 공간 부족', result['text'])
+                            for key in ('text', 'title'): self.assertIn(relation_id, result[key])
+                            self.assertEqual(errors, [])
+                            page.close()
+            finally:
+                browser.close()
+
+    @unittest.skipUnless(sync_playwright and Path(ANCHOR_CHROME).is_file(), 'actual Chrome and Playwright required')
+    def test_52_edge_anchor_geometry_in_real_browser(self):
+        '''실제 브라우저 렌더 기하 계약: 모든 c4 엣지 L 세그먼트는 축에 정렬되고,
+        단일 관계 context 뷰는 꺾임 없는 직선 한 구간(M+L만)으로 연결된다.'''
+        import re
+        def tokens(d):
+            return re.findall(r'[MLQA]|-?\d+\.?\d*', d)
+        def l_segments(d):
+            seq=tokens(d);out=[];cur=None;j=0
+            while j<len(seq):
+                t=seq[j]
+                if t in 'MLQA':
+                    cmd=t;got=[];j+=1
+                    while j<len(seq) and seq[j] not in 'MLQA':
+                        got.append(float(seq[j]));j+=1
+                    if cmd=='M' and len(got)>=2:cur=(got[0],got[1])
+                    elif cmd=='L':
+                        for k in range(0,len(got)-1,2):
+                            nxt=(got[k],got[k+1])
+                            if cur is not None:out.append((cur,nxt))
+                            cur=nxt
+                    elif cmd=='Q' and len(got)>=4:cur=(got[2],got[3])
+                    elif cmd=='A' and len(got)>=7:cur=(got[5],got[6])
+                else:j+=1
+            return out
+        views=['ordering-context','ordering-container','ordering-components','ordering-classes','ordering-deployment']
+        with sync_playwright() as pw:
+            browser=pw.chromium.launch(executable_path=ANCHOR_CHROME,headless=True)
+            page=browser.new_page(viewport={'width':1440,'height':1000},offline=True)
+            try:
+                ds_by_view={}
+                for vid in views:
+                    page.goto((self.root/f'diagrams/{vid}.flowmap.html').as_uri())
+                    page.wait_for_selector('path.c4-edge',state='attached',timeout=15000)
+                    ds_by_view[vid]=page.eval_on_selector_all('path.c4-edge','els=>els.map(e=>e.getAttribute("d"))')
+                    self.assertEqual(page.locator('#vp .c4-route-warning').count(), 0, f'{vid}: unexpected warning')
+            finally:
+                browser.close()
+            for vid in views:
+                ds=ds_by_view[vid]
+                expected = len(self.load(f'diagrams/{vid}.flowmap.json')['flows'][0]['steps'])
+                self.assertEqual(len(ds), expected, f'{vid}: missing relation paths')
+                for d in ds:
+                    self.assertTrue(d and d.startswith('M '), f'{vid}: empty/invalid relation path')
+                    self.assertNotRegex(d, r'NaN|Infinity|[Cc]', f'{vid}: non-orthogonal route')
+                    for (x0,y0),(x1,y1) in l_segments(d):
+                        self.assertTrue(abs(x1-x0)<0.5 or abs(y1-y0)<0.5,
+                            f'{vid}: diagonal edge segment ({x0},{y0})->({x1},{y1})')
+            ctx=ds_by_view['ordering-context']
+            self.assertEqual(len(ctx),1,'context view should carry exactly one relation edge')
+            kinds=[t for t in tokens(ctx[0]) if t in 'MLQA']
+            self.assertEqual(['M','L'],kinds,
+                f'context edge must be one straight segment, got {kinds}: {ctx[0]}')
 
 if __name__=='__main__':unittest.main()

@@ -22,7 +22,7 @@ template.html` 경로, 지도 DOM, 라우팅, 상태, 목록·패널, 카메라,
 
 | 파일 | 변경 |
 |---|---|
-| `template.html` | 같은 renderMap에서 structure/class/sequence/deployment 분기, 기존 직각 라우팅 재사용, 타입·경계·UML marker·lifeline, 실제 SVG bbox 기반 export, 좁은 화면 및 iframe 카메라 메시지 |
+| `template.html` | 같은 renderMap에서 structure/class/sequence/deployment 분기, 기존 직각 라우팅 재사용, 타입·경계·UML marker·lifeline, 실제 SVG bbox 기반 export, 좁은 화면 및 iframe 카메라 메시지, 2026-09-16 drawio 원칙 참고 독립 구현: 고유 연결점·양끝 방향/카드 회피 검사·경로 실패 경고 |
 | `scripts/validate_flowmap.mjs` | 선택적인 `c4` typed 확장 검증; legacy 검증 유지 |
 | `scripts/build_flowmap.mjs` | 기존 JSON 마커 주입 유지, 쓰기 전 입력/템플릿/출력 충돌 차단 |
 | `SKILL.md`, `SCHEMA.md` | 포크와 typed 계약을 명시; 아래 upstream legacy 규칙의 적용 범위 분리 |

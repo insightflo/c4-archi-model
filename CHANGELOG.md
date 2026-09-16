@@ -12,6 +12,18 @@
 - 가상 샘플 generator와 실행 로그를 남기는 테스트를 추가한다. 모든 환경의 가독성/file://
   또는 인쇄 완전성을 보장하지 않는다. 각 실행 PASS/FAIL/NOT_RUN을 별도 보고한다.
 - 포크 범위/원출처/라이선스 미확인 제한/3-way update 정책을 VENDORED.md에 명시한다.
+- 화살표 연결점을 drawio 원칙을 참고해 독립 구현: C4 고유 슬롯·양끝 방향·카드 회피 검사·자기 연결·경로 실패 경고. 세부 기록은 assets/repo-flowmap/CHANGELOG.md와 assets/repo-flowmap/references/RENDERER_RULES.md.
+- 보고서 템플릿 다이어그램 iframe sandbox를 3곳(패널·의미 강조 폴백·전체화면 다이얼로그)에서
+  `allow-scripts allow-downloads`로 확장했다. 같은 원점 허용(allow-same-origin)은 넣지 않아
+  부모 문서 접근 차단은 그대로고, 실제 격리 검증에서 parent 접근이 계속 SecurityError로 거부됐다.
+  이 다운로드 결함은 이번 통합 검증에서 독립적으로 발견해 수정했다.
+- 전체화면 다이얼로그를 `showModal()` 후에 `srcdoc`을 넣는 순서로 바꿔, 열기→닫기→다른 View의
+  반복·연속 열기에서도 iframe 기하가 0×0으로 남지 않는다.
+- native 렌더러가 숨은 상태에서 초기화돼 bbox가 0×0 또는 이전 값이어도 초기 렌더·ResizeObserver·
+  내보내기 직전에 실제 도형 bbox를 다시 측정해(c4MeasureExtent) 기존 범위에서 확장만 적용한다.
+  세부 기록은 assets/repo-flowmap/CHANGELOG.md.
+- 통합 검증(2026-09-16): 단위 232건 전부 통과(0 skip), 회귀 14/14, 실제 file:// Chromium
+  48케이스 중 44건의 실제 다운로드 성공(1440/360 두 폭). 전체 증거는 /tmp/c4-integrated-final.
 
 ## 0.9.0 — 2026-09-14
 

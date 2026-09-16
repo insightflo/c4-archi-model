@@ -171,6 +171,7 @@ class StoryTemplateTests(unittest.TestCase):
                                      "items": ["AnUnbrokenCanonicalIdentifier" * 20]}]
         self.page.set_viewport_size({"width": 360, "height": 800})
         self.load(data)
+        self.page.locator(".responsibility-details summary").click()
         self.assertEqual(self.page.locator(".element-desc").inner_text(), text)
         self.assertEqual(self.page.locator(".element-desc .hl, .element-desc b").count(), 0)
         self.assertLessEqual(self.page.evaluate("document.documentElement.scrollWidth"), 360)

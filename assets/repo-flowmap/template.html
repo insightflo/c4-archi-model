@@ -949,14 +949,34 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     return { pos: pos, width: x - LGAP + PAD_X, height: maxY + PAD_BOTTOM, heads: heads };
   }
 
-  function portPoint(node, side, slot) {
+  function portPoint(node, side, slot, projection) {
     var total = slot && slot.total ? slot.total : 1;
     var index = slot && slot.index != null ? slot.index : 0;
     var ratio = total > 1 ? (index + 1) / (total + 1) : 0.5;
-    if (side === 'n') return { x: node.x + node.w * ratio, y: node.y };
-    if (side === 's') return { x: node.x + node.w * ratio, y: node.y + node.h };
-    if (side === 'w') return { x: node.x, y: node.y + node.h * ratio };
-    return { x: node.x + node.w, y: node.y + node.h * ratio };
+    if (!DATA.c4 || !projection) {
+      if (side === 'n') return { x: node.x + node.w * ratio, y: node.y };
+      if (side === 's') return { x: node.x + node.w * ratio, y: node.y + node.h };
+      if (side === 'w') return { x: node.x, y: node.y + node.h * ratio };
+      return { x: node.x + node.w, y: node.y + node.h * ratio };
+    }
+    // A single relation projects the shared midpoint onto the face. Multiple
+    // relations share one face-wide slot allocation, independent of their targets:
+    // clamping per-edge offsets would collapse distinct slots at the corners.
+    var horizontal = side === 'n' || side === 's';
+    var origin = horizontal ? node.x : node.y;
+    var length = horizontal ? node.w : node.h;
+    var inset = Math.min(10, length / 4);
+    var coordinate = total > 1 ? origin + inset + (length - 2 * inset) * ratio
+      : Math.min(Math.max(horizontal ? projection.x : projection.y, origin + inset),
+        origin + length - inset);
+    if (horizontal) return { x: coordinate, y: side === 'n' ? node.y : node.y + node.h };
+    return { x: side === 'w' ? node.x : node.x + node.w, y: coordinate };
+  }
+  function c4AnchorProjection(a, b) {
+    return {
+      x: (a.x + a.w / 2 + b.x + b.w / 2) / 2,
+      y: (a.y + a.h / 2 + b.y + b.h / 2) / 2
+    };
   }
   function sideVector(side) {
     if (side === 'n') return { x: 0, y: -1 };
@@ -1053,8 +1073,9 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     var sides = resolvedSides(a, b, fromSide, toSide);
     if (a.id === b.id && sides.from === sides.to) return selfEdgePath(a, sides.from);
 
-    var p1 = portPoint(a, sides.from, fromSlot);
-    var p2 = portPoint(b, sides.to, toSlot);
+    var proj = c4AnchorProjection(a, b);
+    var p1 = portPoint(a, sides.from, fromSlot, proj);
+    var p2 = portPoint(b, sides.to, toSlot, proj);
     var v1 = sideVector(sides.from);
     var v2 = sideVector(sides.to);
     var distance = Math.hypot(p2.x - p1.x, p2.y - p1.y);
@@ -1233,6 +1254,34 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     }
     return clean;
   }
+  function c4RoutePointInCanvas(point) {
+    // Typed views have a fixed top/left origin. Right/bottom extents may grow
+    // from the final SVG bbox before camera painting and export.
+    return Number.isFinite(point.x) && Number.isFinite(point.y) &&
+      point.x >= 0 && point.y >= 0;
+  }
+  function c4RouteIsSafe(route, layout) {
+    var pts = route.points;
+    if (!pts || pts.length < 2 || !pts.every(c4RoutePointInCanvas)) return false;
+    function outward(a, b, side) {
+      var v = sideVector(side), dx = b.x - a.x, dy = b.y - a.y;
+      return Math.abs(dx * v.y - dy * v.x) < 0.01 && dx * v.x + dy * v.y > 0;
+    }
+    if (!outward(pts[0], pts[1], route.sides.from) ||
+        !outward(pts[pts.length - 1], pts[pts.length - 2], route.sides.to)) return false;
+    var nodes = Object.keys(layout.pos).map(function (id) { return layout.pos[id]; });
+    for (var i = 1; i < pts.length; i++) {
+      var rects = nodes.map(function (node) {
+        // Only the terminal segment may cross its own card's padding.
+        var pad = (i === 1 && node.id === route.a.id) ||
+          (i === pts.length - 1 && node.id === route.b.id) ? 0 : route.clearance;
+        return { left: node.x - pad, top: node.y - pad,
+          right: node.x + node.w + pad, bottom: node.y + node.h + pad };
+      });
+      if (routeSegmentBlocked(pts[i - 1], pts[i], rects)) return false;
+    }
+    return true;
+  }
   function routeCoordKey(x, y) {
     return Number(x).toFixed(4) + '|' + Number(y).toFixed(4);
   }
@@ -1340,19 +1389,54 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     heap[index] = last;
     return first;
   }
+  function c4RouteClearance(layout) {
+    // Leave a corridor between close, disjoint cards instead of overlapping their
+    // padded obstacles. Normal layouts retain the usual clearance.
+    var nodes = Object.keys(layout.pos).map(function (id) { return layout.pos[id]; });
+    var clearance = ROUTE_CLEARANCE;
+    nodes.forEach(function (a, i) {
+      nodes.slice(i + 1).forEach(function (b) {
+        var dx = Math.max(a.x - b.x - b.w, b.x - a.x - a.w);
+        var dy = Math.max(a.y - b.y - b.h, b.y - a.y - a.h);
+        if (dx > 0) clearance = Math.min(clearance, dx / 3);
+        if (dy > 0) clearance = Math.min(clearance, dy / 3);
+      });
+    });
+    return clearance;
+  }
   function orthogonalRoutePoints(route, layout, used) {
-    if (route.a.id === route.b.id) return null;
-    var p1 = portPoint(route.a, route.sides.from, route.fromSlot);
-    var p2 = portPoint(route.b, route.sides.to, route.toSlot);
+    if (!DATA.c4 && route.a.id === route.b.id) return null;
+    var proj = c4AnchorProjection(route.a, route.b);
+    var p1 = portPoint(route.a, route.sides.from, route.fromSlot, proj);
+    var p2 = portPoint(route.b, route.sides.to, route.toSlot, proj);
     var v1 = sideVector(route.sides.from), v2 = sideVector(route.sides.to);
-    // 포트 슬롯은 이미 선을 분리하므로, 긴 스텁을 추가해 이웃 카드를 관통하지 않는다.
-    var fromStub = ROUTE_STUB;
-    var toStub = ROUTE_STUB;
+    var clearance = DATA.c4 ? c4RouteClearance(layout) : ROUTE_CLEARANCE;
+    if (DATA.c4) route.clearance = clearance;
+    var rects = Object.keys(layout.pos).map(function (id) {
+      var node = layout.pos[id];
+      return { left: node.x - clearance, top: node.y - clearance,
+        right: node.x + node.w + clearance, bottom: node.y + node.h + clearance };
+    });
+    function stubLength(p, v) {
+      var length = ROUTE_STUB;
+      if (!DATA.c4) return length;
+      rects.forEach(function (rect) {
+        var gap = Infinity;
+        if (v.x && p.y > rect.top && p.y < rect.bottom) {
+          if (v.x > 0 && rect.left > p.x) gap = rect.left - p.x;
+          if (v.x < 0 && rect.right < p.x) gap = p.x - rect.right;
+        }
+        if (v.y && p.x > rect.left && p.x < rect.right) {
+          if (v.y > 0 && rect.top > p.y) gap = rect.top - p.y;
+          if (v.y < 0 && rect.bottom < p.y) gap = p.y - rect.bottom;
+        }
+        length = Math.min(length, gap / 2);
+      });
+      return length;
+    }
+    var fromStub = stubLength(p1, v1), toStub = stubLength(p2, v2);
     var start = { x: p1.x + v1.x * fromStub, y: p1.y + v1.y * fromStub };
     var goal = { x: p2.x + v2.x * toStub, y: p2.y + v2.y * toStub };
-    var rects = Object.keys(layout.pos).map(function (id) {
-      return routeRect(layout.pos[id]);
-    });
     var xs = [start.x, goal.x, Math.max(4, PAD_X - ROUTE_CLEARANCE - ROUTE_STUB),
       layout.width - Math.max(4, PAD_X - ROUTE_CLEARANCE - ROUTE_STUB)];
     var maxNodeBottom = layout.height - PAD_BOTTOM;
@@ -1362,6 +1446,11 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
       xs.push(rect.left, rect.right);
       ys.push(rect.top, rect.bottom);
     });
+    if (DATA.c4) {
+      // Offer a central bend as well as obstacle-boundary corridors.
+      xs.push((start.x + goal.x) / 2);
+      ys.push((start.y + goal.y) / 2);
+    }
     xs = routeValues(xs);
     ys = routeValues(ys);
 
@@ -1369,6 +1458,9 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     ys.forEach(function (y) {
       xs.forEach(function (x) {
         var point = { x: x, y: y };
+        // Expanded obstacles (notably __pageHeader) may have negative bounds;
+        // keep their full exclusion area, but never offer those grid points.
+        if (DATA.c4 && !c4RoutePointInCanvas(point)) return;
         if (routePointBlocked(point, rects)) return;
         var id = points.length;
         points.push(point);
@@ -1525,7 +1617,7 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     shifts.forEach(function (s) { s.point[s.field] += s.delta; });
   }
   function routePath(route, hops) {
-    if (route.a.id === route.b.id && route.sides.from === route.sides.to) {
+    if (!DATA.c4 && route.a.id === route.b.id && route.sides.from === route.sides.to) {
       return selfEdgePath(
         route.a,
         route.sides.from,
@@ -1535,10 +1627,14 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
       );
     }
     if (route.points && route.points.length > 1) {
-      return roundedPath(route.points, Math.max(2, ROUTE_CLEARANCE - 1), hops);
+      return roundedPath(route.points, DATA.c4 ? Math.min(5, route.clearance) : Math.max(2, ROUTE_CLEARANCE - 1), hops);
     }
-    var p1 = portPoint(route.a, route.sides.from, route.fromSlot);
-    var p2 = portPoint(route.b, route.sides.to, route.toSlot);
+    // An impossible/overlapping typed layout must not invent a path through a
+    // card. Close disjoint cards are handled by the clearance-aware search.
+    if (DATA.c4) return '';
+    var proj = c4AnchorProjection(route.a, route.b);
+    var p1 = portPoint(route.a, route.sides.from, route.fromSlot, proj);
+    var p2 = portPoint(route.b, route.sides.to, route.toSlot, proj);
     var lane = route.laneIndex || 0;
 
     if (route.mode === 'bypass-v') {
@@ -1736,9 +1832,18 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
           layout,
           routingVariant === 'B' ? [] : usedSegments
         );
+        if (DATA.c4 && !c4RouteIsSafe(route, layout)) route.points = null;
         if (routingVariant === 'C') rememberRouteSegments(route.points, usedSegments);
       });
+      var safePoints = DATA.c4 ? orderedRoutes.map(function (route) {
+        return route.points && route.points.map(function (p) { return { x: p.x, y: p.y }; });
+      }) : null;
       separateStrands(orderedRoutes);
+      if (DATA.c4) orderedRoutes.forEach(function (route, index) {
+        // Separation is cosmetic. Reject the whole shift if it reverses a stub,
+        // escapes the canvas, introduces a diagonal, or enters any card/clearance corridor.
+        if (!c4RouteIsSafe(route, layout)) route.points = safePoints[index];
+      });
     }
     return routes;
   }
@@ -1898,16 +2003,20 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     if(kind==='composition')return 'marker-start="url(#c4-diamond)"';
     return ''; // UML association: no invented navigability.
   }
-  function c4LegendTable(flow,L,top) {
+  function c4LegendTable(flow,L,top,legendBadges) {
     var html='',y=top;
     html+=c4Text(['관계 설명 · 번호로 선과 대응 / 속성·메서드·다중성은 입력 근거만 표시'],48,y,15,'c4-title');y+=34;
     flow.steps.forEach(function(s,i){
-      var r=s.relationship,cr=r.codeRelation;
-      var text='['+(i+1)+'] '+nodeLabel(s.from)+' → '+nodeLabel(s.to)+' · '+(cr?cr.kind:'관계')+' · '+r.description;
+      var r=s.relationship,cr=r.codeRelation, fallback=(legendBadges||[]).indexOf(i)!==-1;
+      var x=fallback?88:54, width=L.width-x-58;
+      var text='['+(i+1)+'] '+(fallback?'선 위 번호 공간 부족 · 선의 툴팁과 이 목록의 번호로 확인 · ':'')+
+        nodeLabel(s.from)+(fallback?' ['+s.from+']':'')+' → '+nodeLabel(s.to)+(fallback?' ['+s.to+']':'')+' · '+(cr?cr.kind:'관계')+' · '+r.description;
       if(r.technology)text+=' ['+r.technology+']';
       if(cr && (cr.sourceMultiplicity||cr.destinationMultiplicity))text+=' · 다중성 '+(cr.sourceMultiplicity||'미제공')+' → '+(cr.destinationMultiplicity||'미제공');
-      var lines=c4Lines(text,L.width-112,14,false),h=lines.length*20+42;
-      html+='<g class="c4-relation-row" data-relation="'+esc(r.id)+'"><rect x="40" y="'+(y-18)+'" width="'+(L.width-80)+'" height="'+h+'" rx="6"/>'+c4Text(lines,54,y,14,'')+c4Text([r.id],54,y+lines.length*20+6,11,'c4-id')+'</g>';
+      var lines=c4Lines(text,width,14,false), ids=c4Lines(r.id,width,11,false),h=lines.length*20+ids.length*17+25;
+      html+='<g class="c4-relation-row'+(fallback?' c4-badge-warning':'')+'" data-relation="'+esc(r.id)+'"><rect x="40" y="'+(y-18)+'" width="'+(L.width-80)+'" height="'+h+'" rx="6"/>'+c4Text(lines,x,y,14,'')+c4Text(ids,x,y+lines.length*20+6,11,'c4-id');
+      if(fallback)html+='<g class="badge'+(state.step===i?' hot':'')+'" data-i="'+i+'" tabindex="0" role="button" aria-label="관계 '+(i+1)+' · 목록에 번호 표시"><circle cx="66" cy="'+(y-2)+'" r="12"/><text x="66" y="'+(y+2)+'">'+(i+1)+'</text></g>';
+      html+='</g>';
       y+=h+14;
     });
     return {html:html,bottom:y};
@@ -1916,9 +2025,23 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     var L=c4TreeLayout(),markup=c4Text(L.title,48,38,22,'c4-title')+c4Text(L.intro,48,38+L.title.length*28,13,'c4-id');
     markup+=L.groups.map(c4BoundaryMarkup).join('');
     var routes=buildEdgeRoutes(flow,{pos:L.routePos,width:L.width,height:L.height});
-    markup+='<g class="edges">'+routes.map(function(r,i){if(!r)return '';return '<path class="edge c4-edge'+(state.step===i?' hot':'')+'" data-i="'+i+'" data-relation="'+esc(r.step.relationshipId)+'" data-kind="'+esc((r.step.relationship.codeRelation||{}).kind||'relation')+'" d="'+routePath(r,[])+'" '+c4EdgeAttrs(r.step)+'/>';}).join('')+'</g>';
+    var unrouteable=[];
+    markup+='<g class="edges">'+routes.map(function(r,i){
+      var path=r?routePath(r,[]):'';
+      if(!path){unrouteable.push(flow.steps[i].relationshipId);return '';}
+      var identity='관계 ['+(i+1)+'] '+r.step.relationshipId+' · '+nodeLabel(r.step.from)+' ['+r.step.from+'] → '+nodeLabel(r.step.to)+' ['+r.step.to+']';
+      return '<path class="edge c4-edge'+(state.step===i?' hot':'')+'" data-i="'+i+'" data-relation="'+esc(r.step.relationshipId)+'" data-kind="'+esc((r.step.relationship.codeRelation||{}).kind||'relation')+'" aria-label="'+esc(identity)+'" d="'+path+'" '+c4EdgeAttrs(r.step)+'><title>'+esc(identity)+'</title></path>';
+    }).join('')+'</g>';
     Object.keys(L.pos).forEach(function(id){var p=L.pos[id];if(!p.metric.boundary)markup+=c4LeafMarkup(p);});
-    var table=c4LegendTable(flow,L,L.height-90);markup+=table.html;L.height=table.bottom+30;
+    var tableTop=L.height-90;
+    if(unrouteable.length){
+      markup+='<g class="c4-route-warning" role="alert">'+c4Text(['경고: 안전한 연결선을 그릴 수 없는 관계입니다. 노드 배치를 조정하거나 보기를 나누세요.'],48,tableTop,15,'c4-title');
+      tableTop+=28;
+      markup+=c4Text(unrouteable.map(function(id){return '관계 ID: '+id;}),48,tableTop,14,'')+'</g>';
+      tableTop+=unrouteable.length*20+28;
+    }
+    L.legendTop=tableTop;
+    var table=c4LegendTable(flow,L,tableTop);markup+='<g class="c4-relations">'+table.html+'</g>';L.height=table.bottom+30;
     markup+='<g class="badges"></g>';
     return {L:L,markup:markup,routes:routes};
   }
@@ -1957,8 +2080,8 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     return {L:L,markup:markup};
   }
   function c4PlaceBadges(L) {
-    var host=el.map.querySelector('.badges');if(!host)return;
-    var placed=[],rects=Object.keys(L.routePos||{}).map(function(id){return L.routePos[id];});
+    var host=el.map.querySelector('.badges');if(!host)return [];
+    var legendBadges=[],placed=[],rects=Object.keys(L.routePos||{}).map(function(id){return L.routePos[id];});
     var paths=el.map.querySelectorAll('path.c4-edge');
     paths.forEach(function(path){
       var len=path.getTotalLength(),best=null;
@@ -1977,10 +2100,25 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
         if(touchesOther)continue;
         best=p;
       }
-      if(!best) throw new Error('typed view: cannot place a non-overlapping relationship badge; split View');
+      // A safe path can fit a corridor that cannot fit a 24px badge. Keep
+      // strict exclusions and the path; the caller MUST number it in the legend.
+      if(!best){legendBadges.push(+path.dataset.i);return;}
       placed.push(best);var i=+path.dataset.i;
       host.innerHTML+='<g class="badge'+(state.step===i?' hot':'')+'" data-i="'+i+'" tabindex="0" role="button" aria-label="관계 '+(i+1)+'"><circle cx="'+best.x+'" cy="'+best.y+'" r="12"/><text x="'+best.x+'" y="'+(best.y+4)+'">'+(i+1)+'</text></g>';
     });
+    return legendBadges;
+  }
+  function c4MeasureExtent() {
+    if(!DATA.c4 || !lastLayout || !vp())return;
+    // Hidden iframe documents may report a zero bbox until first layout.
+    // Grow only from real geometry; never reroute or resize the observed stage.
+    var bbox=vp().getBBox(),L=lastLayout;
+    if(!c4RoutePointInCanvas(bbox)) throw new Error('typed view geometry escapes top/left canvas; split View');
+    if(bbox.width>0 && bbox.height>0){
+      L.width=Math.max(L.width,Math.ceil(bbox.x+bbox.width+32));
+      L.height=Math.max(L.height,Math.ceil(bbox.y+bbox.height+32));
+    }
+    el.map.dataset.contentWidth=L.width;el.map.dataset.contentHeight=L.height;
   }
   function renderTypedMap() {
     var flow=DATA.flows[0], result;
@@ -1989,14 +2127,15 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
       var L=result.L;lastLayout=L;
       el.map.setAttribute('data-view-kind',DATA.c4.mode);el.map.setAttribute('data-view-id',DATA.c4.viewId);
       el.map.innerHTML=c4Defs()+'<g id="vp" class="c4-view">'+result.markup+'</g>';
-      c4PlaceBadges(L);
+      var legendBadges=c4PlaceBadges(L);
+      if(legendBadges.length){
+        var table=c4LegendTable(flow,L,L.legendTop,legendBadges);
+        el.map.querySelector('.c4-relations').innerHTML=table.html;
+        L.height=table.bottom+30;
+      }
       // Measure the ACTUAL SVG glyphs and paths, including last self-call labels.
       // Extent growth is done before camera painting/export, after text insertion.
-      var bbox=vp().getBBox();
-      if(bbox.x<0 || bbox.y<0) throw new Error('typed view geometry escapes top/left canvas; split View');
-      L.width=Math.max(L.width,Math.ceil(bbox.x+bbox.width+32));
-      L.height=Math.max(L.height,Math.ceil(bbox.y+bbox.height+32));
-      el.map.dataset.contentWidth=L.width;el.map.dataset.contentHeight=L.height;
+      c4MeasureExtent();
       el.map.dataset.renderStatus='pass';el.map.removeAttribute('data-render-error');
       el.hint.textContent='repo-flowmap · '+DATA.c4.mode+' · 드래그 이동 / 휠 확대 / 1:100%';el.hint.style.display='';
       paintView();
@@ -2412,6 +2551,9 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
 
   function serializeCurrentSvg() {
     if (!lastLayout || !el.map.querySelector('#vp')) return;
+    // Do not trust an extent cached while this iframe was hidden, even when
+    // export runs before ResizeObserver delivery (or without that optional API).
+    c4MeasureExtent();
 
     var width = Math.max(1, Math.ceil(lastLayout.width));
     var height = Math.max(1, Math.ceil(lastLayout.height));
@@ -2839,7 +2981,7 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
 
   if (window.ResizeObserver) {
     var ro = new ResizeObserver(function () {
-      if (DATA.c4) c4ReadingView();
+      if (DATA.c4) { c4MeasureExtent(); c4ReadingView(); }
       else if (state.flow) fitFlow(false);
       else fitAll(false);
     });

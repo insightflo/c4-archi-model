@@ -181,6 +181,8 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
         diagram.update({
             "title": view.get("title", diagram["viewId"]),
             "type": view.get("type", "unknown"),
+            "elementIds": list(view.get("elementIds", [])),
+            "relationshipIds": list(view.get("relationshipIds", [])),
             "scope": canonical_name(view.get("scopeId"), elements, relationships, views),
             "description": presentation.get("intro") or view.get("description", ""),
             "question": view.get("question", ""),
@@ -216,6 +218,8 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
                 "lane": f"{source.get('name', rel.get('sourceId', ''))} → {destination.get('name', rel.get('destinationId', ''))}",
                 "title": rel.get("description", step["relationshipId"]),
                 "text": presentation_step.get("explanation") or default_text,
+                "canonicalNote": step.get("note"),
+                "confidence": rel.get("confidence", "UNVERIFIED"),
                 "attention": presentation_step.get("attention"),
                 "analogy": presentation_step.get("analogy"),
                 "kind": step.get("kind", "interaction"),
@@ -254,6 +258,20 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
                 "notes": presentation.get("notes", []),
                 "claimIds": canonical.get("claimIds", []),
                 "sourceIds": source_ids_for_claims(claims, canonical.get("claimIds", [])),
+                "connections": [
+                    {"id": rel["id"], "sourceId": rel["sourceId"],
+                     "destinationId": rel["destinationId"],
+                     "sourceName": elements.get(rel["sourceId"], {}).get("name", rel["sourceId"]),
+                     "destinationName": elements.get(rel["destinationId"], {}).get("name", rel["destinationId"]),
+                     "sourceType": elements.get(rel["sourceId"], {}).get("type", "unknown"),
+                     "destinationType": elements.get(rel["destinationId"], {}).get("type", "unknown"),
+                     "views": [{"id": view["id"], "type": view.get("type", "unknown"),
+                                "title": view.get("title", view["id"])}
+                               for view in views.values() if rel["id"] in view.get("relationshipIds", [])],
+                     "description": rel.get("description", ""), "claimIds": rel.get("claimIds", [])}
+                    for rel in relationships.values()
+                    if canonical.get("id") in (rel.get("sourceId"), rel.get("destinationId"))
+                ],
             })
 
     for section in hydrated.get("audienceSections", []):
@@ -279,11 +297,26 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
             "description": item.get("reason", ""),
             "impact": item.get("impact", ""),
             "candidates": [next_check] if next_check else [],
+            "claimIds": item.get("claimIds", []),
+            "affectedModelIds": item.get("affectedModelIds", []),
+            "affectedViewIds": item.get("affectedViewIds", []),
+            "affectedModels": [
+                {"id": target_id, "name": canonical_name(target_id, elements, relationships, views),
+                 "kind": "element" if target_id in elements else "relationship" if target_id in relationships else "unknown"}
+                for target_id in item.get("affectedModelIds", [])
+            ],
+            "affectedViews": [
+                {"id": view_id, "title": views.get(view_id, {}).get("title", view_id),
+                 "known": view_id in views}
+                for view_id in item.get("affectedViewIds", [])
+            ],
             "sourceIds": item.get("sourceIds", []),
             "confidence": item.get("confidence", "UNVERIFIED"),
         })
 
-    hydrated["sources"] = ledger.get("sources", [])
+    # Keep the full records, not a title/position-based join or lossy locator summary.
+    hydrated["claims"] = copy.deepcopy(ledger.get("claims", []))
+    hydrated["sources"] = copy.deepcopy(ledger.get("sources", []))
     hydrated["traceability"] = []
     for claim in ledger.get("claims", []):
         primary_id = (claim.get("targetIds") or [""])[0]
@@ -330,6 +363,14 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
         "result": overall_result,
         "summary": coverage_completion.get("reason", "") or "분석 범위와 이해도 검사를 확인하십시오.",
         "checks": qa_checks,
+        "history": [
+            {"label": "분석 범위 기록", "path": hydrated.get("build", {}).get("coveragePath"),
+             "recordedAt": coverage.get("generatedAt"), "modelRevision": coverage.get("modelRevision"),
+             "sessionId": coverage.get("sessionId")},
+            *([{"label": "이해도 검토 기록", "path": hydrated.get("build", {}).get("understandingPath"),
+                "recordedAt": understanding.get("testedAt"), "sessionId": understanding.get("sessionId")}]
+              if understanding else []),
+        ],
     }
 
     hydrated["stats"] = [
@@ -440,7 +481,9 @@ def embed_assets(root: Path, data: dict[str, Any], max_bytes: int, report: Valid
 def inject(template: str, data: dict[str, Any]) -> str:
     if template.count(TOKEN) != 1:
         raise BuildError(f"template must contain exactly one {TOKEN} token")
-    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    # HTML's script-data tokenizer also recognizes <!-- <script>, even in JSON.
+    # Escape every opener; JSON.parse restores the exact original strings.
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     html_text = template.replace(TOKEN, payload)
     if TOKEN in html_text:
         raise BuildError("unresolved report data token remains")

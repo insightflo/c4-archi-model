@@ -91,44 +91,14 @@
       "size": 114
     },
     {
-      "path": ".ruff_cache/.gitignore",
-      "sha256": "9e3a60f1e6ec4ae60215c11d54b171392745ec25e9dded433d5bd921363af316",
-      "size": 35
-    },
-    {
-      "path": ".ruff_cache/0.14.14/11909868581826626694",
-      "sha256": "618c9e41db05cf462c8d6ee2154904815a59f1b44b4ac52a6b87becfa8340489",
-      "size": 147
-    },
-    {
-      "path": ".ruff_cache/0.14.14/12979676651140405989",
-      "sha256": "0d0592e73a976611b6924251ba786c6d9385193d6254ee646004f0a995fb6b26",
-      "size": 149
-    },
-    {
-      "path": ".ruff_cache/0.14.14/4346919244687474882",
-      "sha256": "97e92a1d8623a4d9798cbfdf5ceff3b7a9d83fde1588c1695a939b9e56d3cc63",
-      "size": 203
-    },
-    {
-      "path": ".ruff_cache/0.14.14/7921651010709637688",
-      "sha256": "70876bd1f7e8101c3285e193bf315aaa7dc9279caca5b80d5335b97a28c779d9",
-      "size": 224
-    },
-    {
-      "path": ".ruff_cache/CACHEDIR.TAG",
-      "sha256": "5953156d7e0c564a427251316eaf26f8870e6483ae2197f916b630e4f93e31ae",
-      "size": 43
-    },
-    {
       "path": "CHANGELOG.md",
-      "sha256": "8f33223d11283ae00441c0f358e7b63050d298dfff88b320f111d2c1f7e57c21",
-      "size": 12352
+      "sha256": "c21bd567b20f59f6727358786e6debcc242643940d6cd0a8bbd57b8bfef47d68",
+      "size": 13803
     },
     {
       "path": "LESSONS.md",
-      "sha256": "2c3fff42db14fea0a71cc93d48d5ff1e4d109a0204532df2ea8af90e6c9473b3",
-      "size": 7518
+      "sha256": "53f9855849e5fc91773e7582db425a87976d5d65ce5ea2212613bec15227efaf",
+      "size": 16212
     },
     {
       "path": "LICENSE",
@@ -137,8 +107,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "cadb74c91bab5f97936eb79cc3f02487f5c2639217e97d726653eb96adc986e2",
-      "size": 5856
+      "sha256": "332a1fc733c44245e5c3b7cb856cf8f59e780194d520b088739aaf0e276a91e0",
+      "size": 8447
     },
     {
       "path": "SKILL.md",
@@ -182,8 +152,8 @@
     },
     {
       "path": "assets/html-report-template.html",
-      "sha256": "f2ff69287f94989aa620ca747ed69a4620ec105356534cfbb052a9f94bb652b9",
-      "size": 62442
+      "sha256": "c4fc810998a230ac0d2a1914fedb4fa511aef6507e728c23a93ad4d74127ec59",
+      "size": 99189
     },
     {
       "path": "assets/human-understanding.template.json",
@@ -197,8 +167,8 @@
     },
     {
       "path": "assets/repo-flowmap/CHANGELOG.md",
-      "sha256": "13ff603b0aaa59b111e9fc3ec2a6ec6294d49c912363c70dcca95b172ae2aaf5",
-      "size": 6733
+      "sha256": "8ecf1ddad9e0461299582b5aa8dd9e6f73c7f837c8c50f4fd94f1791cdf90164",
+      "size": 9224
     },
     {
       "path": "assets/repo-flowmap/SCHEMA.md",
@@ -217,13 +187,13 @@
     },
     {
       "path": "assets/repo-flowmap/VENDORED.md",
-      "sha256": "e473164e661a4583d03e8aefc2ea4ab0c0d3b1890d9fa3dedd2a1ba5faefe263",
-      "size": 3606
+      "sha256": "aab20ea86d8a4348226faa3c5e81b2eac1205b93df9be1c8dd49ee0ab6b7d3e0",
+      "size": 3729
     },
     {
       "path": "assets/repo-flowmap/references/RENDERER_RULES.md",
-      "sha256": "9f2844f13b26ad1abe86222fe90d37a9dc55a8f780a3b832c8938f93c8ece0a8",
-      "size": 7008
+      "sha256": "8f352cfbfbd1be76208d4b69f7e0e67a4eef42ca13cc0e9f19cf46e2072c3fb9",
+      "size": 9372
     },
     {
       "path": "assets/repo-flowmap/scripts/build_flowmap.mjs",
@@ -237,8 +207,8 @@
     },
     {
       "path": "assets/repo-flowmap/template.html",
-      "sha256": "9667182531d2ee737549f2da5af24ccb22d58025d8576dbb285f125a8a75ad86",
-      "size": 286841
+      "sha256": "0687bb800a3a0e10ae6c1c5f2bab53bdeb320d7765c53748e04fc83ee89eb468",
+      "size": 294507
     },
     {
       "path": "assets/report-template.md",
@@ -427,8 +397,8 @@
     },
     {
       "path": "scripts/build_html_report.py",
-      "sha256": "018c3320910712c6db5bc135439e71d0f90c947c1388ba9bf05b1ccfc573ff4c",
-      "size": 26634
+      "sha256": "dbfe19ca691b08af91e171b1ee18f580ec37d233c6c3d96f5391a6d91be66c36",
+      "size": 29621
     },
     {
       "path": "scripts/build_output_manifest.py",
@@ -576,6 +546,16 @@
       "size": 9430
     },
     {
+      "path": "tests/test_repo_flowmap_anchor_geometry.py",
+      "sha256": "201474e01a61226113845113aa4d035e39cf57b4cb1c40a332e24399a4709756",
+      "size": 19886
+    },
+    {
+      "path": "tests/test_repo_flowmap_hidden_layout.py",
+      "sha256": "09362e196ef67e7ab2292228e520385421080b7cf76ec390667cc48053d3773a",
+      "size": 8954
+    },
+    {
       "path": "tests/test_repo_flowmap_real_browser.py",
       "sha256": "174578a74b880035208684b6e06feaacfdebfc1deb2c9ef641ee21602f00d7ac",
       "size": 11268
@@ -587,8 +567,18 @@
     },
     {
       "path": "tests/test_repo_flowmap_typed_views.py",
-      "sha256": "9750fb4774fc6b2d367412d163d33b5413915b6c3e70cea6197ce711f945f4c7",
-      "size": 27989
+      "sha256": "4308506272cfa766a8ddd3ab1bbcff0f6c57ace0154bd3485c32609d2f3c2d5d",
+      "size": 42386
+    },
+    {
+      "path": "tests/test_report_download.py",
+      "sha256": "f9f300777939e60d0b8fa75177d841fbc6f226c0d87cc9da215b388d05055080",
+      "size": 9316
+    },
+    {
+      "path": "tests/test_report_external_review.py",
+      "sha256": "84794749b7e2e86bad8ab77e6c7b7acaa014fb42826f71d6d0fa6b6612412dd9",
+      "size": 14413
     },
     {
       "path": "tests/test_report_integration_review.py",
@@ -597,8 +587,13 @@
     },
     {
       "path": "tests/test_report_story.py",
-      "sha256": "d1427c3b932df2c729384f7d2a0aee07b6181e8a94178bc305ee5c8f6c0dac27",
-      "size": 9463
+      "sha256": "41c4bd4c65e9f049ceec1f9e840a37ea0a312f99adac036d26f61311b34da94f",
+      "size": 9532
+    },
+    {
+      "path": "tests/test_report_visual_complete.py",
+      "sha256": "ebf9643402643dca198e52cce8e02b0a6ecd04dc7ac6044fb6e06185910125f0",
+      "size": 26641
     }
   ]
 }
