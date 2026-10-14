@@ -13,7 +13,7 @@ leaf 본문은 회피 장애물로 사용한다. 같은 컬럼 카드 대신 유
 `repo-flowmap-step-ack`(viewId·requestId·stepIndex·ready·step)로 반영 결과를 알린다. 이
 메시지는 재생을 시작하지 않는다 — 단계 지시일 뿐이고 'start' 같은 자동 재개 수단은 없다).
 내부 펼치기(A5) 상태 교환: 렌더러는 노드 선택이 바뀔 때마다, 카메라가 확정된 뒤(드래그·
-줌 중에는 180ms 묶음) `repo-flowmap-state`(viewId·selectedId·camera{k,tx,ty})를 부모에게
+줌 중·CSS 전환 애니메이션 이동 모두 180ms 묶음) `repo-flowmap-state`(viewId·selectedId·camera{k,tx,ty})를 부모에게
 알린다. 부모의 `repo-flowmap-focus`(viewId·canonicalId·camera)는 떠날 때 저장한 선택·카메라를
 되돌리는 지시다 — canonicalId가 null이면 '선택 없음'으로 되돌리고, 등록된 노드 ID만 선택한다
 (없는 ID로 선택을 지어내지 않는다). 카메라 값은 유한수일 때만 정확한 변환(moveTo)으로

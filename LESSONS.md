@@ -1,5 +1,13 @@
 # Lessons
 
+## State-record waits must be scoped to records arriving after the action
+- Date: 2026-10-14
+- Task: Verifying the animated-camera state push (3차 wave, gap ②) in test_report_view_navigation.
+- What failed: a positive wait `__rfmStates.some(s=>s.viewId==='ctx'&&s.camera.k>k_before)` passed even with the pre-fix renderer — the verification was a false positive (proved by stash A/B: pre-fix template passed the test that should have failed).
+- Root cause (measured): the load sequence leaves a stale record with k=1.0 (initial reset push) while k_before was the fitted 0.9453, so the unscoped `some()` matched a record that arrived before the zoom click.
+- Prevention rule: when waiting for a state record that an action should produce, scope the predicate to records arriving after the action (record the list length first and `slice(n)`), not the whole history.
+- Reuse trigger: any test that consumes `window.__rfmStates`-style append-only message logs.
+
 ## Tab-stop guidance tests must not let auto-scroll push the flow panel offscreen
 - Date: 2026-10-14
 - Task: Timing-flake hardening of guided-playback/tab-switch browser tests (2차 작업 wave 1).
@@ -7,6 +15,7 @@
 - Root cause (measured): Playwright's actionability auto-scroll reveals the tab/link by scrolling, which pushes the flow panel fully out of the viewport (panel top 1356 > vh 1000). The report's IntersectionObserver then fires `stopGuide('offscreen')` BEFORE the click dispatch, and the 'tab' reason is NOT covered by the 2500ms offscreen→'user' announce correction (template only corrects reason==='user'). The expected announce never arrives — not a lost click.
 - Category: Report template / guided playback state / test interaction.
 - Fix (test-side): activate the tab/next-view control with `locator.focus()` + `page.keyboard.press('Enter')` — a trusted click event on the same document-level stop listener, with no scroll, so no intersection change races the stop.
+- Resolution (2026-10-14, 3차 wave): the template's offscreen→announce correction now covers `reason==='tab'` too (message generalized to GUIDE_STOP_MESSAGES[reason]), so the racing offscreen stop no longer swallows the '다른 탭' announce. The focus+Enter/via_keyboard workarounds were removed — all tab switches use real mouse clicks — and the tab-stop series passed 5/5 per test under mouse clicks. The prevention rule above stays as history; with the correction, plain mouse clicks are the default again.
 - Prevention rule: When a test clicks a control outside the guided panel while guidance is playing, the click's auto-scroll can legitimately stop the guide as 'offscreen' first. Either keep both regions intersecting the viewport or activate without scrolling (focus+Enter); never assume the click is lost and re-click harder.
 - Reuse trigger: Any guided/auto-playing UI with IntersectionObserver stops plus click targets far from the announcement panel.
 

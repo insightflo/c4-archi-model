@@ -235,29 +235,31 @@ class ViewNavigationBrowserTests(unittest.TestCase):
             "()=>{const t=[...document.querySelectorAll('#diagram-tabs [role=\"tab\"]')]"
             ".find(b=>b.getAttribute('aria-selected')==='true');return t?t.textContent.trim():null;}")
 
-    def click_and_wait(self, page, locator, predicate, arg=None, timeout: int = 12000,
-                       via_keyboard: bool = False) -> None:
+    def click_and_wait(self, page, locator, predicate, arg=None, timeout: int = 12000) -> None:
         """클릭→목표 상태를 긍정형 predicate로 기다린다. 부하가 높은 전체 실행에서
         드물게 클릭 이벤트가 애플리케이션에 닿지 않는 경우(LESSONS.md) 멱등 재클릭
-        1회로만 흡수한다 — 탭·확대·경로 이동 재클릭은 같은 뷰를 다시 선택할 뿐이다.
-
-        via_keyboard: 마우스 클릭의 자동 스크롤이 흐름 패널을 화면 밖으로 밀어내면
-        제품의 IntersectionObserver '화면 밖' 정지가 탭 전환 정지('다른 탭' 사유)보다
-        먼저 발생한다(실측: 안내 영역이 화면 밖...). 'tab' 사유는 2500ms user 보정
-        대상이 아니므로 기다리는 안내 문구가 영원히 오지 않는다. focus(+Enter)는
-        스크롤 없이 동일한 click 이벤트 경로(문서 수준 정지 청취자)를 건드린다."""
+        1회로만 흡수한다 — 탭·확대·경로 이동 재클릭은 같은 뷰를 다시 선택할 뿐이다."""
         def activate() -> None:
-            if via_keyboard:
-                locator.focus()
-                page.keyboard.press('Enter')
-            else:
-                locator.click()
+            locator.click()
         activate()
         try:
             page.wait_for_function(predicate, arg=arg, timeout=8000)
         except Exception:
             activate()
             page.wait_for_function(predicate, arg=arg, timeout=timeout)
+
+    def click_node_and_wait_expand(self, page, frame, node_selector, expand_selector) -> None:
+        """그림 노드 클릭 → [data-expand] 활성화를 긍정형 predicate로 기다린다. 같은
+        노드 재선택은 같은 선택 상태를 다시 알릴 뿐(멱등)이라, 드물게 클릭이
+        애플리케이션에 닿지 않는 경우(LESSONS.md) 재클릭 1회로만 흡수한다."""
+        def activate() -> None:
+            frame.locator(node_selector).click()
+        activate()
+        try:
+            page.wait_for_function("sel=>!document.querySelector(sel).disabled", arg=expand_selector, timeout=8000)
+        except Exception:
+            activate()
+            page.wait_for_function("sel=>!document.querySelector(sel).disabled", arg=expand_selector, timeout=12000)
 
     ACTIVE_TAB_JS = (
         "()=>{const t=[...document.querySelectorAll('#diagram-tabs [role=\"tab\"]')]"
@@ -294,19 +296,21 @@ class ViewNavigationBrowserTests(unittest.TestCase):
         page.locator('#diagrams').scroll_into_view_if_needed()
         ctx_frame = page.frame_locator('#diagram-panels iframe[data-view-id="ctx"]')
         # 그림 노드 선택(동일성: canonical ID로 노드를 찾는다) → 보고서가 상태를 안다.
-        ctx_frame.locator('g.node[data-canonical-id="ordering-system"]').click()
-        expand = page.locator('#diagram-panel-d-ctx [data-expand]')
+        self.click_node_and_wait_expand(page, ctx_frame, 'g.node[data-canonical-id="ordering-system"]',
+                                        '#diagram-panel-d-ctx [data-expand]')
         page.wait_for_function(
             "sel=>!document.querySelector(sel).disabled", arg='#diagram-panel-d-ctx [data-expand]')
-        # 떠나기 전 카메라를 바꿔 둔다(기존 카메라 메시지 경로). 줌 버튼 경로는
-        # 애니메이션 이동(moveTo animate=true)이라 상태 알림을 쏘지 않으므로, 부모
-        # 기록 수 증가가 아니라 렌더러 카메라(k)가 실제로 커졌음을 목표 상태로 기다린다
-        # (고정 sleep은 부하에서 클릭 반영 전에 지나갈 수 있다).
+        # 떠나기 전 카메라를 바꿔 둔다. 줌 버튼 경로(애니메이션 moveTo)도 상태 알림을
+        # 예약하므로(180ms 디바운스), 클릭 이후 도착한 부모 기록에 camera.k가 커진
+        # ctx 상태가 있음을 기다린 뒤 저장값을 음는다 — 클릭 전 기록(초기 k=1.0 등)을
+        # 함께 훑면 줌 알림 없이도 통과하므로 기록 인덱스로 범위를 준다.
         ctx_renderer = page.locator('#diagram-panels iframe[data-view-id="ctx"]').element_handle().content_frame()
         k_before = ctx_renderer.evaluate('window.repoFlowmap.state().camera.k')
+        n_before = len(self.states_for(page, 'ctx'))
         page.locator('#diagram-panel-d-ctx [data-zoom="in"]').click()
-        ctx_renderer.wait_for_function(
-            "(k)=>window.repoFlowmap&&window.repoFlowmap.state().camera.k>k+1e-9", arg=k_before, timeout=12000)
+        page.wait_for_function(
+            "(a)=>window.__rfmStates.filter(s=>s.viewId==='ctx').slice(a.n).some(s=>s.camera.k>a.k+1e-9)",
+            arg={'n': n_before, 'k': k_before}, timeout=12000)
         saved = self.states_for(page, 'ctx')[-1]
         self.assertEqual(saved['selectedId'], 'ordering-system')
         self.click_and_wait(page, page.locator('#diagram-panel-d-ctx [data-expand]'),
@@ -314,16 +318,18 @@ class ViewNavigationBrowserTests(unittest.TestCase):
         self.assertEqual(self.active_tab(page), '주문 시스템 내부')
         # 두 번째 단계 확대: 컨테이너 뷰에서 웹 앱 노드 선택 → 컴포넌트 뷰로.
         containers = page.frame_locator('#diagram-panels iframe[data-view-id="containers"]')
-        containers.locator('g.node[data-canonical-id="web-app"]').click()
-        page.wait_for_function(
-            "sel=>!document.querySelector(sel).disabled", arg='#diagram-panel-d-containers [data-expand]')
-        # 같은 줌 대기 근거: 렌더러 카메라가 실제로 커졌음을 긍정형으로 기다린다.
+        self.click_node_and_wait_expand(page, containers, 'g.node[data-canonical-id="web-app"]',
+                                        '#diagram-panel-d-containers [data-expand]')
+        # 같은 줌 대기 근거: 클릭 이후 도착한 부모 기록에 containers 카메라(k 증가)가
+        # 있는지 본다(클릭 전 기록 제외 — 위 ctx 대기와 같은 근거).
         containers_renderer = page.locator(
             '#diagram-panels iframe[data-view-id="containers"]').element_handle().content_frame()
         k_before = containers_renderer.evaluate('window.repoFlowmap.state().camera.k')
+        n_before = len(self.states_for(page, 'containers'))
         page.locator('#diagram-panel-d-containers [data-zoom="in"]').click()
-        containers_renderer.wait_for_function(
-            "(k)=>window.repoFlowmap&&window.repoFlowmap.state().camera.k>k+1e-9", arg=k_before, timeout=12000)
+        page.wait_for_function(
+            "(a)=>window.__rfmStates.filter(s=>s.viewId==='containers').slice(a.n).some(s=>s.camera.k>a.k+1e-9)",
+            arg={'n': n_before, 'k': k_before}, timeout=12000)
         self.click_and_wait(page, page.locator('#diagram-panel-d-containers [data-expand]'),
                             self.ACTIVE_TAB_JS, arg='웹 앱 내부')
         self.assertEqual(self.active_tab(page), '웹 앱 내부')
@@ -367,7 +373,7 @@ class ViewNavigationBrowserTests(unittest.TestCase):
         # 뷰 안내의 다음 뷰 링크도 같은 탐색 체계다 — 이동은 안내를 정지한다(자동 재개 없음).
         link = page.locator('#diagram-panel-d-ctx .guide-next-view')
         self.assertEqual(link.get_attribute('data-next-view'), 'containers')
-        self.click_and_wait(page, link, self.ACTIVE_TAB_JS, arg='주문 시스템 내부', via_keyboard=True)
+        self.click_and_wait(page, link, self.ACTIVE_TAB_JS, arg='주문 시스템 내부')
         self.assertEqual(self.active_tab(page), '주문 시스템 내부')
         page.wait_for_function(
             "()=>window.__announce.some(t=>t.includes('다른 탭을 선택해 안내 재생을 멈추었습니다'))"
@@ -384,13 +390,13 @@ class ViewNavigationBrowserTests(unittest.TestCase):
         page.locator('#diagrams').scroll_into_view_if_needed()
         # 확대 두 단계 진입 후 직접 탭 선택은 스택을 정리한다(있는 뷰는 잘라내고, 없으면 비운다).
         ctx_frame = page.frame_locator('#diagram-panels iframe[data-view-id="ctx"]')
-        ctx_frame.locator('g.node[data-canonical-id="ordering-system"]').click()
-        page.wait_for_function("sel=>!document.querySelector(sel).disabled", arg='#diagram-panel-d-ctx [data-expand]')
+        self.click_node_and_wait_expand(page, ctx_frame, 'g.node[data-canonical-id="ordering-system"]',
+                                        '#diagram-panel-d-ctx [data-expand]')
         self.click_and_wait(page, page.locator('#diagram-panel-d-ctx [data-expand]'),
                             self.ACTIVE_TAB_JS, arg='주문 시스템 내부')
         containers = page.frame_locator('#diagram-panels iframe[data-view-id="containers"]')
-        containers.locator('g.node[data-canonical-id="web-app"]').click()
-        page.wait_for_function("sel=>!document.querySelector(sel).disabled", arg='#diagram-panel-d-containers [data-expand]')
+        self.click_node_and_wait_expand(page, containers, 'g.node[data-canonical-id="web-app"]',
+                                        '#diagram-panel-d-containers [data-expand]')
         self.click_and_wait(page, page.locator('#diagram-panel-d-containers [data-expand]'),
                             self.ACTIVE_TAB_JS, arg='웹 앱 내부')
         self.assertEqual(self.active_tab(page), '웹 앱 내부')

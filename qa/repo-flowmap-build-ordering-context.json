@@ -4,17 +4,17 @@
   "viewId": "ordering-context",
   "renderer": "repo-flowmap",
   "forkVersion": 1,
-  "rendererSha256": "5563fe263ab6f79aa0ca2596010e6fd371cc99fe0009f55b25c219d66fe11f79",
+  "rendererSha256": "48953f4acc48a72312ec7d55fc12d8e51cf88b350884badc82a65c21bdd75445",
   "specification": {
     "sha256": "9fe9afedcfae21dfc2de975cfb2be81a4c986198549ed831e48a5d6cd8338b0e",
     "bytes": 4151
   },
   "ok": true,
   "exitCode": 0,
-  "stdout": "[PASS] /Users/kwak/Projects/skills/c4-archi-model/.flowmap-build-6j74r0ah/ordering-context.flowmap.html\n",
+  "stdout": "[PASS] /Users/kwak/Projects/skills/c4-archi-model/.flowmap-build-rhs_epjh/ordering-context.flowmap.html\n",
   "stderr": "",
   "artifact": {
-    "sha256": "3fbd83a2fbe6213a6413f9b02bd4bdcfab800e97708798f96662735d3c9eb547",
-    "bytes": 322699
+    "sha256": "924be5981f9be57568038930f0fa470fecf0cc336f8ca0b819d0ea63b8335a27",
+    "bytes": 323028
   }
 }

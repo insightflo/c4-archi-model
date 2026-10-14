@@ -2806,7 +2806,14 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     var g = vp();
     if (!g) return;
     el.zpct.textContent = Math.round(view.k * 100) + '%';
-    if (animate) { g.classList.remove('nofx'); g.setAttribute('transform', transformStr()); return; }
+    if (animate) {
+      // 애니메이션 전환도 카메라 값은 이미 확정됐다 — 상태 알림 없이 넘기면 줌
+      // 버튼(100%·핏 등)으로 바꾼 카메라가 부모 문서로 전파되지 않는다.
+      // 180ms 디바운스라 즉시 push 경로와 겹쳐도 무해하다.
+      g.classList.remove('nofx'); g.setAttribute('transform', transformStr());
+      scheduleStatePush();
+      return;
+    }
     g.classList.add('nofx');
     g.setAttribute('transform', transformStr());
     requestAnimationFrame(function () { g.classList.remove('nofx'); });

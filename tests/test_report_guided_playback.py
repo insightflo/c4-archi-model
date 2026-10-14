@@ -399,17 +399,12 @@ class ReportGuidedPlaybackTests(unittest.TestCase):
             "(t) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(t)"
             "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='false'")
 
-        def click_and_wait_stop(locator, expect_text: str, via_keyboard: bool = False) -> None:
-            # 탭 전환은 마우스 클릭의 자동 스크롤이 흐름 패널을 화면 밖으로 밀어내는
-            # 순간 제품의 IO '화면 밖' 정지가 먼저 발생해 '다른 탭' 사유 안내가 영영
-            # 오지 않는다(실측 확인·'tab' 사유는 2500ms user 보정 대상 아님). focus+Enter는
-            # 스크롤 없이 같은 click 이벤트 경로(문서 수준 탭 정지 청취자)를 건드린다.
+        def click_and_wait_stop(locator, expect_text: str) -> None:
+            # 탭 전환은 실제 마우스 클릭으로 활성화한다: 자동 스크롤이 흐름 패널을 화면
+            # 밖으로 밀어 IO '화면 밖' 정지가 먼저 확정돼도, 템플릿의 offscreen→사유
+            # 보정이 'tab' 사유까지 덮으므로 '다른 탭' 안내가 그대로 온다.
             def activate() -> None:
-                if via_keyboard:
-                    locator.focus()
-                    page.keyboard.press('Enter')
-                else:
-                    locator.click()
+                locator.click()
             activate()
             try:
                 page.wait_for_function(stopped_js, arg=expect_text, timeout=8000)
@@ -417,7 +412,7 @@ class ReportGuidedPlaybackTests(unittest.TestCase):
                 activate()
                 page.wait_for_function(stopped_js, arg=expect_text, timeout=12000)
 
-        click_and_wait_stop(page.locator('#diagram-tabs [role="tab"]').nth(1), '다른 탭을 선택해', via_keyboard=True)
+        click_and_wait_stop(page.locator('#diagram-tabs [role="tab"]').nth(1), '다른 탭을 선택해')
         # Restart on the first diagram tab, then zoom that same view: also a stop.
         page.locator('#diagram-tabs [role="tab"]').nth(0).click()
         story.get_by_role('button', name='안내 재생').click()

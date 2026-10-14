@@ -582,18 +582,15 @@ class ReportChronologyTests(unittest.TestCase):
         # 부하가 높은 전체 스위트 실행에서는 드물게 클릭 이벤트가 애플리케이션에
         # 닿지 않는다(격리 실행 3/3 통과·제품 결함 아님 — LESSONS.md). 긍정형 조건
         # (정지 안내 + aria-pressed=false)과 재활성화 한 번으로만 흡수한다.
-        # 탭 전환은 focus+Enter로 활성화한다: 마우스 클릭의 자동 스크롤이 흐름 패널을
-        # 화면 밖으로 밀면 제품의 IO '화면 밖' 정지가 '다른 탭' 사유보다 먼저 발생해
-        # 기다리는 안내가 오지 않는다(실측·'tab' 사유는 2500ms user 보정 대상 아님).
-        # 키보드 click 이벤트도 문서 수준 탭 정지 청취자를 동일하게 건드리고,
-        # 시간순 기록의 click 관측도 그대로 남는다.
+        # 탭 전환은 실제 마우스 클릭으로 활성화한다: 자동 스크롤이 흐름 패널을 화면
+        # 밖으로 밀어 IO '화면 밖' 정지가 먼저 확정돼도, 템플릿의 offscreen→사유
+        # 보정이 'tab' 사유까지 덮으므로 기다리는 '다른 탭' 안내가 그대로 온다.
         tab = page.locator('#diagram-tabs [role="tab"]').nth(1)
         stopped_js = (
             "(t) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(t)"
             "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='false'")
         def activate_tab() -> None:
-            tab.focus()
-            page.keyboard.press('Enter')
+            tab.click()
         activate_tab()
         try:
             page.wait_for_function(stopped_js, arg="다른 탭을 선택해", timeout=8000)

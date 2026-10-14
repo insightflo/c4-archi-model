@@ -706,12 +706,13 @@ function renderFlows(){
         guideWaiters.forEach(waiter=>waiter.settle(true));
         guideWaiters.clear();
         if(!guide.playing){
-          // 같은 사용자 동작의 경합 바로잡기: 그림 카드 클릭이 스크롤을 옮기면
-          // 안내 패널이 화면 밖으로 나가 offscreen으로 먼저 멈추고, 이어 오는 클릭
-          // '사용자 조작' 정지는 이미 멈춘 상태라 스킵된다. 최근 offscreen 직후의
-          // user 정지는 안내 문구를 사용자 조작 사유로 바로잡는다(거짓 '화면 밖' 방지).
-          if(reason==='user'&&lastStop.reason==='offscreen'&&(Date.now()-lastStop.at)<2500){
-            announce.textContent=GUIDE_STOP_MESSAGES.user;
+          // 같은 사용자 동작의 경합 바로잡기: 확대 조작·탭 전환은 스크롤을 옮겨
+          // 안내 패널을 화면 밖으로 밀 수 있다. 그러면 offscreen 정지가 먼저 확정되고
+          // 이어 오는 user(사용자 조작)·tab(다른 탭 선택) 정지는 이미 멈춘 상태라
+          // 스킵된다. 최근 offscreen 직후의 user·tab 정지는 안내 문구를 해당 사유
+          // 문구로 바로잡는다(거짓 '화면 밖' 방지).
+          if((reason==='user'||reason==='tab')&&lastStop.reason==='offscreen'&&(Date.now()-lastStop.at)<2500){
+            announce.textContent=GUIDE_STOP_MESSAGES[reason];
           }
           return;
         }
