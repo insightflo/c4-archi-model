@@ -63,6 +63,7 @@ em.t{font-style:normal;background:var(--accent-soft);color:var(--accent);padding
 .element-top{display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:start}.element-no{width:56px;min-height:56px;border-radius:999px;background:var(--blue-bg);color:var(--blue);border:1px solid var(--line);padding:6px 6px;display:flex;align-items:center;justify-content:center;text-align:center;font:800 9px var(--mono);line-height:1.25;white-space:normal;word-break:keep-all}.element-desc{color:#3f4b60;margin:13px 0}.kv{display:grid;grid-template-columns:105px 1fr;gap:7px 10px;font-size:12px}.kv b{color:var(--soft)}.kv span{color:var(--muted);min-width:0;word-break:break-word}.status{display:inline-flex;padding:5px 8px;border-radius:999px;font:850 9px var(--mono);background:var(--green-bg);color:var(--green)}.status.normalized,.status.inferred,.status.warn{background:var(--gold-bg);color:var(--gold)}.status.unresolved,.status.fail{background:var(--red-bg);color:var(--red)}.status.not-run{background:#eef1f5;color:var(--muted)}
 .audience-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px}.audience-card{min-width:0;overflow-wrap:anywhere;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;padding-bottom:14px}.audience-card:last-child{border-bottom:0}
 .analysis-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;align-items:stretch}.analysis-card{--chip:var(--soft);background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;padding:16px 14px 14px}.analysis-card:nth-child(1){--chip:var(--green)}.analysis-card:nth-child(2){--chip:var(--gold)}.analysis-card:nth-child(3){--chip:var(--red)}.analysis-card h3{font-size:14px;margin:0 0 8px}.analysis-card h3:before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--chip);margin-right:7px}
+.experiment-body{margin-top:22px}.experiment{margin-top:10px;border:1px solid var(--analogy-border);border-radius:10px;background:var(--paper)}.experiment>summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:800;display:flex;gap:9px;align-items:baseline}.experiment>summary::-webkit-details-marker{display:none}.experiment>summary:before{content:"Q";flex:0 0 auto;font:900 10px var(--mono);color:#3a6280}.experiment .experiment-body-inner{padding:2px 16px 14px}.experiment-targets{margin:0 0 10px;font-size:12.5px;color:var(--muted)}.experiment .model-id{font:800 9px var(--mono);opacity:.75}.experiment .experiment-body-inner b{display:block;margin:10px 0 4px;font-size:12.5px}.experiment .experiment-body-inner ul,.experiment .experiment-body-inner ol{margin:0;padding-left:20px;color:var(--muted);font-size:13px}.experiment .experiment-body-inner li{margin:3px 0}
 .issue-grid{display:grid;grid-template-columns:1fr;gap:0}.issue{background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none}.issue:last-child{border-bottom:0}
 .glossary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}.term{background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;padding:16px 0}
 .audience-card,.issue{padding:20px}.term{padding:16px 0}
@@ -80,7 +81,7 @@ em.t{font-style:normal;background:var(--accent-soft);color:var(--accent);padding
 dialog{border:0;border-radius:18px;padding:0;width:min(96vw,1600px);height:min(94vh,1000px);box-shadow:0 30px 120px rgba(0,0,0,.38)}dialog::backdrop{background:rgba(8,13,24,.8)}.dialog-head{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;border-bottom:1px solid var(--line);background:#fff}.dialog-head h3{margin:0;font-size:15px}.dialog-frame{height:calc(100% - 58px);overflow:auto;background:#f8f6ef;padding:14px}.dialog-frame img{width:100%;max-width:none;display:block}.dialog-tools{display:flex;gap:5px}.toast{position:fixed;right:18px;bottom:18px;background:var(--navy);color:#fff;border-radius:11px;padding:10px 13px;font-size:12px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s;z-index:300}.toast.show{opacity:1;transform:translateY(0)}
 @media screen and (max-width:980px){.diagram-layout{grid-template-columns:1fr}.viewer{border-right:0;border-bottom:1px solid var(--line)}.qa-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
 @media screen and (max-width:720px){.topbar-inner{grid-template-columns:auto 1fr;padding:8px 12px}.nav{display:none}.topbar .btn{justify-self:end}.wrap{padding:16px 12px 54px}.hero{padding:32px 22px;border-radius:20px}.hero h1{font-size:36px}.stats{grid-template-columns:repeat(2,1fr)}.overview-grid,.audience-grid,.glossary-grid,.artifact-grid,.integrity-warnings,.analysis-grid{grid-template-columns:1fr}.flow-grid{grid-template-columns:1fr}.flow-grid:before{left:15px;right:auto;top:16px;bottom:16px;width:2px;height:auto}.reading-path{grid-template-columns:1fr}.path-step:not(:last-child):after{content:"↓";right:auto;left:50%;top:auto;bottom:-13px}.diagram-frame{min-height:300px;padding:8px}.section-head{align-items:start;flex-direction:column}.hero-actions{display:grid;grid-template-columns:1fr 1fr}.hero-actions .btn{width:100%}.table-tools{align-items:stretch;flex-direction:column}}
-@media print{.topbar,.hero-actions,.viewer-toolbar,.tabs,.group-switch,.raw-actions,.toast,.view-breadcrumb,.element-zoom{display:none!important}body{background:#fff}.wrap{max-width:none;padding:0}.hero{box-shadow:none;border-radius:0;break-after:page}.card{box-shadow:none}.tab-panel[hidden],.group-panel[hidden]{display:block!important}.diagram-layout{grid-template-columns:1fr}.viewer{border:0}.diagram-frame{display:block;min-height:0;max-height:none;overflow:visible}.diagram-frame img{width:100%!important;max-width:100%!important;height:auto!important}.diagram-frame iframe{display:none!important}.diagram-frame .diagram-print-img{display:block!important;width:100%!important;height:auto!important}.table-wrap{max-height:none;overflow:visible}.artifact-grid{display:block}.raw{margin-bottom:8px}.section{break-inside:auto}.element-card,.flow-step,.analysis-card,.issue,.term{break-inside:avoid}}
+@media print{.topbar,.hero-actions,.viewer-toolbar,.tabs,.group-switch,.raw-actions,.toast,.view-breadcrumb,.element-zoom{display:none!important}body{background:#fff}.wrap{max-width:none;padding:0}.hero{box-shadow:none;border-radius:0;break-after:page}.card{box-shadow:none}.tab-panel[hidden],.group-panel[hidden]{display:block!important}.diagram-layout{grid-template-columns:1fr}.viewer{border:0}.diagram-frame{display:block;min-height:0;max-height:none;overflow:visible}.diagram-frame img{width:100%!important;max-width:100%!important;height:auto!important}.diagram-frame iframe{display:none!important}.diagram-frame .diagram-print-img{display:block!important;width:100%!important;height:auto!important}.table-wrap{max-height:none;overflow:visible}.artifact-grid{display:block}.raw{margin-bottom:8px}.section{break-inside:auto}.element-card,.flow-step,.analysis-card,.issue,.term,.experiment{break-inside:avoid}}
 .viewer-toolbar{flex-wrap:wrap}.viewer-toolbar .group{flex-wrap:wrap}.viewer-title{overflow-wrap:anywhere;min-width:0}.diagram-frame:has(iframe){padding:0;display:block}
 .flow-story{display:grid;grid-template-columns:minmax(210px,.8fr) minmax(0,2fr);gap:22px;align-items:start}
 .flow-step-selectors{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -151,7 +152,7 @@ dialog{border:0;border-radius:18px;padding:0;width:min(96vw,1600px);height:min(9
 <section id="flows" class="section"><div class="section-head"><div><div class="section-kicker">Dynamic Scenarios</div><h2>핵심 실행 흐름</h2><p class="section-desc">정상, 실패, 복구 흐름을 시나리오별로 분리합니다.</p></div></div><div id="flow-tabs" class="tabs" role="tablist" aria-label="실행 흐름 선택"></div><div id="flow-panels"></div></section>
 <section id="elements" class="section"><div class="section-head"><div><div class="section-kicker">Architecture Elements</div><h2>구성요소와 책임</h2><p class="section-desc">Canonical model의 사실을 재사용하고, 설명 카드에는 이해를 돕는 표현만 추가합니다.</p></div></div><div id="group-switch" class="group-switch" role="tablist" aria-label="구성요소 그룹 선택"></div><div id="group-panels"></div></section>
 <section id="audience" class="section"><div class="section-head"><div><div class="section-kicker">Audience Explanation</div><h2>독자 수준에 맞춘 설명</h2><p class="section-desc">사실은 같고, 설명 순서와 용어 밀도만 달라집니다.</p></div></div><div id="audience-grid" class="audience-grid"></div></section>
-<section id="analysis" class="section"><div class="section-head"><div><div class="section-kicker">Architecture Review</div><h2>장점, 비용, 위험</h2><p class="section-desc">근거 Claim이나 Coverage issue에 연결된 해석만 표시합니다.</p></div></div><div id="analysis-grid" class="analysis-grid"></div></section>
+<section id="analysis" class="section"><div class="section-head"><div><div class="section-kicker">Architecture Review</div><h2>장점, 비용, 위험</h2><p class="section-desc">근거 Claim이나 Coverage issue에 연결된 해석만 표시합니다.</p></div></div><div id="analysis-grid" class="analysis-grid"></div><div id="experiment-body" class="experiment-body" hidden></div></section>
 <section id="comparison" class="section"><div class="section-head"><div><div class="section-kicker">Change Review</div><h2>변경 전후 아키텍처 비교</h2><p class="section-desc">두 시점의 canonical model을 ID 기준으로 견줘 추가·삭제·이동·관계 변경을 표로 모두 남깁니다. 그림은 보조이고 표가 완전한 목록입니다.</p></div></div><div id="comparison-body"></div></section>
 <section id="issues" class="section"><div class="section-head"><div><div class="section-kicker">Coverage Boundaries</div><h2>확인 필요와 다음 확인</h2><p class="section-desc">무엇을 모르는지, 왜 중요한지, 다음에 무엇을 확인할지를 분리합니다.</p></div></div><div id="issue-grid" class="issue-grid"></div></section>
 <section id="glossary" class="section"><div class="section-head"><div><div class="section-kicker">Glossary</div><h2>용어 정리</h2><p class="section-desc">처음 보는 독자가 구조를 따라갈 수 있도록 핵심 용어를 풉니다.</p></div></div><div id="glossary-grid" class="glossary-grid"></div></section>
@@ -861,6 +862,32 @@ function renderElements(){
 }
 function renderAudience(){const mode=data.meta?.mode,sections=(data.audienceSections||[]).filter(s=>mode==='both'||s.audience==='both'||s.audience===mode);setHiddenIfEmpty('audience',!sections.length);if(!sections.length)return;const grid=byId('audience-grid');sections.forEach(s=>{const c=make('article','card audience-card');append(c,make('div','audience-label',modeLabels[s.audience]||s.audience),make('h3','',s.title||'설명'));if(s.text){const t=make('p','');t.textContent=s.text;t.style.wordBreak='break-word';t.style.overflowWrap='anywhere';c.appendChild(t);}if((s.items||[]).length)c.appendChild(list(s.items));if((s.sourceIds||[]).length)c.appendChild(sourceChips(s.sourceIds));grid.appendChild(c);});}
 function renderAnalysis(){const a=data.analysis||{},groups=[['benefits','구조상 장점'],['tradeoffs','비용과 트레이드오프'],['risks','위험과 검토 후보']].filter(([k])=>(a[k]||[]).length);setHiddenIfEmpty('analysis',!groups.length);if(!groups.length)return;const grid=byId('analysis-grid');groups.forEach(([key,title])=>{const c=make('article','card analysis-card');c.appendChild(make('h3','',title));(a[key]||[]).forEach(item=>{const row=make('div','analysis-item');row.appendChild(make('p','',item.text||''));if((item.sourceIds||[]).length)row.appendChild(sourceChips(item.sourceIds));c.appendChild(row);});grid.appendChild(c);});}
+// 설명용 실험(A2): 가정을 먼저 공개하는 접힌 시나리오. 근거 Claim에 연결하지
+// 않는다 — 정규 모델만 의미 진실이므로 공개 라벨은 데이터가 아니라 템플릿이
+// 고정한다(데이터 작성자가 라벨을 지울 수 없다). 대상 이름은 빌더가 canonical
+// model에서 채운 값만 쓴다. 실험이 없으면 이 블록은 나타나지 않는다.
+function renderExperiments(){
+  const experiments=data.experiments||[],host=byId('experiment-body');
+  if(!experiments.length){host.hidden=true;return;}
+  host.hidden=false;
+  setHiddenIfEmpty('analysis',false);
+  const notice=make('aside','callout info');
+  append(notice,make('b','label','가정 기반 실험 — 모델 검증 사실이 아님'),make('p','','아래 시나리오는 이해를 돕기 위한 가정 실험입니다. 근거 Claim이나 검증 기록과 달리 실제 장애·동작에 대한 보증이 아니므로, 각 실험의 가정을 먼저 확인한 뒤 읽습니다. 인쇄에서는 펼쳐진 상태로 나옵니다.'));
+  host.appendChild(notice);
+  experiments.forEach(exp=>{
+    const box=make('details','experiment');box.id=`experiment-${exp.id||''}`;
+    append(box,make('summary','',exp.question||''));
+    const body=make('div','experiment-body-inner');
+    const targets=make('p','experiment-targets');
+    targets.appendChild(document.createTextNode('설명 대상: '));
+    (exp.targets||[]).forEach((t,i)=>{
+      if(i)targets.appendChild(document.createTextNode(' · '));
+      append(targets,document.createTextNode(`${t.name||t.modelId} `),make('span','model-id',`(${t.modelId} · ${t.kind==='relationship'?'관계':'요소'}${t.note?` · ${t.note}`:''})`));
+    });
+    append(body,targets,make('b','','이 실험의 가정'),list(exp.assumptions||[]),make('b','','가정에서 이어지는 흐름'),list(exp.narrative||[],true));
+    box.appendChild(body);host.appendChild(box);
+  });
+}
 function renderIssueTargets(issue){
   const root=make('div','issue-targets'),controls=make('div','issue-target-controls'),host=make('div','issue-diagram');
   append(root,make('h4','','원문에 연결된 대상과 그림'),make('p','','요소·View 연결만 표시합니다. 특정 실행 단계의 결함으로 해석하지 않습니다.'),controls,host);
@@ -994,13 +1021,13 @@ dialog.addEventListener('close',stopEmbedPlayback);byId('print-btn').addEventLis
 let printDetails=null;
 window.addEventListener('beforeprint',()=>{
   if(printDetails)return;
-  printDetails=new Map([...document.querySelectorAll('.connection-details')].map(node=>[node,node.open]));
+  printDetails=new Map([...document.querySelectorAll('.connection-details,.experiment')].map(node=>[node,node.open]));
   printDetails.forEach((open,node)=>{node.open=true;});
 });
 window.addEventListener('afterprint',()=>{printDetails?.forEach((open,node)=>{node.open=open;});printDetails=null;});
 byId('claim-close').addEventListener('click',()=>byId('claim-dialog').close());
 byId('claim-dialog').addEventListener('close',()=>claimOpener?.focus());
-renderHeader();renderStats();renderOverview();renderDiagrams();renderFlows();renderElements();renderAudience();renderAnalysis();renderComparison();renderIssues();renderGlossary();renderEvidence();renderQa();renderArtifacts();renderNav();
+renderHeader();renderStats();renderOverview();renderDiagrams();renderFlows();renderElements();renderAudience();renderAnalysis();renderExperiments();renderComparison();renderIssues();renderGlossary();renderEvidence();renderQa();renderArtifacts();renderNav();
 })();
 </script>
 </body>

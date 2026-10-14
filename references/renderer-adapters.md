@@ -217,9 +217,10 @@ html/report-data.json
 ### 내장 규칙
 
 - 렌더링된 SVG를 우선해 data URI로 내장한다.
-- text/html 인터랙티브 다이어그램(repo-flowmap 산출물)은 data URI에 원본 bytes를 내장하고 sandbox allow-scripts iframe의 srcdoc에 전달한다.
-  기본 템플릿이 `mimeType === 'text/html'` 다이어그램을 `sandbox="allow-scripts"` iframe으로
-  렌더링한다. iframe 내부 스크립트는 정상 내용이므로 SVG 위생 검사를 적용하지 않는다.
+- text/html 인터랙티브 다이어그램(repo-flowmap 산출물)은 data URI에 원본 bytes를 내장하고 sandbox iframe의 srcdoc에 전달한다.
+  기본 템플릿이 `mimeType === 'text/html'` 다이어그램을 `sandbox="allow-scripts allow-downloads"` iframe으로
+  렌더링한다. allow-downloads는 프레임 안 native SVG 다운로드 단추에 필요하며, 같은 출처 접근·상위 탐색은 여전히 막혀 있다.
+  iframe 내부 스크립트는 정상 내용이므로 SVG 위생 검사를 적용하지 않는다.
 - PNG만 있으면 충분한 해상도의 PNG를 내장한다.
 - JSON, PUML, DSL, Markdown 같은 텍스트 원본을 접을 수 있는 영역에 내장한다.
 - 외부 CDN, 외부 JavaScript, 외부 CSS, 외부 폰트, 원격 PlantUML 서버를 요구하지 않는다.

@@ -14,7 +14,7 @@ canonical model + evidence ledger
   → assets/repo-flowmap/scripts/build_flowmap.mjs (기존 단일 마커 주입)
   → assets/repo-flowmap/template.html (기존 renderMap / 직각 라우팅 / #vp / camera)
   → diagrams/<View-ID>.flowmap.html
-  → 기본 보고서 iframe (내장 bytes를 srcdoc에 전달, sandbox=allow-scripts)
+  → 기본 보고서 iframe (내장 bytes를 srcdoc에 전달, sandbox=allow-scripts allow-downloads)
 ```
 
 Python 3.9+와 Node 18+가 필요하다. 생성 런타임은 양쪽 표준 라이브러리만 사용한다.
@@ -145,7 +145,7 @@ input hash를 새로 적어도 canonical과 다르면 실패한다. 기존 DIA/R
 
 보고서 diagram은 `assetPath`, `mimeType: "text/html"`, exact `viewId`를 사용한다.
 빌더는 원본 HTML bytes를 data URI로 저장한다. template은 그 bytes를 그대로 decode해
-iframe `srcdoc`에 넣으며 `sandbox="allow-scripts"`를 유지한다. 부모 버튼은 View ID가
+iframe `srcdoc`에 넣으며 `sandbox="allow-scripts allow-downloads"`를 유지한다(SVG 다운로드 단추 허용). 부모 버튼은 View ID가
 일치하는 native 카메라 메시지를 보내므로 iframe 자체를 확대해 버튼을 잘라내지 않는다.
 
 ```bash
@@ -203,5 +203,6 @@ python3 <skill>/scripts/check_repo_flowmap_browser.py --root <package> \
 
 브라우저 검사는 실제 text/path/node bbox, 마지막 자기호출의 export 경계, 1440/360 화면,
 native 줌/팬/표시, 보고서 iframe/줌/전체 화면, 인쇄 이미지 decode, 외부 요청 여부를 기록한다.
-printAssetPath를 연결하기 전이면 print 검사는 실패하므로 먼저 추출하거나 해당 단계를 미실행으로
-분리해 실행한다. 여러 브라우저·PDF 페이지 분할·실제 사람 이해도는 별도 검사다.
+데모 생성은 각 보기 인쇄 SVG를 export_repo_flowmap_svg.py로 추출해 printAssetPath에 연결하며,
+print-SVG 검사는 report-data에서 printDataUri를 연결한 다이어그램 수만큼 인쇄 이미지가 decode·표시되는지 확인한다
+(인쇄 그림은 선택 자산이므로 전체 다이어그램 수와 같지 않아도 된다). 여러 브라우저·PDF 페이지 분할·실제 사람 이해도는 별도 검사다.

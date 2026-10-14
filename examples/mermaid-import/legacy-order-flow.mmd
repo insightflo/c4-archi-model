@@ -1,0 +1,14 @@
+%% 기존 시스템에서 넘겨받은 주문 흐름 다이어그램 (가상 예제)
+flowchart TD
+  customer([고객])
+  storefront[웹 스토어프론트]
+  orderApi("주문 API")
+  orderDb[(주문 DB)]
+  customer --> storefront
+  storefront -->|주문 생성| orderApi
+  orderApi -.-> orderDb
+  subgraph internal [내부 시스템]
+    orderApi
+    orderDb
+  end
+  style orderApi fill:#eee

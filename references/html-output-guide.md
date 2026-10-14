@@ -30,6 +30,7 @@ HTML은 canonical model을 대체하지 않는다. report data는 canonical 이�
 설계 검토
   경계·상태·계약·실패·배포·트레이드오프
   변경 전후 아키텍처 비교(선택) — 두 시점 모델의 추가·삭제·이동·관계 변경 표
+  가정 기반 실험(선택) — 가정을 먼저 공개하는 접힌 설명 시나리오
   Coverage와 다음 결정
 
 근거·QA
@@ -120,7 +121,38 @@ other
 
 Schema가 금지 필드를 거부해야 한다.
 
-## 6. report-data build paths
+## 6. Experiments(선택) — 가정 기반 설명 실험
+
+`experiments`는 이해를 돕기 위한 가정 시나리오다. 정규 모델만 의미 진실이므로 실험은
+모델 검증 사실이 아니고, 보고서에서는 템플릿이 고정한 "가정 기반 실험 — 모델 검증
+사실이 아님" 라벨 아래 접힌 `details`로 나타난다(라벨은 데이터 작성자가 지울 수 없다).
+
+```json
+{
+  "id": "EXP-1",
+  "question": "주문 저장 직후 이벤트 발행이 실패하면 무슨 일이 벌어질까?",
+  "targets": [
+    { "modelId": "api-to-db", "kind": "relationship" }
+  ],
+  "assumptions": [
+    "Order API는 주문을 저장한 뒤에야 이벤트를 발행한다."
+  ],
+  "narrative": [
+    "Order API가 주문을 Order Database에 저장한다.",
+    "이벤트 발행이 일어나지 않은 채 요청 처리가 끝난다."
+  ]
+}
+```
+
+규칙:
+
+- `assumptions`는 필수이고 1개 이상이어야 한다(가정 없는 실험은 스키마가 거부한다).
+- `targets[].modelId`는 canonical 요소·관계 ID만 허용하고 `kind`와 실제 대상이
+  일치해야 한다(HTML-DATA-025). 표시 이름은 빌더가 canonical model에서 채운다.
+- 실험에는 `claimIds`를 붙이지 않는다 — 근거 연결로 검증 사실처럼 보이게 하지 않는다.
+- 화면에서는 각 실험이 접혀 있고, 인쇄에서는 펼쳐진 상태로 나온다.
+
+## 7. report-data build paths
 
 ```json
 {
@@ -142,7 +174,7 @@ required file은 실제로 존재해야 한다. 선택 파일은 누락 시 경�
 나타나지 않는다. 표가 완전 목록이고 그림은 보조다 — 어느 뷰에도 속하지 않은 변경도
 표에 남는다.
 
-## 7. 빌드
+## 8. 빌드
 
 ```bash
 python3 <skill>/scripts/build_html_report.py   --root <output-root>   --data html/report-data.json   --template <skill>/assets/html-report-template.html   --output <output-root>/index.html   --validation-output <output-root>/qa/html-build-validation.json
@@ -151,7 +183,7 @@ python3 <skill>/scripts/build_html_report.py   --root <output-root>   --data htm
 strict mode는 artifact bundle 오류가 있으면 종료 코드 1로 중단한다.
 `--lenient`는 진단용 FAIL HTML을 만들고 종료 코드 2를 반환한다. 최종 배포에 사용하지 않는다.
 
-## 8. 오프라인과 보안
+## 9. 오프라인과 보안
 
 금지:
 
@@ -169,7 +201,7 @@ strict mode는 artifact bundle 오류가 있으면 종료 코드 1로 중단한�
 - escape된 text content
 - 사용자가 명시적으로 누르는 로컬 다운로드 기능
 
-## 9. 접근성과 반응형
+## 10. 접근성과 반응형
 
 - `<meta charset="utf-8">`와 viewport를 둔다.
 - tab과 control은 키보드로 이동할 수 있어야 한다.
@@ -179,7 +211,7 @@ strict mode는 artifact bundle 오류가 있으면 종료 코드 1로 중단한�
 - 다이어그램 자체의 내부 scroll은 허용하되 page layout을 깨지 않는다.
 - 인쇄 모드에서 핵심 섹션과 그림이 사라지지 않는다.
 
-## 10. Clean rebuild
+## 11. Clean rebuild
 
 HTML template에 임시 CSS·JS patch가 누적되어 다음이 발생하면 깨끗한 template에서 재생성한다.
 
@@ -193,7 +225,7 @@ HTML template에 임시 CSS·JS patch가 누적되어 다음이 발생하면 깨
 
 canonical model과 report data를 유지하고 HTML만 clean rebuild한다.
 
-## 11. QA
+## 12. QA
 
 정적:
 
@@ -214,7 +246,7 @@ Desktop·Mobile
 
 브라우저 자동화 또는 수동 검토를 실행하지 못했으면 `NOT RUN`으로 기록한다.
 
-## 12. 패키지
+## 13. 패키지
 
 HTML 생성 후 Handoff와 output manifest를 만든다.
 

@@ -195,6 +195,11 @@ capture 시각
 `main 브랜치`나 URL만 기록하고 재현 가능하다고 주장하지 않는다.
 자세한 규칙은 `references/source-snapshot.md`를 따른다.
 
+기존 Mermaid 다이어그램(`.mmd`)은 `scripts/convert_mermaid_input.py`로 원장 조각으로
+변환한다 — 텍스트 파싱만(렌더러 비실행), 결과는 VERIFIED가 될 수 없는
+"출처가 그림인 주장"이다. 계약과 지연 범위(draw.io·Excalidraw 미지원)는
+`references/mermaid-import.md`를 따른다.
+
 ### Step 3 — Evidence Claim 추출
 
 원문에서 바로 박스를 만들지 않는다. 먼저 다음 형태의 Claim을 만든다.
@@ -376,7 +381,7 @@ repo-flowmap 경로에서는:
   번들 검증기·빌더를 실행해 HTML과 qa/ 영수증을 함께 만든다. 명령·경로 규칙은 어댑터 §3을 따른다.
   입력/출력 SHA-256(파일 변경 확인값)은 해당 실행 중 기록하며, 기존 산출물의 사후 해시 보충은 금지한다.
 - 보고서 임베딩은 mimeType `text/html` 다이어그램(assetPath 지정)으로 하며, 기본 템플릿이
-  iframe(sandbox allow-scripts)으로 렌더링한다. 번들 래퍼는 인쇄 SVG를 만들지 않는다.
+  iframe(sandbox allow-scripts allow-downloads — SVG 다운로드 단추 허용)으로 렌더링한다. 번들 래퍼는 인쇄 SVG를 만들지 않는다.
   `scripts/export_repo_flowmap_svg.py`의 실제 native export 실행과 `repo-flowmap-svg-<view>.json` 영수증이 없으면 printAssetPath를 생략하고
   인쇄 시 그림 누락 한계를 밝힌다. 수동 다운로드 파일만으로 인쇄 자산을 등록하지 않는다.
 - 번들은 명시적 유지보수 포크다. `assets/repo-flowmap/VENDORED.md`의 출처/라이선스/변경 정책을 따른다.
@@ -762,6 +767,7 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 - `references/c4-model-guide.md`
 - `references/evidence-and-model.md`
 - `references/source-snapshot.md`
+- `references/mermaid-import.md`
 - `references/writing-modes.md`
 - `references/human-understanding-gates.md`
 - `references/visual-budgets.md`
@@ -777,6 +783,7 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 - `scripts/validate_architecture_session.py`
 - `scripts/validate_architecture_model.py`
 - `scripts/validate_evidence_ledger.py`
+- `scripts/convert_mermaid_input.py`
 - `scripts/validate_coverage.py`
 - `scripts/validate_human_understanding.py`
 - `scripts/validate_html_report_data.py`
@@ -797,6 +804,7 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 - `examples/html-report-data.example.json`
 - `examples/html-report-example.html`
 - `examples/mini-example.md`
+- `examples/mermaid-import/legacy-order-flow.mmd`(기존 Mermaid 다이어그램 변환 예시)
 - `examples/invalid-fixtures/README.md`
 - `diagrams/ordering-{context,container}.flowmap.{json,html,svg}` — 예제 다이어그램의 실제 렌더러 산출물(재생성 절차는 README '예제 보고서 재생성')
 - `qa/repo-flowmap-*.json` — 예제 다이어그램의 실행 시점 영수증

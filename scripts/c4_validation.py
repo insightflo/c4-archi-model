@@ -526,6 +526,10 @@ def validate_ledger(data: dict[str, Any], schema_path: Path, model: dict[str, An
         if claim["derivation"] == "unresolved" and claim["confidence"] == "VERIFIED":
             report.error("EVD-013", path, "unresolved claim cannot be VERIFIED")
             evidence_errors += 1
+        support_classes = {item["evidenceClass"] for item in claim["supports"]}
+        if claim["confidence"] == "VERIFIED" and support_classes and support_classes <= {"diagram"}:
+            report.error("EVD-019", path, "claim cannot be VERIFIED from diagram evidence alone — existing-diagram sources are documentation, not code verification")
+            evidence_errors += 1
         if model is not None:
             unknown_targets = sorted(set(claim["targetIds"]) - model_ids)
             if unknown_targets:
@@ -853,6 +857,23 @@ def validate_report_data(data: dict[str, Any], schema_path: Path, *, root: Path 
                              f"analogy mapping must reference a canonical {mapping['kind']} ID, got {mapping['modelId']!r}")
     if mapping_total:
         report.pass_check("HTML-DATA-023", "Analogy mappings resolve to canonical model IDs", str(mapping_total))
+
+    # 설명용 실험(A2): 가정을 공개한 시나리오는 모델 검증 사실이 아니므로 claimIds
+    # 를 요구하지 않는다(가정 목록은 스키마가 1개 이상으로 강제한다). 대신 설명
+    # 대상은 canonical 요소·관계 ID로만 연결한다 — 오타·지어낸 대상을 막는다.
+    experiment_ids = [item["id"] for item in data.get("experiments", [])]
+    if duplicate_values(experiment_ids):
+        report.error("HTML-DATA-024", "$.experiments", f"duplicate experiment IDs: {sorted(duplicate_values(experiment_ids))}")
+    experiment_targets = 0
+    for index, experiment in enumerate(data.get("experiments", [])):
+        for target_index, target in enumerate(experiment["targets"]):
+            experiment_targets += 1
+            pool = model_elements if target["kind"] == "element" else model_relationships
+            if model is not None and target["modelId"] not in pool:
+                report.error("HTML-DATA-025", f"$.experiments[{index}].targets[{target_index}].modelId",
+                             f"experiment target must reference a canonical {target['kind']} ID, got {target['modelId']!r}")
+    if experiment_targets:
+        report.pass_check("HTML-DATA-025", "Experiment targets resolve to canonical model IDs", str(experiment_targets))
 
     if ledger is not None:
         unknown_claims = sorted(_report_claim_refs(data) - claim_ids)

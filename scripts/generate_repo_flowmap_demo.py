@@ -11,6 +11,7 @@ import argparse
 import copy
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -22,6 +23,13 @@ CLAIM='CL-DEMO'
 def write(path: Path, value) -> None:
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(value,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+
+
+def chromium_executable():
+    """Resolve a real Chromium/Chrome for print-SVG extraction (env C4_BROWSER first)."""
+    for candidate in (os.environ.get('C4_BROWSER'),shutil.which('chromium'),'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'):
+        if candidate and Path(candidate).is_file():return candidate
+    return None
 
 
 def make_model() -> dict:
@@ -111,11 +119,32 @@ def generate(root: Path, render=True) -> None:
         report['diagrams'].append({'id':'diagram-'+vid,'viewId':vid,'assetPath':f'diagrams/{vid}.flowmap.html','dataUri':None,'mimeType':'text/html','required':True,'printAssetPath':None,'presentation':{'intro':v['title']+' · 가상 샘플','readingTips':['1 또는 100% 버튼으로 읽고 드래그로 이동한다.','정적 구조의 관계 번호는 순서가 아닌 참조 번호다.'] if v['type']!='dynamic' else ['참가자와 생명선, 위에서 아래로 증가하는 메시지 번호를 읽는다.','반복·자기호출을 서로 다른 단계로 표시한다.'],'notShown':v['notShown'],'nextViewIds':[],'caption':'repo-flowmap 로컬 포크 · '+v['type'],'alt':v['title']}})
     write(root/'html/report-data.json',report)
     (root/'HANDOFF.md').write_text('# repo-flowmap fork demonstration\n\n가상 샘플입니다. 클래스와 배치는 실제 코드에서 추출하지 않았습니다.\n'+
-                                  'printAssetPath는 브라우저 실제 SVG 추출이 성공하면 연결할 수 있습니다. null은 인쇄 그림 미제공입니다.\n'+
+                                  '인쇄 그림은 각 보기 HTML을 scripts/export_repo_flowmap_svg.py로 실제 실행해 추출한 SVG이며 영수증은 qa/repo-flowmap-svg-<view>.json에 있다.\n'+
+                                  '추출이 성공하지 못한 보기는 printAssetPath가 null로 남아 인쇄 그림 미제공이다(연결은 성공한 보기만).\n'+
                                   'file:// 진입, 브라우저 검사와 실제 사람 이해도는 실행 로그를 따릅니다.\n',encoding='utf-8')
     if render:
         for vid in vids:
             subprocess.run([sys.executable,str(SKILL/'scripts/build_repo_flowmap.py'),'--root',str(root),'--model','model/architecture-model.json','--view',vid],check=True)
+        # HANDOFF print contract: link a print SVG only for views whose real browser
+        # extraction succeeded (receipt in qa/). Failed views keep printAssetPath null
+        # (no print image) instead of failing the whole demo generation.
+        linked=[]
+        export_cmd=[sys.executable,str(SKILL/'scripts/export_repo_flowmap_svg.py')]
+        chromium=chromium_executable()
+        if chromium:export_cmd+=['--chromium',chromium]
+        for vid in vids:
+            svg=f'diagrams/{vid}.flowmap.svg';receipt=f'qa/repo-flowmap-svg-{vid}.json'
+            export=subprocess.run(export_cmd+['--root',str(root),'--html',f'diagrams/{vid}.flowmap.html','--output',svg,'--receipt',receipt],capture_output=True,text=True)
+            if export.returncode==0:linked.append(vid);continue
+            # A failed export must not leave a non-success receipt in qa/: RCP-004
+            # reads it as an error and blocks the strict report build. The failure
+            # detail goes to stderr; the view simply keeps printAssetPath null.
+            for stale in (root/receipt,root/svg):stale.unlink(missing_ok=True)
+            detail=next((line for line in export.stderr.splitlines() if line.strip() and not set(line.strip())<=set('\u2551\u255a\u255e\u255d\u2557\u2554\u2550 ')),'no detail')
+            print(f'[demo] print asset not linked for {vid}: export exit {export.returncode} ({detail})',file=sys.stderr)
+        for diagram in report['diagrams']:
+            if diagram['viewId'] in linked:diagram['printAssetPath']=f"diagrams/{diagram['viewId']}.flowmap.svg"
+        write(root/'html/report-data.json',report)
         subprocess.run([sys.executable,str(SKILL/'scripts/build_html_report.py'),'--root',str(root),'--data','html/report-data.json','--template',str(SKILL/'assets/html-report-template.html'),'--output',str(root/'index.html')],check=True)
 
 if __name__=='__main__':

@@ -175,6 +175,12 @@
       "detail": "2"
     },
     {
+      "id": "HTML-DATA-025",
+      "label": "Experiment targets resolve to canonical model IDs",
+      "result": "PASS",
+      "detail": "2"
+    },
+    {
       "id": "HTML-DATA-018",
       "label": "HTML factual sections map to evidence claims",
       "result": "PASS",

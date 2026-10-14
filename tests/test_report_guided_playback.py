@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 import xml.etree.ElementTree as ET
 
@@ -72,6 +73,16 @@ def marker_facts(page):
     }''')
 
 
+def wait_mark(page, index: str, timeout: int = 12000):
+    """해당 단계의 진행 표시가 실제로 그려졌음을 긍정형으로 기다린다.
+    postMessage 후 고정 sleep을 두면 부하에서 표시 반영 전에 읽게 되므로,
+    목표 상태(그 단계 표시 1개) 자체를 기다린다."""
+    page.wait_for_function(
+        "(i)=>document.querySelectorAll('g.c4-flow-mark').length===1"
+        "&&document.querySelector('g.c4-flow-mark').getAttribute('data-step-index')===i",
+        arg=index, timeout=timeout)
+
+
 def edge_point(page, index: int, fraction: float):
     return page.evaluate('''([index, fraction]) => {
       const edge = document.querySelector('path.c4-edge[data-i="' + index + '"]');
@@ -124,7 +135,7 @@ class A4FlowMarkBrowserTests(unittest.TestCase):
     def test_mark_follows_active_edge_forward_and_export_keeps_plain_edges(self):
         page, errors = self.open(self.classes_html)
         page.evaluate("window.postMessage({type:'repo-flowmap-step',viewId:'ordering-classes',stepIndex:1},'*')")
-        page.wait_for_timeout(150)
+        wait_mark(page, '1')
         facts = marker_facts(page)
         self.assertEqual(facts['count'], 1, 'exactly one mark, on the active edge')
         self.assertEqual(facts['index'], '1')
@@ -133,8 +144,12 @@ class A4FlowMarkBrowserTests(unittest.TestCase):
         self.assertEqual(facts['animation'], 'c4-flow-dash')
         self.assertEqual(facts['iteration'], 'infinite')
         # Forward direction: dashoffset keeps decreasing (toward the destination).
+        # 고정 시간이 아니라 '첫 읽음보다 감소'라는 목표 상태 자체를 기다린다(부하·프레임
+        # 드로퀠에 시간이 더 걸려도 감소가 확인된 뒤에만 읽는다).
         first = float(page.evaluate("getComputedStyle(document.querySelector('g.c4-flow-mark .c4-flow-dash')).strokeDashoffset")[:-2])
-        page.wait_for_timeout(300)
+        page.wait_for_function(
+            "(o)=>{const d=document.querySelector('g.c4-flow-mark .c4-flow-dash');"
+            "return !!d&&parseFloat(getComputedStyle(d).strokeDashoffset)<o;}", arg=first, timeout=12000)
         second = float(page.evaluate("getComputedStyle(document.querySelector('g.c4-flow-mark .c4-flow-dash')).strokeDashoffset")[:-2])
         self.assertLess(second, first, 'marker must travel from source toward destination')
         # Static direction chevron sits on the same path at the representative frame.
@@ -143,10 +158,12 @@ class A4FlowMarkBrowserTests(unittest.TestCase):
         self.assertIn(f"rotate({expected['angle']})", facts['head'])
         # Switching steps moves the mark; clearing the step removes it.
         page.evaluate("window.postMessage({type:'repo-flowmap-step',viewId:'ordering-classes',stepIndex:3},'*')")
-        page.wait_for_timeout(150)
+        wait_mark(page, '3')
         self.assertEqual(marker_facts(page)['index'], '3')
         page.evaluate("window.postMessage({type:'repo-flowmap-step',viewId:'ordering-classes',stepIndex:-1},'*')")
-        page.wait_for_timeout(150)
+        # 목표 상태는 '표시가 사라짐' 자체다 — 제거 반영을 긍정형으로 기다린다.
+        page.wait_for_function(
+            "()=>document.querySelectorAll('g.c4-flow-mark').length===0", timeout=12000)
         self.assertEqual(page.evaluate("document.querySelectorAll('g.c4-flow-mark').length"), 0)
         # Export: no mark elements, all original edges kept, UML dasharrays preserved.
         root = ET.fromstring(page.evaluate('window.repoFlowmap.exportSvg()'))
@@ -163,7 +180,7 @@ class A4FlowMarkBrowserTests(unittest.TestCase):
     def test_reduced_motion_freezes_mark_into_static_direction(self):
         page, errors = self.open(self.classes_html, reduced_motion=True)
         page.evaluate("window.postMessage({type:'repo-flowmap-step',viewId:'ordering-classes',stepIndex:2},'*')")
-        page.wait_for_timeout(150)
+        wait_mark(page, '2')
         frozen = page.evaluate('''() => {
           const dash = document.querySelector('g.c4-flow-mark .c4-flow-dash');
           const computed = getComputedStyle(dash);
@@ -184,7 +201,7 @@ class A4FlowMarkBrowserTests(unittest.TestCase):
         colors = {}
         for index, expected_state in ((0, 'failover'), (1, 'blocked'), (2, 'cond'), (3, None)):
             page.evaluate(f"window.postMessage({{type:'repo-flowmap-step',viewId:'ordering-classes',stepIndex:{index}}},'*')")
-            page.wait_for_timeout(120)
+            wait_mark(page, str(index))
             facts = marker_facts(page)
             self.assertEqual(facts['state'], expected_state, f'step {index}')
             colors[index] = page.evaluate("getComputedStyle(document.querySelector('g.c4-flow-mark .c4-flow-dash')).stroke")
@@ -193,7 +210,7 @@ class A4FlowMarkBrowserTests(unittest.TestCase):
         # blocked: same accent as failover (stop color) and the 62% cut metaphor.
         self.assertEqual(colors[1], colors[0])
         page.evaluate("window.postMessage({type:'repo-flowmap-step',viewId:'ordering-classes',stepIndex:1},'*')")
-        page.wait_for_timeout(120)
+        wait_mark(page, '1')
         self.assertEqual(marker_facts(page)['animation'], 'c4-flow-dash-blocked')
         expected = edge_point(page, 1, 0.45)
         self.assertIn(f"translate({expected['x']},{expected['y']})", marker_facts(page)['head'])
@@ -208,7 +225,9 @@ class A4FlowMarkBrowserTests(unittest.TestCase):
     def test_sequence_view_has_no_edge_mark(self):
         page, errors = self.open(self.sequence_html)
         page.evaluate("window.postMessage({type:'repo-flowmap-step',viewId:'ordering-sequence',stepIndex:1},'*')")
-        page.wait_for_timeout(150)
+        # 목표 상태: 순서 뷰는 진행 표시 대신 해당 메시지를 강조한다.
+        page.wait_for_function(
+            "()=>document.querySelectorAll('g.c4-message.c4-hot').length===1", timeout=12000)
         self.assertEqual(page.evaluate("document.querySelectorAll('g.c4-flow-mark').length"), 0,
                          'sequence keeps its numbered hot messages; no c4-edge overlay')
         self.assertEqual(page.evaluate("document.querySelectorAll('g.c4-message.c4-hot').length"), 1)
@@ -266,7 +285,11 @@ class ReportGuidedPlaybackTests(unittest.TestCase):
         page.on('pageerror', lambda e: errors.append(str(e)))
         page.goto(self.write_report(decoy).as_uri())
         page.locator('#flows').scroll_into_view_if_needed()
-        page.wait_for_timeout(400)
+        # 정착용 고정 sleep 대신 흐름 패널이 조작 가능한 상태(안내 버튼·알림 영역
+        # 존재)라는 목표 상태를 긍정형으로 기다린다.
+        page.wait_for_function(
+            "()=>!!document.querySelector('#flow-panel-calls .flow-guide-btn')"
+            "&&!!document.querySelector('#flow-panel-calls .flow-step-announce')", timeout=12000)
         return page, errors
 
     def observe_announce(self, page):
@@ -281,6 +304,15 @@ class ReportGuidedPlaybackTests(unittest.TestCase):
         return [frame for frame in page.frames
                 if frame != page.main_frame and frame.evaluate('!!window.repoFlowmap')]
 
+    def wait_renderer_frames(self, page, minimum: int = 1, timeout: int = 12000) -> None:
+        """살아 있는 렌더러 그림(data URI iframe 부팅 완료)을 긍정형으로 기다린다.
+        iframe 문서는 프레임마다 별도로 뜨므로 프레임 목록을 목표 상태로 폴링한다."""
+        deadline = time.monotonic() + timeout / 1000.0
+        while time.monotonic() < deadline:
+            if len(self.renderer_frames(page)) >= minimum:
+                return
+            page.wait_for_timeout(100)
+
     def test_guidance_syncs_steps_figure_and_progress_then_ends(self):
         page, errors = self.load()
         story = page.locator('#flow-panel-calls')
@@ -291,11 +323,15 @@ class ReportGuidedPlaybackTests(unittest.TestCase):
         announce = story.locator('.flow-step-announce')
         self.assertEqual(announce.get_attribute('role'), 'status')
         self.assertEqual(announce.get_attribute('aria-live'), 'polite')
+        # iframe 부팅은 문서 로드 뒤에 완료된다 — 살아 있는 렌더러가 있음을 기다렸다가
+        # 단언한다(곧바로 세면 부하에서 아직 0개일 수 있다).
+        self.wait_renderer_frames(page)
         self.assertGreater(len(self.renderer_frames(page)), 0, 'live renderer figure must be embedded')
         self.observe_announce(page)
         story.get_by_role('button', name='안내 재생').click()
         page.wait_for_function(
-            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes('끝났습니다')",
+            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes('끝났습니다')"
+            "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='false'",
             timeout=15000)
         self.assertEqual(page.evaluate('window.__announce'), [
             '안내 재생을 시작합니다. 1/2단계 · Send',
@@ -319,9 +355,25 @@ class ReportGuidedPlaybackTests(unittest.TestCase):
         self.observe_announce(page)
         story.get_by_role('button', name='안내 재생').click()
         page.wait_for_function(
-            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes('2/2단계')",
+            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes('2/2단계')"
+            "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='true'",
             timeout=10000)
-        story.locator('.flow-step-selector').first.click()
+        # 수동 선택은 같은 단계를 다시 고르는 것도 무해하므로(멱등), 클릭이 닿지
+        # 않은 경우만 재클릭 1회로 흡수한다(LESSONS.md). 목표 상태는 '1단계 알림+
+        # 안내 정지(aria-pressed=false)'.
+        selector = story.locator('.flow-step-selector').first
+        selector.click()
+        try:
+            page.wait_for_function(
+                "()=>document.querySelector('#flow-panel-calls .flow-step-announce').textContent==='1/2단계 · Send'"
+                "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='false'",
+                timeout=8000)
+        except Exception:
+            selector.click()
+            page.wait_for_function(
+                "()=>document.querySelector('#flow-panel-calls .flow-step-announce').textContent==='1/2단계 · Send'"
+                "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='false'",
+                timeout=12000)
         self.assertEqual(page.evaluate('window.__announce')[-1], '1/2단계 · Send')
         self.assertEqual(story.get_by_role('button', name='안내 재생').get_attribute('aria-pressed'), 'false')
         announce_now = page.evaluate("document.querySelector('#flow-panel-calls .flow-step-announce').textContent")
@@ -337,26 +389,41 @@ class ReportGuidedPlaybackTests(unittest.TestCase):
         story = page.locator('#flow-panel-calls')
         self.observe_announce(page)
         story.get_by_role('button', name='안내 재생').click()
-        page.wait_for_function("document.querySelector('#flow-panel-calls .flow-step-announce').textContent.startsWith('안내 재생을 시작합니다')", timeout=10000)
+        page.wait_for_function(
+            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent.startsWith('안내 재생을 시작합니다')"
+            "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='true'", timeout=10000)
         # 부하가 높은 전체 스위트 실행에서 클릭이 닿지 않는 경우(LESSONS.md) — 긍정형
-        # 조건 + 재클릭 한 번으로만 흡수한다. 재클릭은 stopGuides만 다시 부르므로 무해하다.
-        def click_and_wait_stop(locator, expect_text: str) -> None:
-            locator.click()
-            try:
-                page.wait_for_function(
-                    "(t) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(t)",
-                    arg=expect_text, timeout=8000)
-            except Exception as exc:
-                locator.click()
-                page.wait_for_function(
-                    "(t) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(t)",
-                    arg=expect_text, timeout=15000)
+        # 조건(정지 안내 + aria-pressed=false) + 재클릭 한 번으로만 흡수한다.
+        # 재클릭은 stopGuides만 다시 부르므로 무해하다.
+        stopped_js = (
+            "(t) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(t)"
+            "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='false'")
 
-        click_and_wait_stop(page.locator('#diagram-tabs [role="tab"]').nth(1), '다른 탭을 선택해')
+        def click_and_wait_stop(locator, expect_text: str, via_keyboard: bool = False) -> None:
+            # 탭 전환은 마우스 클릭의 자동 스크롤이 흐름 패널을 화면 밖으로 밀어내는
+            # 순간 제품의 IO '화면 밖' 정지가 먼저 발생해 '다른 탭' 사유 안내가 영영
+            # 오지 않는다(실측 확인·'tab' 사유는 2500ms user 보정 대상 아님). focus+Enter는
+            # 스크롤 없이 같은 click 이벤트 경로(문서 수준 탭 정지 청취자)를 건드린다.
+            def activate() -> None:
+                if via_keyboard:
+                    locator.focus()
+                    page.keyboard.press('Enter')
+                else:
+                    locator.click()
+            activate()
+            try:
+                page.wait_for_function(stopped_js, arg=expect_text, timeout=8000)
+            except Exception as exc:
+                activate()
+                page.wait_for_function(stopped_js, arg=expect_text, timeout=12000)
+
+        click_and_wait_stop(page.locator('#diagram-tabs [role="tab"]').nth(1), '다른 탭을 선택해', via_keyboard=True)
         # Restart on the first diagram tab, then zoom that same view: also a stop.
         page.locator('#diagram-tabs [role="tab"]').nth(0).click()
         story.get_by_role('button', name='안내 재생').click()
-        page.wait_for_function("document.querySelector('#flow-panel-calls .flow-step-announce').textContent.startsWith('안내 재생을 시작합니다')", timeout=10000)
+        page.wait_for_function(
+            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent.startsWith('안내 재생을 시작합니다')"
+            "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='true'", timeout=10000)
         click_and_wait_stop(page.locator('#diagram-panels [data-zoom="in"]').first, '사용자 조작으로')
         self.assertEqual(story.get_by_role('button', name='안내 재생').get_attribute('aria-pressed'), 'false')
         self.assertEqual(errors, [])

@@ -1,5 +1,15 @@
 # Lessons
 
+## Tab-stop guidance tests must not let auto-scroll push the flow panel offscreen
+- Date: 2026-10-14
+- Task: Timing-flake hardening of guided-playback/tab-switch browser tests (2차 작업 wave 1).
+- What failed: `test_tab_switch_and_zoom_controls_stop_guidance`, `test_guide_next_view_link_navigates_and_stops_guidance` (and the chronology tab test) timed out waiting for the '다른 탭을 선택해' stop announce under load, even after an idempotent re-click.
+- Root cause (measured): Playwright's actionability auto-scroll reveals the tab/link by scrolling, which pushes the flow panel fully out of the viewport (panel top 1356 > vh 1000). The report's IntersectionObserver then fires `stopGuide('offscreen')` BEFORE the click dispatch, and the 'tab' reason is NOT covered by the 2500ms offscreen→'user' announce correction (template only corrects reason==='user'). The expected announce never arrives — not a lost click.
+- Category: Report template / guided playback state / test interaction.
+- Fix (test-side): activate the tab/next-view control with `locator.focus()` + `page.keyboard.press('Enter')` — a trusted click event on the same document-level stop listener, with no scroll, so no intersection change races the stop.
+- Prevention rule: When a test clicks a control outside the guided panel while guidance is playing, the click's auto-scroll can legitimately stop the guide as 'offscreen' first. Either keep both regions intersecting the viewport or activate without scrolling (focus+Enter); never assume the click is lost and re-click harder.
+- Reuse trigger: Any guided/auto-playing UI with IntersectionObserver stops plus click targets far from the announcement panel.
+
 ## Guide stop reason attribution must not race with modal occlusion
 - Date: 2026-10-14
 - Task: Full-suite regression of W3 guided-playback/chronology tests after W4 waves.
@@ -179,3 +189,13 @@
 - Fix: Observe through message EVENTS ('msg:<type>' records fire in every frame, including sandboxed embeds) instead of wrapping the child's postMessage; wrap exportSvg only after `window.repoFlowmap` exists via a `window.__timelineWrapExport()` helper evaluated after ready. Also observe `document` (not `documentElement`, which is null when init scripts run) and dedupe mark mutations per observer batch (subtree scans see current state).
 - Prevention rule: In sandboxed iframe test instrumentation, never rely on pre-installed window property accessors or on wrapping the child's postMessage from outside; use message-event listeners and post-hoc wrapping, and assert the hook installed (e.g. wrap helper returns true).
 - Reuse trigger: add_init_script instrumentation, srcdoc/sandbox embeds, chronological event logs across frames.
+
+## Mark add/remove observation order is not a stable contract inside one step switch
+- Date: 2026-10-14
+- Task: test_step_selection_mark_lifecycle_is_chronological flaked ~10% (1 in 15) during full-suite and standalone runs (2차 작업 wave1 잔여 추적).
+- What failed: The test asserted mark-remove('1') strictly precedes mark-add('3') within one step switch, and used msg-receive records as grouping boundaries. Observed flips: add('3') recorded before remove('1') (0.1ms apart, separate observer batches), and step-3 mark mutations recorded before the msg receive record while post-record stayed strictly first.
+- Root cause: setStep→renderMap→c4UpdateFlowMark is fully synchronous (innerHTML swap removes the old mark subtree, then the new mark appends), so the DOM mutation order is fixed — but MutationObserver may deliver the two mutations in separate microtask batches, and the postMessage receive task ('msg:' push) races with observer callbacks. Observation order across these boundaries is nondeterministic; final-state invariants (one mark, old mark gone, directives ordered by post) always held.
+- Category: Browser test timing / observation contract.
+- Fix: Group mark records by post-directive boundaries ('post:repo-flowmap-step' — always first), assert per-group contents with pair order ignored inside a single step switch, keep strict order across directives.
+- Prevention rule: Never assert relative order of two DOM mutations that originate in one synchronous task when read through MutationObserver, and never use message-receive records as ordering boundaries — use the send/post instant that causally precedes them.
+- Reuse trigger: Chronological lifecycle assertions built on MutationObserver records or postMessage round-trips.

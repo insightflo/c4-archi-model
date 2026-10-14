@@ -1,0 +1,433 @@
+{
+  "$schema": "../references/evidence-ledger.schema.json",
+  "tool": "convert_mermaid_input.py",
+  "contract": {
+    "textOnlyParsing": true,
+    "rendersOrExecutesMermaid": false,
+    "claimsAreModelTruth": false,
+    "confidenceCeiling": "DOC_ONLY(explicit) / UNVERIFIED(inferred) — VERIFIED 불가"
+  },
+  "input": {
+    "path": "examples/mermaid-import/legacy-order-flow.mmd",
+    "contentHash": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840",
+    "byteLength": 392
+  },
+  "parsed": {
+    "diagramType": "flowchart",
+    "rawLineCount": 14,
+    "comments": [
+      {
+        "line": 1,
+        "text": "%% 기존 시스템에서 넘겨받은 주문 흐름 다이어그램 (가상 예제)"
+      }
+    ],
+    "flowchart": {
+      "direction": "TD",
+      "directionDeclared": "TD",
+      "nodes": [
+        {
+          "id": "customer",
+          "label": "고객",
+          "shape": "stadium",
+          "line": 3,
+          "subgraphs": []
+        },
+        {
+          "id": "storefront",
+          "label": "웹 스토어프론트",
+          "shape": "square",
+          "line": 4,
+          "subgraphs": []
+        },
+        {
+          "id": "orderApi",
+          "label": "주문 API",
+          "shape": "round",
+          "line": 5,
+          "subgraphs": [
+            "internal"
+          ]
+        },
+        {
+          "id": "orderDb",
+          "label": "주문 DB",
+          "shape": "cylinder",
+          "line": 6,
+          "subgraphs": [
+            "internal"
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "sourceId": "customer",
+          "destinationId": "storefront",
+          "label": null,
+          "arrow": {
+            "kind": "solid-arrow",
+            "token": "-->"
+          },
+          "line": 7,
+          "subgraphs": []
+        },
+        {
+          "sourceId": "storefront",
+          "destinationId": "orderApi",
+          "label": "주문 생성",
+          "arrow": {
+            "kind": "solid-arrow",
+            "token": "-->|주문 생성|"
+          },
+          "line": 8,
+          "subgraphs": []
+        },
+        {
+          "sourceId": "orderApi",
+          "destinationId": "orderDb",
+          "label": null,
+          "arrow": {
+            "kind": "dashed-arrow",
+            "token": "-.->"
+          },
+          "line": 9,
+          "subgraphs": []
+        }
+      ],
+      "subgraphs": [
+        {
+          "id": "internal",
+          "title": "내부 시스템",
+          "line": 10,
+          "endLine": 13,
+          "direction": null,
+          "memberNodeIds": [
+            "orderApi",
+            "orderDb"
+          ]
+        }
+      ]
+    },
+    "sequence": null
+  },
+  "candidates": {
+    "elements": [
+      {
+        "proposedId": "customer",
+        "name": "고객",
+        "origin": "flowchart-node",
+        "claimId": "CL-DIAG-001"
+      },
+      {
+        "proposedId": "storefront",
+        "name": "웹 스토어프론트",
+        "origin": "flowchart-node",
+        "claimId": "CL-DIAG-002"
+      },
+      {
+        "proposedId": "orderApi",
+        "name": "주문 API",
+        "origin": "flowchart-node",
+        "claimId": "CL-DIAG-003"
+      },
+      {
+        "proposedId": "orderDb",
+        "name": "주문 DB",
+        "origin": "flowchart-node",
+        "claimId": "CL-DIAG-004"
+      }
+    ],
+    "relationships": [
+      {
+        "proposedId": "customer-to-storefront",
+        "sourceProposedId": "customer",
+        "destinationProposedId": "storefront",
+        "label": null,
+        "arrow": {
+          "kind": "solid-arrow",
+          "token": "-->"
+        },
+        "origin": "flowchart-edge",
+        "claimId": "CL-DIAG-005"
+      },
+      {
+        "proposedId": "storefront-to-orderApi",
+        "sourceProposedId": "storefront",
+        "destinationProposedId": "orderApi",
+        "label": "주문 생성",
+        "arrow": {
+          "kind": "solid-arrow",
+          "token": "-->|주문 생성|"
+        },
+        "origin": "flowchart-edge",
+        "claimId": "CL-DIAG-006"
+      },
+      {
+        "proposedId": "orderApi-to-orderDb",
+        "sourceProposedId": "orderApi",
+        "destinationProposedId": "orderDb",
+        "label": null,
+        "arrow": {
+          "kind": "dashed-arrow",
+          "token": "-.->"
+        },
+        "origin": "flowchart-edge",
+        "claimId": "CL-DIAG-007"
+      }
+    ]
+  },
+  "ledgerFragment": {
+    "source": {
+      "id": "S-DIAG-4970fe89",
+      "name": "examples/mermaid-import/legacy-order-flow.mmd",
+      "kind": "existing-diagram",
+      "location": "examples/mermaid-import/legacy-order-flow.mmd",
+      "version": null,
+      "readScope": "파일 전체 — Mermaid 텍스트 파싱(렌더러·JS 비실행)",
+      "limitations": [
+        "Mermaid 하위집합(flowchart/graph, sequenceDiagram)만 해석한다",
+        "스타일·인터랙션 지시문은 의미 없이 무시된다(warnings 참조)",
+        "코드 근거 검증 전이므로 이 원장 조각의 주장은 VERIFIED가 될 수 없다"
+      ],
+      "immutableRef": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840",
+      "contentHash": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840",
+      "capturedAt": "2026-10-14T00:00:00Z"
+    },
+    "claims": [
+      {
+        "id": "CL-DIAG-001",
+        "statement": "기존 그림에 노드 'customer'(라벨 '고객'), 모양 표기: stadium가 그려져 있다.",
+        "targetIds": [
+          "customer"
+        ],
+        "derivation": "explicit",
+        "confidence": "DOC_ONLY",
+        "supports": [
+          {
+            "sourceId": "S-DIAG-4970fe89",
+            "locator": "line 3",
+            "excerpt": "  customer([고객])",
+            "evidenceClass": "diagram",
+            "capturedAt": "2026-10-14T00:00:00Z",
+            "immutableRef": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840",
+            "contentHash": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840"
+          }
+        ],
+        "contradictions": [],
+        "usedBy": [],
+        "notes": [
+          "그림에 명시된 항목 — 코드 근거 검증 전이므로 VERIFIED가 될 수 없다",
+          "targetIds는 그림 ID에서 제안한 임시 ID다 — canonical model 확정 시 사람이 다시 연결한다"
+        ]
+      },
+      {
+        "id": "CL-DIAG-002",
+        "statement": "기존 그림에 노드 'storefront'(라벨 '웹 스토어프론트'), 모양 표기: square가 그려져 있다.",
+        "targetIds": [
+          "storefront"
+        ],
+        "derivation": "explicit",
+        "confidence": "DOC_ONLY",
+        "supports": [
+          {
+            "sourceId": "S-DIAG-4970fe89",
+            "locator": "line 4",
+            "excerpt": "  storefront[웹 스토어프론트]",
+            "evidenceClass": "diagram",
+            "capturedAt": "2026-10-14T00:00:00Z",
+            "immutableRef": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840",
+            "contentHash": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840"
+          }
+        ],
+        "contradictions": [],
+        "usedBy": [],
+        "notes": [
+          "그림에 명시된 항목 — 코드 근거 검증 전이므로 VERIFIED가 될 수 없다",
+          "targetIds는 그림 ID에서 제안한 임시 ID다 — canonical model 확정 시 사람이 다시 연결한다"
+        ]
+      },
+      {
+        "id": "CL-DIAG-003",
+        "statement": "기존 그림에 노드 'orderApi'(라벨 '주문 API'), 모양 표기: round가 그려져 있다.",
+        "targetIds": [
+          "orderApi"
+        ],
+        "derivation": "explicit",
+        "confidence": "DOC_ONLY",
+        "supports": [
+          {
+            "sourceId": "S-DIAG-4970fe89",
+            "locator": "line 5",
+            "excerpt": "  orderApi(\"주문 API\")",
+            "evidenceClass": "diagram",
+            "capturedAt": "2026-10-14T00:00:00Z",
+            "immutableRef": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840",
+            "contentHash": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840"
+          }
+        ],
+        "contradictions": [],
+        "usedBy": [],
+        "notes": [
+          "그림에 명시된 항목 — 코드 근거 검증 전이므로 VERIFIED가 될 수 없다",
+          "targetIds는 그림 ID에서 제안한 임시 ID다 — canonical model 확정 시 사람이 다시 연결한다"
+        ]
+      },
+      {
+        "id": "CL-DIAG-004",
+        "statement": "기존 그림에 노드 'orderDb'(라벨 '주문 DB'), 모양 표기: cylinder가 그려져 있다.",
+        "targetIds": [
+          "orderDb"
+        ],
+        "derivation": "explicit",
+        "confidence": "DOC_ONLY",
+        "supports": [
+          {
+            "sourceId": "S-DIAG-4970fe89",
+            "locator": "line 6",
+            "excerpt": "  orderDb[(주문 DB)]",
+            "evidenceClass": "diagram",
+            "capturedAt": "2026-10-14T00:00:00Z",
+            "immutableRef": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840",
+            "contentHash": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840"
+          }
+        ],
+        "contradictions": [],
+        "usedBy": [],
+        "notes": [
+          "그림에 명시된 항목 — 코드 근거 검증 전이므로 VERIFIED가 될 수 없다",
+          "targetIds는 그림 ID에서 제안한 임시 ID다 — canonical model 확정 시 사람이 다시 연결한다"
+        ]
+      },
+      {
+        "id": "CL-DIAG-005",
+        "statement": "기존 그림에서 'customer'에서 'storefront'로 향하는 관계가 실선 화살표(-->)로 표시되어 있다.",
+        "targetIds": [
+          "customer",
+          "storefront",
+          "customer-to-storefront"
+        ],
+        "derivation": "explicit",
+        "confidence": "DOC_ONLY",
+        "supports": [
+          {
+            "sourceId": "S-DIAG-4970fe89",
+            "locator": "line 7",
+            "excerpt": "  customer --> storefront",
+            "evidenceClass": "diagram",
+            "capturedAt": "2026-10-14T00:00:00Z",
+            "immutableRef": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840",
+            "contentHash": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840"
+          }
+        ],
+        "contradictions": [],
+        "usedBy": [],
+        "notes": [
+          "그림에 명시된 항목 — 코드 근거 검증 전이므로 VERIFIED가 될 수 없다",
+          "targetIds는 그림 ID에서 제안한 임시 ID다 — canonical model 확정 시 사람이 다시 연결한다",
+          "화살표 종류는 표기 그대로 읽었다 — 동기·비동기 해석은 사람이 추가 근거로 판단한다"
+        ]
+      },
+      {
+        "id": "CL-DIAG-006",
+        "statement": "기존 그림에서 'storefront'에서 'orderApi'로 향하는 관계가 실선 화살표(-->|주문 생성|)로 표시되어 있다. 라벨 '주문 생성'.",
+        "targetIds": [
+          "storefront",
+          "orderApi",
+          "storefront-to-orderApi"
+        ],
+        "derivation": "explicit",
+        "confidence": "DOC_ONLY",
+        "supports": [
+          {
+            "sourceId": "S-DIAG-4970fe89",
+            "locator": "line 8",
+            "excerpt": "  storefront -->|주문 생성| orderApi",
+            "evidenceClass": "diagram",
+            "capturedAt": "2026-10-14T00:00:00Z",
+            "immutableRef": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840",
+            "contentHash": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840"
+          }
+        ],
+        "contradictions": [],
+        "usedBy": [],
+        "notes": [
+          "그림에 명시된 항목 — 코드 근거 검증 전이므로 VERIFIED가 될 수 없다",
+          "targetIds는 그림 ID에서 제안한 임시 ID다 — canonical model 확정 시 사람이 다시 연결한다",
+          "화살표 종류는 표기 그대로 읽었다 — 동기·비동기 해석은 사람이 추가 근거로 판단한다"
+        ]
+      },
+      {
+        "id": "CL-DIAG-007",
+        "statement": "기존 그림에서 'orderApi'에서 'orderDb'로 향하는 관계가 점선 화살표(-.->)로 표시되어 있다.",
+        "targetIds": [
+          "orderApi",
+          "orderDb",
+          "orderApi-to-orderDb"
+        ],
+        "derivation": "explicit",
+        "confidence": "DOC_ONLY",
+        "supports": [
+          {
+            "sourceId": "S-DIAG-4970fe89",
+            "locator": "line 9",
+            "excerpt": "  orderApi -.-> orderDb",
+            "evidenceClass": "diagram",
+            "capturedAt": "2026-10-14T00:00:00Z",
+            "immutableRef": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840",
+            "contentHash": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840"
+          }
+        ],
+        "contradictions": [],
+        "usedBy": [],
+        "notes": [
+          "그림에 명시된 항목 — 코드 근거 검증 전이므로 VERIFIED가 될 수 없다",
+          "targetIds는 그림 ID에서 제안한 임시 ID다 — canonical model 확정 시 사람이 다시 연결한다",
+          "화살표 종류는 표기 그대로 읽었다 — 동기·비동기 해석은 사람이 추가 근거로 판단한다"
+        ]
+      },
+      {
+        "id": "CL-DIAG-008",
+        "statement": "그림의 배치 방향 표기('TD')는 레이아웃 해석일 뿐 요소 간 구조·의존 방향을 확정하지 않는다.",
+        "targetIds": [
+          "customer",
+          "orderApi",
+          "orderDb",
+          "storefront"
+        ],
+        "derivation": "inferred",
+        "confidence": "UNVERIFIED",
+        "supports": [
+          {
+            "sourceId": "S-DIAG-4970fe89",
+            "locator": "line 1",
+            "excerpt": "%% 기존 시스템에서 넘겨받은 주문 흐름 다이어그램 (가상 예제)",
+            "evidenceClass": "diagram",
+            "capturedAt": "2026-10-14T00:00:00Z",
+            "immutableRef": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840",
+            "contentHash": "sha256:4970fe89a7bddc902d9baee7b6be2c6c4bdc1c266cfded74e9ab69ebc958b840"
+          }
+        ],
+        "contradictions": [],
+        "usedBy": [],
+        "notes": [
+          "방향 해석 주장 — 그림 명시 항목이 아니므로 inferred/UNVERIFIED로 구분한다",
+          "targetIds는 그림 ID에서 제안한 임시 ID다 — canonical model 확정 시 사람이 다시 연결한다"
+        ]
+      }
+    ]
+  },
+  "warnings": [
+    {
+      "line": 14,
+      "text": "  style orderApi fill:#eee",
+      "reason": "스타일·인터랙션 지시문은 의미 정보가 없어 무시된다"
+    }
+  ],
+  "stats": {
+    "nodes": 4,
+    "edges": 3,
+    "participants": 0,
+    "messages": 0,
+    "claims": 8,
+    "warnings": 1
+  }
+}

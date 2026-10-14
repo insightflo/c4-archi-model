@@ -23,6 +23,7 @@
 - [ ] mutable technical source에는 immutableRef 또는 contentHash가 있다. 없으면 경고다.
 - [ ] 모든 support·contradiction source ID가 등록되어 있다.
 - [ ] VERIFIED Claim에는 support가 있다.
+- [ ] 그림(existing-diagram) 근거만 있는 Claim은 VERIFIED가 아니다(EVD-019).
 - [ ] CONFLICT Claim에는 contradiction이 있다.
 - [ ] 모든 targetId와 usedBy가 실제 canonical ID를 가리킨다.
 - [ ] canonical model이 참조하는 모든 Claim이 Ledger에 있다.

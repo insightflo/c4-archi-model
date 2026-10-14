@@ -339,6 +339,16 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
             for item in hydrated.get("analysis", {}).get(key, [])
         ]
 
+    # 설명용 실험(A2): 실험은 가정 기반 서술이지 검증 사실이 아니므로 claimIds를
+    # 만들지 않는다. 화면에서 읽을 대상 이름만 canonical model에서 채운다(비유
+    # 대응과 같은 계약 — 검증기 HTML-DATA-025가 modelId·kind를 확인한다).
+    hydrated["experiments"] = [
+        {**experiment,
+         "targets": [dict(target, name=canonical_name(target["modelId"], elements, relationships, views))
+                     for target in experiment.get("targets", [])]}
+        for experiment in hydrated.get("experiments", [])
+    ]
+
     selected_issue_ids = hydrated.get("issueRefs") or [item["id"] for item in coverage.get("unknownRelevant", [])]
     hydrated["issues"] = []
     for issue_id in selected_issue_ids:

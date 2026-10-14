@@ -332,7 +332,9 @@ def main() -> int:
                     record(f'{vid}/{width}/runtime-errors',not errors,errors)
                 except Exception as exc:record(f'{vid}/{width}/exception',False,str(exc))
                 page.close()
-        # Report uses its actual generated srcdoc bytes; sandbox stays allow-scripts.
+        # Report uses its actual generated srcdoc bytes. The interactive iframe keeps
+        # the template contract sandbox="allow-scripts allow-downloads": downloads stay
+        # allowed for the native SVG download button; same-origin/top navigation stays blocked.
         for width in (1440,360):
             page=context.new_page();page.set_viewport_size({'width':width,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
             try:
@@ -342,7 +344,7 @@ def main() -> int:
                     handle=page.locator('#diagram-panels iframe').nth(i);handle.scroll_into_view_if_needed()
                     frame=handle.element_handle().content_frame();frame.wait_for_function('window.repoFlowmap && window.repoFlowmap.ready()',timeout=15000);frame.evaluate('document.fonts.ready')
                     data=frame.evaluate('({state:repoFlowmap.state(),scroll:document.documentElement.scrollWidth,width:innerWidth})')
-                    record(f'report/{width}/{vid}/iframe',data['state']['viewId']==vid and data['scroll']<=data['width']+1 and handle.get_attribute('sandbox')=='allow-scripts',data)
+                    record(f'report/{width}/{vid}/iframe',data['state']['viewId']==vid and data['scroll']<=data['width']+1 and handle.get_attribute('sandbox')=='allow-scripts allow-downloads',data)
                     card=handle.locator('xpath=ancestor::*[contains(concat(" ",normalize-space(@class)," ")," diagram-card ")][1]')
                     before=frame.evaluate('repoFlowmap.state().camera.k');w=handle.bounding_box()['width']
                     card.locator('[data-zoom=in]').click();page.wait_for_timeout(400)
@@ -358,7 +360,11 @@ def main() -> int:
                 page.locator('#dialog-close').click()
                 page.emulate_media(media='print');page.wait_for_timeout(200)
                 imgs=page.locator('.diagram-print-img').evaluate_all('(xs)=>xs.map(e=>({width:e.naturalWidth,height:e.naturalHeight,display:getComputedStyle(e).display}))')
-                record(f'report/{width}/print-SVG',len(imgs)==len(diagrams) and all(e['width']>0 and e['height']>0 and e['display']!='none' for e in imgs),imgs)
+                # Print images follow the printAssetPath contract: a diagram gets one
+                # only when a real export receipt linked printDataUri. The visible
+                # print-image count must equal the linked diagrams (not every diagram).
+                expected=page.evaluate('JSON.parse(document.getElementById("report-data").textContent).diagrams.filter(d=>d.printDataUri).length')
+                record(f'report/{width}/print-SVG',len(imgs)==expected and all(e['width']>0 and e['height']>0 and e['display']!='none' for e in imgs),{'expected':expected,'imgs':imgs})
                 record(f'report/{width}/runtime-errors',not errors,errors)
             except Exception as exc:record(f'report/{width}/exception',False,str(exc))
             page.close()

@@ -13,6 +13,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from typing import Any
 
@@ -145,7 +146,18 @@ class CompleteVisualBrowserTests(unittest.TestCase):
         widget.get_by_role("button", name="선택 부분", exact=True).click()
         self.assertNotEqual(frame.locator("svg.snapshot").get_attribute("viewBox"), "0 0 900 600")
         self.page.set_viewport_size({"width": 360, "height": 800})
-        self.page.wait_for_timeout(100)
+        # 리사이즈 반영(프레임 문서 폭이 좁아짐) + 읽기 배율 재계산(선택 메시지가 뷰포트보다
+        # 넓게 유지됨)을 목표 상태로 기다린다 — 고정 sleep은 부하에서 재계산 전에 읽게 한다.
+        # 이 프레임은 nonce CSP 문서라 wait_for_function의 페이지 내부 eval이 간헐적으로
+        # 막히므로, 같은 목표 상태를 파이썬 쪽에서 frame.evaluate 폴링으로 기다린다.
+        resize_goal = (
+            "(() => document.documentElement.clientWidth <= 360"
+            " && document.querySelector('svg.snapshot').getBoundingClientRect().width > 360)()")
+        deadline = time.monotonic() + 12.0
+        while time.monotonic() < deadline:
+            if frame.evaluate(resize_goal):
+                break
+            self.page.wait_for_timeout(100)
         self.assertGreater(frame.locator("svg.snapshot").bounding_box()["width"], 360,
                            "resizing must recompute reading scale, not shrink the selected message")
         self.assertEqual(self.errors, [])
@@ -203,6 +215,11 @@ class CompleteVisualBrowserTests(unittest.TestCase):
         frame.wait_for_selector('[data-focus-element="sender"]')
         self.page.set_viewport_size({"width": 360, "height": 800})
         rows.nth(1).get_by_role("button", name="Receiver", exact=True).click()
+        # 선택 클릭은 즉시 스크롤·갱신되지만 부하에서 읽기가 앞설 수 있으므로, 목표
+        # 상태(그림이 화면 안으로 돌아옴)를 긍정형으로 기다린 뒤 위치를 읽는다.
+        self.page.wait_for_function(
+            "()=>{const r=document.querySelector('#group-panel-roles .responsibility-diagram')"
+            ".getBoundingClientRect();return r.bottom>100;}", timeout=12000)
         diagram_box = panel.locator('.responsibility-diagram').bounding_box()
         self.assertGreater(diagram_box['y'] + diagram_box['height'], 100,
                            "selecting a mobile responsibility must bring its offscreen diagram back")
@@ -460,7 +477,12 @@ class ReportChronologyTests(unittest.TestCase):
         self.Timeline.install(page)
         page.goto(self.report_path(steps, name).as_uri())
         page.locator("#flows").scroll_into_view_if_needed()
-        page.wait_for_timeout(400)
+        # 정착용 고정 sleep 대신 흐름 패널이 조작 가능한 상태(안내 버튼·알림 영역
+        # 존재)라는 목표 상태를 긍정형으로 기다린다. 시간순 기록은 문서 시작부터
+        # 녹화되므로 이 대기 전 이벤트도 놓치지 않는다.
+        page.wait_for_function(
+            "()=>!!document.querySelector('#flow-panel-calls .flow-guide-btn')"
+            "&&!!document.querySelector('#flow-panel-calls .flow-step-announce')", timeout=12000)
         self.addCleanup(page.close)
         return page, timeline, errors
 
@@ -469,11 +491,17 @@ class ReportChronologyTests(unittest.TestCase):
         return [frame for frame in page.frames
                 if frame != page.main_frame and frame.evaluate("!!window.repoFlowmap")]
 
-    def start_guide(self, page, until: str, timeout: int = 15000) -> None:
+    def start_guide(self, page, until: str, timeout: int = 15000, pressed: str | None = None) -> None:
+        """안내 시작 클릭 → 목표 상태 대기. pressed를 주면 안내 버튼의 aria-pressed까지
+        목표 상태에 포함한다(시작='true', 종료='false'). 안내 버튼은 토글이라 재클릭은
+        하지 않는다 — 클릭은 Playwright가 조작 가능을 보장하고, 목표 상태 predicate가
+        도달을 판별한다."""
         page.locator("#flow-panel-calls").get_by_role("button", name="안내 재생").click()
         page.wait_for_function(
-            "(text) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(text)",
-            arg=until, timeout=timeout)
+            "(args) => {const a = document.querySelector('#flow-panel-calls .flow-step-announce');"
+            "const b = document.querySelector('#flow-panel-calls .flow-guide-btn');"
+            "return a.textContent.includes(args[0]) && (args[1] === null || b.getAttribute('aria-pressed') === args[1]);}",
+            arg=[until, pressed], timeout=timeout)
 
     def announce_now(self, page) -> str:
         return page.evaluate("document.querySelector('#flow-panel-calls .flow-step-announce').textContent")
@@ -481,11 +509,20 @@ class ReportChronologyTests(unittest.TestCase):
     def test_mid_playback_manual_intervention_is_recorded_in_order(self) -> None:
         page, timeline, errors = self.open_report(3, "chrono-intervention.html")
         story = page.locator("#flow-panel-calls")
-        self.start_guide(page, "2/3단계")
-        story.locator(".flow-step-selector").nth(0).click()
-        page.wait_for_function(
-            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent === '1/3단계 · Send'",
-            timeout=12000)
+        self.start_guide(page, "2/3단계", pressed='true')
+        # 수동 선택은 같은 단계를 다시 고르는 것도 무해하므로(멱등), 클릭이 닿지 않은
+        # 경우만 재클릭 1회로 흡수한다(LESSONS.md).
+        selector = story.locator(".flow-step-selector").nth(0)
+        selector.click()
+        try:
+            page.wait_for_function(
+                "document.querySelector('#flow-panel-calls .flow-step-announce').textContent === '1/3단계 · Send'",
+                timeout=8000)
+        except Exception:
+            selector.click()
+            page.wait_for_function(
+                "document.querySelector('#flow-panel-calls .flow-step-announce').textContent === '1/3단계 · Send'",
+                timeout=12000)
         timeline.collect(page, "intervened")
         # 안내 진행(1→2) → 개입 클릭 → 안내 정지 → 선택 단계 반영 순서가 한 기록에 남는다.
         start_click = next(c for c in timeline.clicks() if "flow-guide-btn" in c["control"])
@@ -518,7 +555,9 @@ class ReportChronologyTests(unittest.TestCase):
         self.assertEqual(len(timeline.announces()), announce_count,
                          "개입 뒤 자동 재개 기록이 남으면 안 됩니다\n" + timeline.render())
         # 같은 화면에서 다시 시작한 뒤 이전/다음 버튼 개입도 같은 순서 규칙을 지킨다.
-        self.start_guide(page, "안내 재생을 시작합니다", timeout=8000)
+        # (다음 단추는 재클릭 시 단계가 두 번 넘어가 멱등이 아니므로 재클릭 없이 목표
+        # 상태 predicate만으로 기다린다.)
+        self.start_guide(page, "안내 재생을 시작합니다", timeout=8000, pressed='true')
         story.locator('[data-step-nav="next"]').click()
         page.wait_for_function(
             "document.querySelector('#flow-panel-calls .flow-step-announce').textContent === '2/3단계 · Send'",
@@ -539,22 +578,28 @@ class ReportChronologyTests(unittest.TestCase):
     def test_tab_switch_and_zoom_stops_are_recorded_in_order(self) -> None:
         page, timeline, errors = self.open_report(3, "chrono-tabs.html")
         story = page.locator("#flow-panel-calls")
-        self.start_guide(page, "안내 재생을 시작합니다")
+        self.start_guide(page, "안내 재생을 시작합니다", pressed='true')
         # 부하가 높은 전체 스위트 실행에서는 드물게 클릭 이벤트가 애플리케이션에
-        # 닿지 않는다(격리 실행 3/3 통과·제품 결함 아님 — LESSONS.md). 긍정형 조건과
-        # 재클릭 한 번으로만 흡수한다. 재클릭은 stopGuides만 다시 부르므로 무해하다.
+        # 닿지 않는다(격리 실행 3/3 통과·제품 결함 아님 — LESSONS.md). 긍정형 조건
+        # (정지 안내 + aria-pressed=false)과 재활성화 한 번으로만 흡수한다.
+        # 탭 전환은 focus+Enter로 활성화한다: 마우스 클릭의 자동 스크롤이 흐름 패널을
+        # 화면 밖으로 밀면 제품의 IO '화면 밖' 정지가 '다른 탭' 사유보다 먼저 발생해
+        # 기다리는 안내가 오지 않는다(실측·'tab' 사유는 2500ms user 보정 대상 아님).
+        # 키보드 click 이벤트도 문서 수준 탭 정지 청취자를 동일하게 건드리고,
+        # 시간순 기록의 click 관측도 그대로 남는다.
         tab = page.locator('#diagram-tabs [role="tab"]').nth(1)
-        tab.click()
-        stopped = "다른 탭을 선택해"
+        stopped_js = (
+            "(t) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(t)"
+            "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='false'")
+        def activate_tab() -> None:
+            tab.focus()
+            page.keyboard.press('Enter')
+        activate_tab()
         try:
-            page.wait_for_function(
-                "(t) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(t)",
-                arg=stopped, timeout=8000)
+            page.wait_for_function(stopped_js, arg="다른 탭을 선택해", timeout=8000)
         except Exception:
-            tab.click()
-            page.wait_for_function(
-                "(t) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(t)",
-                arg=stopped, timeout=15000)
+            activate_tab()
+            page.wait_for_function(stopped_js, arg="다른 탭을 선택해", timeout=12000)
         timeline.collect(page, "tab-switched")
         tab_click = [record for record in timeline.where("click") if record.get("label") == "Responsibilities"][-1]
         tab_stop = [record for record in timeline.announces() if "다른 탭을 선택해" in record["text"]][-1]
@@ -572,10 +617,21 @@ class ReportChronologyTests(unittest.TestCase):
                          "원래 탭 복귀만으로 안내가 재개되면 안 됩니다\n" + timeline.render())
         self.assertEqual(story.get_by_role("button", name="안내 재생").get_attribute("aria-pressed"), "false")
         # 다시 시작한 뒤 같은 그림 확대(+) 조작도 정지한다 — 카메라 지시 기록과 함께.
-        self.start_guide(page, "안내 재생을 시작합니다", timeout=8000)
-        page.locator('#diagram-panels [data-zoom="in"]').first.click()
-        page.wait_for_function(
-            "!document.querySelector('#flow-panel-calls .flow-step-announce').textContent.startsWith('안내')")
+        # 확대 재클릭은 멱등하므로(같은 정지 경로만 다시 밟는다) 재클릭 1회를 허용하고,
+        # 대기는 부정형(안내로 시작 안 함)이 아니라 목표 상태(사용자 조용 정지 안내 +
+        # aria-pressed=false)를 긍정형으로 뒤집는다. 부정형이면 단계 안내가 '안내'로
+        # 시작하지 않는 순간 통과해버려 정지 안내 전에 기록을 읽을 수 있었다.
+        self.start_guide(page, "안내 재생을 시작합니다", timeout=8000, pressed='true')
+        zoom = page.locator('#diagram-panels [data-zoom="in"]').first
+        zoom.click()
+        zoomed_js = (
+            "() => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes('사용자 조작으로')"
+            "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='false'")
+        try:
+            page.wait_for_function(zoomed_js, timeout=8000)
+        except Exception:
+            zoom.click()
+            page.wait_for_function(zoomed_js, timeout=12000)
         timeline.collect(page, "zoomed")
         zoom_click = [record for record in timeline.where("click") if record.get("label") == "＋"][-1]
         zoom_stop = [record for record in timeline.announces() if "사용자 조작으로" in record["text"]][-1]
@@ -594,14 +650,18 @@ class ReportChronologyTests(unittest.TestCase):
     def test_dialog_close_and_reopen_on_one_screen_is_chronological(self) -> None:
         page, timeline, errors = self.open_report(3, "chrono-dialog.html")
         story = page.locator("#flow-panel-calls")
-        self.start_guide(page, "2/3단계")
+        self.start_guide(page, "2/3단계", pressed='true')
         embeds_before = [(frame, frame.evaluate("window.repoFlowmap.state()"))
                          for frame in self.renderer_frames(page)]
         self.assertEqual(len(embeds_before), 2, "흐름 임베드 + 다이어그램 카드 두 그림이 안내를 따른다")
         self.assertEqual([state["step"] for _, state in embeds_before], [1, 1])
         page.locator("#diagram-panels [data-full]").first.click()
+        # 대화상자 열기 클릭은 모달이 배경을 가리므로 재클릭하지 않는다(LESSONS.md:
+        # 정지 사유 귀속 경합). 목표 상태(사용자 조작 정지 안내 + aria-pressed=false)만
+        # 긍정형으로 기다린다.
         page.wait_for_function(
-            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes('사용자 조작으로')",
+            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes('사용자 조작으로')"
+            "&&document.querySelector('#flow-panel-calls .flow-guide-btn').getAttribute('aria-pressed')==='false'",
             timeout=12000)
         dialog_frame = page.locator("#dialog-embed").element_handle().content_frame()
         dialog_frame.wait_for_function("window.repoFlowmap && window.repoFlowmap.ready()", timeout=10000)
@@ -659,7 +719,7 @@ class ReportChronologyTests(unittest.TestCase):
 
     def test_guidance_narration_and_figures_agree_at_every_step(self) -> None:
         page, timeline, errors = self.open_report(3, "chrono-agree.html")
-        self.start_guide(page, "끝났습니다", timeout=20000)
+        self.start_guide(page, "끝났습니다", timeout=20000, pressed='false')
         timeline.collect(page, "done")
         cycles = self.assert_agreement(timeline)
         self.assertEqual([cycle["n"] for cycle in cycles], [1, 2, 3])
@@ -675,7 +735,7 @@ class ReportChronologyTests(unittest.TestCase):
         # 일부러 어긋남을 만드는 변이: 보고서는 6단계, 그림 흐름은 5단계다. 마지막 단계에서
         # 그림은 index 5를 받지 못해 step=-1로 잘리고, 같은 검사기가 이 어긋남을 잡아야 한다.
         page, timeline, errors = self.open_report(6, "chrono-mismatch.html")
-        self.start_guide(page, "끝났습니다", timeout=30000)
+        self.start_guide(page, "끝났습니다", timeout=30000, pressed='false')
         timeline.collect(page, "done")
         with self.assertRaises(AssertionError) as caught:
             self.assert_agreement(timeline)
