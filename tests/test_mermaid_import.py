@@ -147,6 +147,123 @@ class FlowchartParsing(unittest.TestCase):
         self.assertTrue(any("방향 표기" in item["reason"] for item in result["warnings"]))
 
 
+class ExtendedFlowchartSyntax(unittest.TestCase):
+    """D7 지연 항목이었던 문법 확장: 열린 링크 라벨·중첩 subgraph·& 갭.
+
+    열린 링크(화살표 없는 링크)의 텍스트·파이프 라벨과 괄호 안 `&` 는
+    Mermaid 유효 문법이므로 경고 없이 해석한다. 중첩 subgraph·양쪽 다중
+    끝점은 이미 동작하는 동작을 회귀 테스트로 고정한다.
+    """
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+
+    def convert_snippet(self, body: str):
+        path = write_fixture(Path(self.tmp.name), "ext.mmd", "flowchart LR\n" + body)
+        return convert_file(path, captured_at=CAPTURED_AT)
+
+    def test_open_link_text_labels(self) -> None:
+        result = self.convert_snippet(
+            "  a-- 주문 ---b\n"
+            "  c-. 대기 .-d\n"
+            "  e== 알림 ===f\n"
+            "  g--text---h\n"  # 공백 없는 변형도 Mermaid 유효
+        )
+        flow = result["parsed"]["flowchart"]
+        edges = {(e["sourceId"], e["destinationId"]): e for e in flow["edges"]}
+        self.assertEqual(edges[("a", "b")]["label"], "주문")
+        self.assertEqual(edges[("a", "b")]["arrow"]["kind"], "solid-line")
+        self.assertEqual(edges[("c", "d")]["label"], "대기")
+        self.assertEqual(edges[("c", "d")]["arrow"]["kind"], "dashed-line")
+        self.assertEqual(edges[("e", "f")]["label"], "알림")
+        self.assertEqual(edges[("e", "f")]["arrow"]["kind"], "thick-line")
+        self.assertEqual(edges[("g", "h")]["label"], "text")
+        self.assertEqual(edges[("g", "h")]["arrow"]["token"], "--text---")
+        self.assertEqual(result["warnings"], [])  # 조용한 오독·누락 금지
+
+    def test_open_link_pipe_labels(self) -> None:
+        result = self.convert_snippet("  a---|결제|b\n  c-.-|실패|d\n")
+        flow = result["parsed"]["flowchart"]
+        edges = {(e["sourceId"], e["destinationId"]): e for e in flow["edges"]}
+        self.assertEqual(edges[("a", "b")]["label"], "결제")
+        self.assertEqual(edges[("a", "b")]["arrow"]["kind"], "solid-line")
+        self.assertEqual(edges[("c", "d")]["label"], "실패")
+        self.assertEqual(edges[("c", "d")]["arrow"]["kind"], "dashed-line")
+        self.assertEqual(result["warnings"], [])
+
+    def test_arrow_labels_still_win_over_open_links(self) -> None:
+        # 화살표 라벨과 열린 링크가 같은 줄에 섞여도 체인으로 해석한다.
+        result = self.convert_snippet("  a -- x --> b -- y --- c\n")
+        edges = {(e["sourceId"], e["destinationId"]): e for e in result["parsed"]["flowchart"]["edges"]}
+        self.assertEqual(edges[("a", "b")]["label"], "x")
+        self.assertEqual(edges[("a", "b")]["arrow"]["kind"], "solid-arrow")
+        self.assertEqual(edges[("b", "c")]["label"], "y")
+        self.assertEqual(edges[("b", "c")]["arrow"]["kind"], "solid-line")
+
+    def test_nested_subgraph_membership_and_end(self) -> None:
+        result = self.convert_snippet(
+            "  subgraph outer [외부]\n"
+            "    a\n"
+            "    subgraph inner [내부]\n"
+            "      b\n"
+            "      a --> b\n"
+            "    end\n"
+            "    c\n"
+            "  end\n"
+            "  d\n"
+        )
+        flow = result["parsed"]["flowchart"]
+        subs = {s["id"]: s for s in flow["subgraphs"]}
+        self.assertEqual(subs["outer"]["memberNodeIds"], ["a", "b", "c"])  # 내부 subgraph 노드도 외부 멤버십 유지
+        self.assertEqual(subs["inner"]["memberNodeIds"], ["a", "b"])  # inner 안 엣지 언급도 멤버십에 누적된다(Mermaid 동작과 부합)
+        self.assertEqual(subs["inner"]["endLine"], 7)
+        self.assertEqual(subs["outer"]["endLine"], 9)
+        nodes = {n["id"]: n for n in flow["nodes"]}
+        self.assertEqual(nodes["b"]["subgraphs"], ["outer", "inner"])
+        self.assertEqual(nodes["d"]["subgraphs"], [])
+        inner_edge = next(e for e in flow["edges"] if (e["sourceId"], e["destinationId"]) == ("a", "b"))
+        self.assertEqual(inner_edge["subgraphs"], ["outer", "inner"])
+
+    def test_direction_inside_subgraph_recorded_as_layout(self) -> None:
+        result = self.convert_snippet(
+            "  subgraph s1 [그룹]\n"
+            "    direction LR\n"
+            "    a --> b\n"
+            "  end\n"
+        )
+        subgraph = result["parsed"]["flowchart"]["subgraphs"][0]
+        self.assertEqual(subgraph["direction"], "LR")  # 배치 정보로 parsed에 기록
+        self.assertFalse(any("direction" in w["reason"] for w in result["warnings"]))
+
+    def test_ampersand_inside_label_is_not_a_separator(self) -> None:
+        result = self.convert_snippet("  a[알파 & 베타] --> b\n  c[x & y] & d --> e\n")
+        flow = result["parsed"]["flowchart"]
+        nodes = {n["id"]: n for n in flow["nodes"]}
+        self.assertEqual(nodes["a"]["label"], "알파 & 베타")
+        self.assertEqual(nodes["c"]["label"], "x & y")
+        edges = {(e["sourceId"], e["destinationId"]) for e in flow["edges"]}
+        self.assertEqual(edges, {("a", "b"), ("c", "e"), ("d", "e")})
+        self.assertEqual(result["warnings"], [])
+
+    def test_documented_plain_tokens_parse(self) -> None:
+        # 문서가 지원으로 명시한 무라벨 토큰(-.-, --x)이 실제로 해석되는지 확인한다.
+        result = self.convert_snippet("  a -.- b\n  c --x d\n")
+        kinds = {(e["sourceId"], e["destinationId"]): e["arrow"]["kind"]
+                 for e in result["parsed"]["flowchart"]["edges"]}
+        self.assertEqual(kinds[("a", "b")], "dashed-line")
+        self.assertEqual(kinds[("c", "d")], "cross-arrow")
+        self.assertEqual(result["warnings"], [])
+
+    def test_ampersand_multipoint_regression(self) -> None:
+        result = self.convert_snippet("  a & b --> c & d\n  e[하나] & f[둘] --> g\n")
+        edges = {(e["sourceId"], e["destinationId"]) for e in result["parsed"]["flowchart"]["edges"]}
+        self.assertEqual(edges, {
+            ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"),
+            ("e", "g"), ("f", "g"),
+        })
+
+
 class SequenceParsing(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()

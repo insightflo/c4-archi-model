@@ -49,16 +49,23 @@ SHAPES: list[tuple[str, str]] = [
 _SHAPE_RES = [(name, re.compile(rf"^(?P<id>{MERMAID_ID})\s*{pattern}$")) for name, pattern in SHAPES]
 _BARE_NODE_RE = re.compile(rf"^(?P<id>{MERMAID_ID})$")
 
-# 엣지 화살표: 라벨 파이프형 → 라벨 텍스트형 → 무라벨 순서로 시도한다.
+# 엣지 화살표: 파이프 라벨형 → 텍스트 라벨형(화살표) → 텍스트 라벨형(열린 링크) → 무라벨 순서로 시도한다.
+# 열린 링크 라벨 패턴의 (?!..) 가드는 화살표·무라벨 토큰(-->, -.->, ==>, ---, ===)을
+# 라벨이 삼키지 못하게 막는다(예: 'A ==> B === C'는 A==>B, B===C 체인으로 유지).
 _EDGE_RE = re.compile(
     r"\s*(?:"
     r"(?:-->\|(?P<pipe_dotted_solid>[^|]+)\|)"
     r"|(?:-\.\->\|(?P<pipe_dashed>[^|]+)\|)"
     r"|(?:==>\|(?P<pipe_thick>[^|]+)\|)"
+    r"|(?:---\|(?P<pipe_solid_open>[^|]+)\|)"
+    r"|(?:-\.-\|(?P<pipe_dashed_open>[^|]+)\|)"
     r"|(?P<text_solid>--\s+(?P<text_solid_label>[^|]+?)\s+-->)"
     r"|(?P<text_dashed>-\.\s*(?P<text_dashed_label>[^|]+?)\s*\.->)"
     r"|(?P<text_thick>==\s*(?P<text_thick_label>[^|]+?)\s+==>)"
-    r"|(?P<plain><-->|--o|--x>|-->|---|-\.\->|-\.->|-\.|==>|===)"
+    r"|(?P<text_solid_open>--(?!-)\s*(?P<text_solid_open_label>[^|]+?)\s*---)"
+    r"|(?P<text_dashed_open>-\.(?!->)\s*(?P<text_dashed_open_label>[^|]+?)\s*\.-)"
+    r"|(?P<text_thick_open>==(?!>|=)\s*(?P<text_thick_open_label>[^|]+?)\s*===)"
+    r"|(?P<plain><-->|--o|--x|-->|---|-\.\->|-\.->|-\.-|-\.|==>|===)"
     r")\s*"
 )
 _PLAIN_ARROW_KIND = {
@@ -76,11 +83,16 @@ _LABELED_ARROW_KIND = {
     "pipe_dotted_solid": "solid-arrow",
     "pipe_dashed": "dashed-arrow",
     "pipe_thick": "thick-arrow",
+    "pipe_solid_open": "solid-line",
+    "pipe_dashed_open": "dashed-line",
     "text_solid": "solid-arrow",
     "text_dashed": "dashed-arrow",
     "text_thick": "thick-arrow",
+    "text_solid_open": "solid-line",
+    "text_dashed_open": "dashed-line",
+    "text_thick_open": "thick-line",
 }
-_PIPE_KEYS = {"pipe_dotted_solid", "pipe_dashed", "pipe_thick"}
+_PIPE_KEYS = {"pipe_dotted_solid", "pipe_dashed", "pipe_thick", "pipe_solid_open", "pipe_dashed_open"}
 
 # 시퀀스 참가자 ID는 뒤가 대시로 끝나지 않는다('-->>' 화살표 오인 방지).
 _SEQ_ID = r"[A-Za-z0-9_](?:[A-Za-z0-9_\-]*[A-Za-z0-9_])?"
@@ -138,6 +150,33 @@ def parse_node_token(token: str) -> dict[str, Any] | None:
             label = match.group("label").strip().strip('"') or None
             return {"id": match.group("id"), "label": label, "shape": shape}
     return None
+
+
+def _split_node_tokens(text: str) -> list[str]:
+    """'&' 로 노드 목록을 나눈다. 괄호·따옴표 안의 '&' 는 라벨 일부로 보존한다.
+
+    Mermaid 는 'A & B --> C' 다중 끝점과 'A[x & y]' 라벨 안 앰퍼샌드를 함께
+    쓰므로, 괄호 깊이 0 위치의 '&' 만 노드 구분자로 취급한다.
+    """
+    parts: list[str] = []
+    depth = 0
+    quote: str | None = None
+    start = 0
+    for index, char in enumerate(text):
+        if quote is not None:
+            if char == quote:
+                quote = None
+        elif char in "\"'":
+            quote = char
+        elif char in "([{":
+            depth += 1
+        elif char in ")]}":
+            depth = max(0, depth - 1)
+        elif char == "&" and depth == 0:
+            parts.append(text[start:index])
+            start = index + 1
+    parts.append(text[start:])
+    return [part for part in (piece.strip() for piece in parts) if part]
 
 
 def _arrow_of(match: re.Match[str]) -> dict[str, Any]:
@@ -296,7 +335,7 @@ def _parse_flowchart_body(lines: list[str], parsed: dict[str, Any], warnings: li
             ok = True
             for arrow_match in arrow_matches:
                 left = line[position:arrow_match.start()].strip()
-                infos = [parse_node_token(part) for part in left.split("&")]
+                infos = [parse_node_token(part) for part in _split_node_tokens(left)]
                 if any(info is None for info in infos) or not infos:
                     ok = False
                     break
@@ -305,7 +344,7 @@ def _parse_flowchart_body(lines: list[str], parsed: dict[str, Any], warnings: li
                 position = arrow_match.end()
             tail = line[position:].strip()
             if ok:
-                tail_infos = [parse_node_token(part) for part in tail.split("&")]
+                tail_infos = [parse_node_token(part) for part in _split_node_tokens(tail)]
                 if any(info is None for info in tail_infos) or not tail_infos:
                     ok = False
             else:

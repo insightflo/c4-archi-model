@@ -436,8 +436,8 @@
     },
     {
       "path": "references/mermaid-import.md",
-      "sha256": "a376bb1c15c7a8621f1b3c2e3c8e050a198c39a1c4292ab32c03d78040f70b1b",
-      "size": 5855
+      "sha256": "f5b2bc231136160a091235ad140a5a69b151f327ae5d34c052650e28c3d93e2d",
+      "size": 6837
     },
     {
       "path": "references/output-package-manifest.schema.json",
@@ -456,8 +456,8 @@
     },
     {
       "path": "references/repo-flowmap-adapter.md",
-      "sha256": "6d339bdac5e88bce23fb299e37cffa65a7907c4df923da7aac130e24b672ed41",
-      "size": 15057
+      "sha256": "fa67996e6355b85facde21e53e56d32364ce5ca512d1eb72b75276acd5373ee3",
+      "size": 15412
     },
     {
       "path": "references/scene-frame-reporting.md",
@@ -516,8 +516,8 @@
     },
     {
       "path": "scripts/convert_mermaid_input.py",
-      "sha256": "76f115460ce31e30c35fa585907528fff6217c5919bbf6efc551e6fed54d3ed3",
-      "size": 33953
+      "sha256": "5c5bdf9f242bd51f490a9bdb17c4d58f6a67cfcfe2a84ff04b973deefd3ac514",
+      "size": 35740
     },
     {
       "path": "scripts/doctor.py",
@@ -641,8 +641,8 @@
     },
     {
       "path": "tests/test_mermaid_import.py",
-      "sha256": "2773f3693422ac5c2f6ac4e81c6e0993aed507b18dc509ee2440fa24dc1a5a3f",
-      "size": 16807
+      "sha256": "ecb75822e8bfc69684c89601d8b8fc5c6467ba92745ab9b798a604d156f1d50e",
+      "size": 22955
     },
     {
       "path": "tests/test_model_comparison.py",

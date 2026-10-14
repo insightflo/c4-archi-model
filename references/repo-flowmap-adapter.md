@@ -205,4 +205,8 @@ python3 <skill>/scripts/check_repo_flowmap_browser.py --root <package> \
 native 줌/팬/표시, 보고서 iframe/줌/전체 화면, 인쇄 이미지 decode, 외부 요청 여부를 기록한다.
 데모 생성은 각 보기 인쇄 SVG를 export_repo_flowmap_svg.py로 추출해 printAssetPath에 연결하며,
 print-SVG 검사는 report-data에서 printDataUri를 연결한 다이어그램 수만큼 인쇄 이미지가 decode·표시되는지 확인한다
-(인쇄 그림은 선택 자산이므로 전체 다이어그램 수와 같지 않아도 된다). 여러 브라우저·PDF 페이지 분할·실제 사람 이해도는 별도 검사다.
+(인쇄 그림은 선택 자산이므로 전체 다이어그램 수와 같지 않아도 된다). 연결된 인쇄 자산이
+하나도 없으면 기대값이 0이 되어 이 검사는 자동 통과한다 — 인쇄 자산 제공 여부 자체는
+계약상 report-data의 printAssetPath·qa/ 추출 영수증(repo-flowmap-svg-<view>.json)으로
+확인한다. 검사 결과 파일(results.json)의 detail.expected가 연결 수를 그대로 보여준다.
+여러 브라우저·PDF 페이지 분할·실제 사람 이해도는 별도 검사다.
