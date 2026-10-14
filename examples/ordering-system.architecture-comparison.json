@@ -1,0 +1,516 @@
+{
+  "schemaVersion": "0.4.0",
+  "generatedAt": "2026-10-13T19:15:39Z",
+  "matchBasis": "canonicalId",
+  "before": {
+    "path": "examples/ordering-system.architecture-model.previous.json",
+    "title": "Ordering System",
+    "modelRevision": "0",
+    "sourceSnapshotId": null,
+    "elementCount": 6,
+    "relationshipCount": 6
+  },
+  "after": {
+    "path": "examples/ordering-system.architecture-model.json",
+    "title": "Ordering System",
+    "modelRevision": "1",
+    "sourceSnapshotId": "snapshot-ordering-4e52e5080310",
+    "elementCount": 7,
+    "relationshipCount": 6
+  },
+  "summary": {
+    "elementAdded": 3,
+    "elementRemoved": 2,
+    "elementMoved": 1,
+    "elementModified": 1,
+    "relationshipAdded": 2,
+    "relationshipRemoved": 2,
+    "relationshipChanged": 1,
+    "unmatched": 1,
+    "unchangedElements": 2,
+    "unchangedRelationships": 2
+  },
+  "changes": [
+    {
+      "id": "fulfilment-worker",
+      "target": "element",
+      "kind": "added",
+      "subtype": null,
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": null,
+      "after": {
+        "name": "Fulfilment Worker",
+        "type": "container",
+        "parentId": "ordering-system",
+        "parentName": "Ordering System",
+        "technology": null,
+        "description": "주문 생성 이벤트를 소비해 배송 준비를 시작한다."
+      },
+      "changedFields": [],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container",
+          "title": "Ordering System - Container View",
+          "phase": "after"
+        },
+        {
+          "viewId": "ordering-create-order",
+          "title": "Create Order",
+          "phase": "after"
+        }
+      ],
+      "description": "새 요소 'Fulfilment Worker'(container). 이전 시점에는 없다."
+    },
+    {
+      "id": "order-api",
+      "target": "element",
+      "kind": "added",
+      "subtype": null,
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": null,
+      "after": {
+        "name": "Order API",
+        "type": "container",
+        "parentId": "ordering-system",
+        "parentName": "Ordering System",
+        "technology": null,
+        "description": "주문 요청을 받고 저장과 이벤트 발행을 조정한다."
+      },
+      "changedFields": [],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container",
+          "title": "Ordering System - Container View",
+          "phase": "after"
+        },
+        {
+          "viewId": "ordering-create-order",
+          "title": "Create Order",
+          "phase": "after"
+        }
+      ],
+      "description": "새 요소 'Order API'(container). 이전 시점에는 없다."
+    },
+    {
+      "id": "order-created-topic",
+      "target": "element",
+      "kind": "added",
+      "subtype": null,
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": null,
+      "after": {
+        "name": "order-created topic",
+        "type": "container",
+        "parentId": "ordering-system",
+        "parentName": "Ordering System",
+        "technology": null,
+        "description": "주문 생성 이벤트를 전달하는 논리 채널이다."
+      },
+      "changedFields": [],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container",
+          "title": "Ordering System - Container View",
+          "phase": "after"
+        },
+        {
+          "viewId": "ordering-create-order",
+          "title": "Create Order",
+          "phase": "after"
+        }
+      ],
+      "description": "새 요소 'order-created topic'(container). 이전 시점에는 없다."
+    },
+    {
+      "id": "legacy-system",
+      "target": "element",
+      "kind": "removed",
+      "subtype": null,
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": {
+        "name": "Legacy Ordering",
+        "type": "softwareSystem",
+        "parentId": null,
+        "parentName": null,
+        "technology": null,
+        "description": "이전 시점에 주문 저장소를 함께 두었던 별도 경계다(가상)."
+      },
+      "after": null,
+      "changedFields": [],
+      "viewRefs": [],
+      "description": "요소 'Legacy Ordering'(softwareSystem)가 사라졌다. 이후 시점에는 없다."
+    },
+    {
+      "id": "report-job",
+      "target": "element",
+      "kind": "removed",
+      "subtype": null,
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": {
+        "name": "Daily Report Job",
+        "type": "container",
+        "parentId": "ordering-system",
+        "parentName": "Ordering System",
+        "technology": null,
+        "description": "일 단위 주문 리포트를 만든다(가상)."
+      },
+      "after": null,
+      "changedFields": [],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container-v0",
+          "title": "Ordering System - Container View (이전 시점)",
+          "phase": "before"
+        }
+      ],
+      "description": "요소 'Daily Report Job'(container)가 사라졌다. 이후 시점에는 없다."
+    },
+    {
+      "id": "order-database",
+      "target": "element",
+      "kind": "moved",
+      "subtype": null,
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": {
+        "name": "Order Database",
+        "type": "container",
+        "parentId": "legacy-system",
+        "parentName": "Legacy Ordering",
+        "technology": "PostgreSQL",
+        "description": "주문 데이터를 저장한다. 이전 시점에는 Legacy Ordering 경계에 있다."
+      },
+      "after": {
+        "name": "Order Database",
+        "type": "container",
+        "parentId": "ordering-system",
+        "parentName": "Ordering System",
+        "technology": "PostgreSQL",
+        "description": "주문 데이터를 저장한다."
+      },
+      "changedFields": [
+        {
+          "field": "parentId",
+          "before": "legacy-system",
+          "after": "ordering-system"
+        },
+        {
+          "field": "description",
+          "before": "주문 데이터를 저장한다. 이전 시점에는 Legacy Ordering 경계에 있다.",
+          "after": "주문 데이터를 저장한다."
+        }
+      ],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container-v0",
+          "title": "Ordering System - Container View (이전 시점)",
+          "phase": "before"
+        },
+        {
+          "viewId": "ordering-container",
+          "title": "Ordering System - Container View",
+          "phase": "after"
+        },
+        {
+          "viewId": "ordering-create-order",
+          "title": "Create Order",
+          "phase": "after"
+        }
+      ],
+      "description": "요소 'Order Database'의 상위 경계가 'Legacy Ordering'에서 'Ordering System'로 옮겨졌다."
+    },
+    {
+      "id": "web-app",
+      "target": "element",
+      "kind": "modified",
+      "subtype": null,
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": {
+        "name": "Order Web",
+        "type": "container",
+        "parentId": "ordering-system",
+        "parentName": "Ordering System",
+        "technology": null,
+        "description": "고객에게 주문 입력 화면을 제공한다."
+      },
+      "after": {
+        "name": "Web App",
+        "type": "container",
+        "parentId": "ordering-system",
+        "parentName": "Ordering System",
+        "technology": null,
+        "description": "고객에게 주문 입력 화면을 제공한다."
+      },
+      "changedFields": [
+        {
+          "field": "name",
+          "before": "Order Web",
+          "after": "Web App"
+        }
+      ],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container-v0",
+          "title": "Ordering System - Container View (이전 시점)",
+          "phase": "before"
+        },
+        {
+          "viewId": "ordering-container",
+          "title": "Ordering System - Container View",
+          "phase": "after"
+        },
+        {
+          "viewId": "ordering-create-order",
+          "title": "Create Order",
+          "phase": "after"
+        }
+      ],
+      "description": "요소 'Web App'(container)의 표시 속성이 바뀌었다. 이름 'Order Web' → 'Web App'."
+    },
+    {
+      "id": "api-to-db",
+      "target": "relationship",
+      "kind": "added",
+      "subtype": null,
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": null,
+      "after": {
+        "sourceId": "order-api",
+        "destinationId": "order-database",
+        "sourceName": "Order API",
+        "destinationName": "Order Database",
+        "technology": "PostgreSQL",
+        "description": "주문을 저장한다."
+      },
+      "changedFields": [],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container",
+          "title": "Ordering System - Container View",
+          "phase": "after"
+        },
+        {
+          "viewId": "ordering-create-order",
+          "title": "Create Order",
+          "phase": "after"
+        }
+      ],
+      "description": "새 관계 'api-to-db'('Order API' → 'Order Database'). 이전 시점에는 없다."
+    },
+    {
+      "id": "api-to-topic",
+      "target": "relationship",
+      "kind": "added",
+      "subtype": null,
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": null,
+      "after": {
+        "sourceId": "order-api",
+        "destinationId": "order-created-topic",
+        "sourceName": "Order API",
+        "destinationName": "order-created topic",
+        "technology": null,
+        "description": "주문 생성 이벤트를 발행한다."
+      },
+      "changedFields": [],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container",
+          "title": "Ordering System - Container View",
+          "phase": "after"
+        },
+        {
+          "viewId": "ordering-create-order",
+          "title": "Create Order",
+          "phase": "after"
+        }
+      ],
+      "description": "새 관계 'api-to-topic'('Order API' → 'order-created topic'). 이전 시점에는 없다."
+    },
+    {
+      "id": "report-to-db",
+      "target": "relationship",
+      "kind": "removed",
+      "subtype": null,
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": {
+        "sourceId": "report-job",
+        "destinationId": "order-database",
+        "sourceName": "Daily Report Job",
+        "destinationName": "Order Database",
+        "technology": null,
+        "description": "일 배치 리포트를 위해 주문을 읽는다."
+      },
+      "after": null,
+      "changedFields": [],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container-v0",
+          "title": "Ordering System - Container View (이전 시점)",
+          "phase": "before"
+        }
+      ],
+      "description": "관계 'report-to-db'('Daily Report Job' → 'Order Database')가 사라졌다. 이후 시점에는 없다."
+    },
+    {
+      "id": "web-to-db",
+      "target": "relationship",
+      "kind": "removed",
+      "subtype": null,
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": {
+        "sourceId": "web-app",
+        "destinationId": "order-database",
+        "sourceName": "Order Web",
+        "destinationName": "Order Database",
+        "technology": "JDBC",
+        "description": "화면이 주문을 직접 저장한다."
+      },
+      "after": null,
+      "changedFields": [],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container-v0",
+          "title": "Ordering System - Container View (이전 시점)",
+          "phase": "before"
+        }
+      ],
+      "description": "관계 'web-to-db'('Order Web' → 'Order Database')가 사라졌다. 이후 시점에는 없다."
+    },
+    {
+      "id": "web-to-api",
+      "target": "relationship",
+      "kind": "rewired",
+      "subtype": "redirected",
+      "uncertain": false,
+      "uncertainReasons": [],
+      "before": {
+        "sourceId": "web-app",
+        "destinationId": "order-database",
+        "sourceName": "Order Web",
+        "destinationName": "Order Database",
+        "technology": "JDBC",
+        "description": "주문 생성 요청을 기록한다."
+      },
+      "after": {
+        "sourceId": "web-app",
+        "destinationId": "order-api",
+        "sourceName": "Web App",
+        "destinationName": "Order API",
+        "technology": "HTTPS/JSON",
+        "description": "주문 생성 요청을 전송한다."
+      },
+      "changedFields": [
+        {
+          "field": "destinationId",
+          "before": "order-database",
+          "after": "order-api"
+        },
+        {
+          "field": "technology",
+          "before": "JDBC",
+          "after": "HTTPS/JSON"
+        },
+        {
+          "field": "description",
+          "before": "주문 생성 요청을 기록한다.",
+          "after": "주문 생성 요청을 전송한다."
+        }
+      ],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container-v0",
+          "title": "Ordering System - Container View (이전 시점)",
+          "phase": "before"
+        },
+        {
+          "viewId": "ordering-container",
+          "title": "Ordering System - Container View",
+          "phase": "after"
+        },
+        {
+          "viewId": "ordering-create-order",
+          "title": "Create Order",
+          "phase": "after"
+        }
+      ],
+      "description": "관계 'web-to-api'의 연결이 바뀌었다: 'Order Web' → 'Order Database'에서 'Web App' → 'Order API'로."
+    },
+    {
+      "id": "worker-to-topic",
+      "target": "relationship",
+      "kind": "unmatched",
+      "subtype": null,
+      "uncertain": true,
+      "uncertainReasons": [
+        "출발·도착이 모두 다른 요소로 바뀌어 같은 ID가 다른 관계를 가리킬 수 있다"
+      ],
+      "before": {
+        "sourceId": "report-job",
+        "destinationId": "order-database",
+        "sourceName": "Daily Report Job",
+        "destinationName": "Order Database",
+        "technology": null,
+        "description": "리포트 작업 완료를 기록한다."
+      },
+      "after": {
+        "sourceId": "fulfilment-worker",
+        "destinationId": "order-created-topic",
+        "sourceName": "Fulfilment Worker",
+        "destinationName": "order-created topic",
+        "technology": null,
+        "description": "주문 생성 이벤트를 소비한다."
+      },
+      "changedFields": [
+        {
+          "field": "sourceId",
+          "before": "report-job",
+          "after": "fulfilment-worker"
+        },
+        {
+          "field": "destinationId",
+          "before": "order-database",
+          "after": "order-created-topic"
+        },
+        {
+          "field": "description",
+          "before": "리포트 작업 완료를 기록한다.",
+          "after": "주문 생성 이벤트를 소비한다."
+        }
+      ],
+      "viewRefs": [
+        {
+          "viewId": "ordering-container-v0",
+          "title": "Ordering System - Container View (이전 시점)",
+          "phase": "before"
+        },
+        {
+          "viewId": "ordering-container",
+          "title": "Ordering System - Container View",
+          "phase": "after"
+        },
+        {
+          "viewId": "ordering-create-order",
+          "title": "Create Order",
+          "phase": "after"
+        }
+      ],
+      "description": "관계 ID 'worker-to-topic'의 출발·도착이 모두 바뀌었다(이전 'Daily Report Job' → 'Order Database', 이후 'Fulfilment Worker' → 'order-created topic'). 같은 관계인지 확정할 수 없다. (미확정: 출발·도착이 모두 다른 요소로 바뀌어 같은 ID가 다른 관계를 가리킬 수 있다)"
+    }
+  ],
+  "notes": [
+    "비교는 canonical ID 기준이며 두 입력 모델에 있는 사실만 담는다(새 사실을 만들지 않는다).",
+    "뷰(view) 구성의 변화는 독립 변경으로 분류하지 않고 각 변경의 그림 참조로만 남긴다.",
+    "같은 ID가 서로 다른 대상을 가리킬 가능성이 큰 변화는 미확정으로 표시하고 확정 분류하지 않는다."
+  ]
+}

@@ -32,6 +32,25 @@ def read_flow_data(path: Path) -> dict:
     return json.loads(''.join(parser.parts))
 
 
+# W2 기하 검사(A10 연결 오독·D8 라벨 가림) 결과 필드와 판정 헬퍼.
+# record()와 테스트가 같은 기준을 공유한다. 임계값·예외의 근거는 GEOMETRY 안 주석에 있다.
+GEOMETRY_CHECK_KEYS = ('clipped', 'textOverlaps', 'nodeOverflow', 'pathTextCollisions', 'pathNodeCollisions')
+NEAR_CONNECTION_KEY = 'nearConnectionMimics'
+LABEL_OCCLUSION_KEY = 'labelOcclusions'
+
+
+def geometry_clean(g: dict) -> bool:
+    return bool(g.get('ready')) and not any(g.get(k) for k in GEOMETRY_CHECK_KEYS)
+
+
+def near_connection_clean(g: dict) -> bool:
+    return bool(g.get('ready')) and not g[NEAR_CONNECTION_KEY]
+
+
+def label_occlusion_clean(g: dict) -> bool:
+    return bool(g.get('ready')) and not g[LABEL_OCCLUSION_KEY]
+
+
 def sequence_checks(geometry: dict, steps: list[dict]) -> tuple[bool, bool]:
     expected = [{'id': s['id'], 'order': s['order']} for s in steps]
     expected_self = [s['id'] for s in steps if s['from'] == s['to']]
@@ -59,17 +78,121 @@ GEOMETRY = r"""() => {
  const pathTextCollisions=[],pathNodeCollisions=[];
  for(const path of vp.querySelectorAll('path.c4-edge,path.c4-message-line')){
   const length=path.getTotalLength();
-  const nodes=[...vp.querySelectorAll('.c4-body')].map(box);
+  const bodies=[...vp.querySelectorAll('.c4-body')].map(box);
   for(let s=3;s<length-3;s+=4){const p=path.getPointAtLength(s);
    const hit=texts.find(t=>p.x>t.b.x-1&&p.x<t.b.right+1&&p.y>t.b.y-1&&p.y<t.b.bottom+1);
    if(hit){pathTextCollisions.push({relationship:path.dataset.relation,text:hit.text,point:{x:p.x,y:p.y}});break;}
-   if(nodes.some(b=>p.x>b.x+3&&p.x<b.right-3&&p.y>b.y+3&&p.y<b.bottom-3)){pathNodeCollisions.push(path.dataset.relation);break;}
+   if(bodies.some(b=>p.x>b.x+3&&p.x<b.right-3&&p.y>b.y+3&&p.y<b.bottom-3)){pathNodeCollisions.push(path.dataset.relation);break;}
   }
  }
  const self=[...vp.querySelectorAll('.c4-message[data-self="true"]')].map(e=>({id:e.dataset.stepId,order:+e.dataset.order,box:box(e),labelRight:Math.max(...[...e.querySelectorAll('text.c4-text')].map(t=>box(t).right))}));
  const exported=new DOMParser().parseFromString(window.repoFlowmap.exportSvg(),'image/svg+xml').documentElement;
+
+ // ── W2 공유 기하 기반: A10(연결처럼 보이는 근접선)과 D8(그리는 순서 라벨 가림)이 같이 쓴다 ──
+ // 임계값(조정할 때는 아래 근거를 함께 다시 본다):
+ //  NEAR_LINK_PX 2.5 — 선 중심이 무관 노드 경계에 이 거리 안이면 실선(1.8~3px 굵기)이
+ //    시각적으로 닿아 붙는다. 정상 라우팅은 ROUTE_CLEARANCE(6) 복도를 유지하므로 그
+ //    절반 이하인 이 값은 온전한 배치과 겹치지 않는다.
+ //  SHARED_CORRIDOR_PX 2 — 같은 노드 쌍을 잇는 다른 관계와 한 몸으로 겹쳐 보이는 거리.
+ //    그 구간은 실제 연결이 존재하는 공유 복도이므로 예외(b).
+ //  BADGE_OCCUPY_PX 13 — 배지 원(반지름 12 + 테두리 1.7/2)이 점유한 지점은 관계 번호로
+ //    안내되고 있으므로 예외(d).
+ //  ENDPOINT_SNAP_PX 3 — flow-data에 없는 관계의 실제 끝점을 경로 시작·끝 좌표로
+ //    찾을 때 쓰는 끌림 거리(모델 우선, 좌표는 보강).
+ //  LABEL_INSIDE_FRACTION 0.3 — 라벨 면적이 노드 안에 이 비율 이상 들어가고 노드가
+ //    나중에 그려졌으면 실제 가림(hard). 미만은 배경 경계 겹침(soft).
+ //  SOFT_OVERLAP_PX 0.5 — 이 깊이 미만 겹침은 측정 오차로 본다.
+ // 예외 목록(모델·태그 근거):
+ //  (a) 관계의 실제 양끝 노드(flow-data step의 from/to, 없으면 경로 끝점 스냅)
+ //  (b) 같은 노드 쌍 관계와 겹치는 공유 경로 구간
+ //  (c) 시퀀스 라이프라인(.c4-lifeline)은 검사 대상이 아니다 — 참여자 아래로 이어지는
+ //      것이 의도라 모델 근거 예외로 둔다(대상 선택자가 애초에 c4-edge/c4-message-line뿐).
+ //  (d) 배지가 이미 점유한 지점(번호로 안내됨)
+ //  (e) 노드 rect는 실제 .c4-body만 본다 — component mark가 노드 왼쪽 밖 8px
+ //      삐져나온 것 등 시각적 돌기를 노드 rect로 계산하지 않는다(오탐 방지).
+ const NEAR_LINK_PX=2.5,SHARED_CORRIDOR_PX=2,BADGE_OCCUPY_PX=13,ENDPOINT_SNAP_PX=3,LABEL_INSIDE_FRACTION=0.3,SOFT_OVERLAP_PX=0.5;
+ const relPairs={};
+ try{const fd=document.getElementById('flow-data');if(fd){(JSON.parse(fd.textContent).flows||[]).forEach(f=>(f.steps||[]).forEach(s=>{if(s.relationshipId&&s.from&&s.to)(relPairs[s.relationshipId]=relPairs[s.relationshipId]||[]).push([s.from,s.to]);}));}}catch(err){}
+ const nodeCards=[...vp.querySelectorAll('.c4-node')].map(n=>{const body=n.querySelector('.c4-body');if(!body)return null;const cs=getComputedStyle(body);return {id:n.dataset.canonicalId||n.dataset.node,g:n,body:box(body),marks:[...n.querySelectorAll('.c4-component-mark,.c4-instance-mark,.c4-tab,.c4-person')].map(m=>({kind:(m.getAttribute('class')||'').trim(),b:box(m)})),fillOpaque:cs.fill!=='none'&&cs.fill!=='rgba(0, 0, 0, 0)'&&parseFloat(cs.fillOpacity||'1')>0.9&&parseFloat(cs.opacity||'1')>0.9};}).filter(Boolean);
+ const samplePath=p=>{const len=p.getTotalLength(),out=[];if(!(len>0))return out;out.push(p.getPointAtLength(0));for(let s=2;s<len;s+=2)out.push(p.getPointAtLength(s));out.push(p.getPointAtLength(len));return out;};
+ const edgePaths=[...vp.querySelectorAll('path.c4-edge,path.c4-message-line')].map(p=>({rel:p.dataset.relation||'',pts:samplePath(p)}));
+ const distPointRect=(pt,r)=>Math.hypot(Math.max(r.x-pt.x,0,pt.x-r.right),Math.max(r.y-pt.y,0,pt.y-r.bottom));
+ const distRectRect=(a,b)=>Math.hypot(Math.max(b.x-a.right,0,a.x-b.right),Math.max(b.y-a.bottom,0,a.y-b.bottom));
+ const interSize=(a,b)=>({w:Math.min(a.right,b.right)-Math.max(a.x,b.x),h:Math.min(a.bottom,b.bottom)-Math.max(a.y,b.y)});
+ const interArea=(a,b)=>Math.max(0,Math.min(a.right,b.right)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.y,b.y));
+ const areaOf=a=>Math.max(a.w*a.h,1e-6);
+ const unionOf=bs=>bs.length?{x:Math.min(...bs.map(b=>b.x)),y:Math.min(...bs.map(b=>b.y)),right:Math.max(...bs.map(b=>b.right)),bottom:Math.max(...bs.map(b=>b.bottom)),w:Math.max(...bs.map(b=>b.right))-Math.min(...bs.map(b=>b.x)),h:Math.max(...bs.map(b=>b.bottom))-Math.min(...bs.map(b=>b.y))}:null;
+ const samePair=(ra,rb)=>ra!==rb&&(relPairs[ra]||[]).some(pa=>(relPairs[rb]||[]).some(pb=>(pb[0]===pa[0]&&pb[1]===pa[1])||(pb[0]===pa[1]&&pb[1]===pa[0])));
+ const badges=[...vp.querySelectorAll('g.badge')].map(b=>{const bb=box(b);return {x:bb.x+bb.w/2,y:bb.y+bb.h/2};});
+ const endsOf=rel=>{const ids=new Set();const pairs=relPairs[rel]||[];pairs.forEach(pr=>{ids.add(pr[0]);ids.add(pr[1]);});
+  // 모델 끝점이 있으면 그것만 쓴다. 좌표 스냅은 flow-data에 없는 관계의
+  // 보강일 뿐이며, 모델과 함께 쓰면 노드가 경로 위로 이동한 변이 상황에서
+  // 무관 노드를 끝점으로 끌어들여 검사를 무력화한다.
+  if(pairs.length)return ids;
+  const ep=edgePaths.find(e=>e.rel===rel);if(ep&&ep.pts.length>1)nodeCards.forEach(n=>{[ep.pts[0],ep.pts[ep.pts.length-1]].forEach(q=>{if(distPointRect(q,n.body)<=ENDPOINT_SNAP_PX)ids.add(n.id);});});return ids;};
+
+ // A10 — 연결처럼 보이는 근접선. 관계(선)·관계 라벨 각각에서 무관한 노드에 닿아 보이는 곳만 남긴다.
+ const nearConnectionMimics=[];
+ const mimicBest=new Map();
+ const keepMimic=(key,entry)=>{const prev=mimicBest.get(key);if(!prev||entry.distance<prev.distance)mimicBest.set(key,entry);};
+ edgePaths.forEach(e=>{const ends=endsOf(e.rel);
+  for(const q of e.pts)for(const n of nodeCards){
+   if(ends.has(n.id))continue; // (a)
+   const d=distPointRect(q,n.body);if(d>NEAR_LINK_PX)continue;
+   if(edgePaths.some(o=>o!==e&&samePair(o.rel,e.rel)&&o.pts.some(r=>Math.hypot(r.x-q.x,r.y-q.y)<=SHARED_CORRIDOR_PX)))continue; // (b)
+   if(badges.some(b=>Math.hypot(b.x-q.x,b.y-q.y)<=BADGE_OCCUPY_PX))continue; // (d)
+   keepMimic('line|'+e.rel+'|'+n.id,{kind:'line',relation:e.rel,node:n.id,distance:d,point:{x:+q.x.toFixed(1),y:+q.y.toFixed(1)}});
+  }});
+ [...vp.querySelectorAll('g.c4-message')].forEach(m=>{
+  const line=m.querySelector('path.c4-message-line');
+  const rel=line?line.dataset.relation:'';
+  const ends=endsOf(rel);
+  const lb=unionOf([...m.querySelectorAll('rect.c4-label-bg,text.c4-message-label')].map(box));
+  if(!lb)return;
+  nodeCards.forEach(n=>{if(ends.has(n.id))return;const d=distRectRect(lb,n.body);
+   if(d<=NEAR_LINK_PX)keepMimic('label|'+m.dataset.stepId+'|'+n.id,{kind:'label',relation:rel,step:m.dataset.stepId,node:n.id,distance:d});});
+ });
+ mimicBest.forEach(v=>{v.distance=+v.distance.toFixed(2);nearConnectionMimics.push(v);});
+
+ // D8 — 그리는 순서 기반 라벨 가림. 화면 DOM과 내보낸 SVG에서 같은 로직을 쓴다.
+ // 좌표는 화면 getBBox(로컬 좌표 = 내보내기 viewBox 좌표)를 쓰고, 문서 순서만 내보내기
+ // 문서에서 따로 확인한다(내보내기가 순서를 바꾸는 회귀를 잡는다).
+ const labelOcclusions=[];
+ const FOLLOWING=Node.DOCUMENT_POSITION_FOLLOWING;
+ const screenLabels=[...vp.querySelectorAll('rect.c4-label-bg,text.c4-message-label')];
+ const screenNodes=[...vp.querySelectorAll('.c4-node')];
+ const exportLabels=exported.querySelectorAll('rect.c4-label-bg,text.c4-message-label');
+ const exportNodes=exported.querySelectorAll('.c4-node');
+ const exportPaired=exportLabels.length===screenLabels.length&&exportNodes.length===screenNodes.length;
+ const stepOf=el=>{const m=el.closest?el.closest('g.c4-message'):null;return m?(m.dataset?m.dataset.stepId:m.getAttribute&&m.getAttribute('data-step-id')):null;};
+ screenLabels.forEach((el,li)=>{
+  const eb=box(el),owner=el.closest?el.closest('g.c4-message'):null;
+  const textUnion=owner?unionOf([...owner.querySelectorAll('text.c4-message-label')].map(box)):eb;
+  const isText=el.classList&&el.classList.contains('c4-message-label');
+  screenNodes.forEach((ng,ni)=>{
+   const card=nodeCards.find(c=>c.g===ng);if(!card)return;
+   const nodeAfter=!!(el.compareDocumentPosition(ng)&FOLLOWING);
+   const exportAfter=exportPaired&&!!(exportLabels[li].compareDocumentPosition(exportNodes[ni])&FOLLOWING);
+   const it=interSize(eb,card.body);
+   const bodyOverlap=it.w>SOFT_OVERLAP_PX&&it.h>SOFT_OVERLAP_PX;
+   if(bodyOverlap){
+    const inside=isText?interArea(textUnion,card.body)/areaOf(textUnion):0;
+    const kind=isText&&inside>=LABEL_INSIDE_FRACTION&&card.fillOpaque?'hard-text':'soft-border';
+    const detail={overlap:{w:+it.w.toFixed(1),h:+it.h.toFixed(1)},insideFraction:+inside.toFixed(2)};
+    if(nodeAfter)labelOcclusions.push(Object.assign({where:'screen',kind:kind,step:stepOf(el),node:card.id},detail));
+    if(exportAfter)labelOcclusions.push(Object.assign({where:'export',kind:kind,step:stepOf(el),node:card.id},detail));
+   }else{
+    for(const mk of card.marks){const mi=interSize(eb,mk.b);
+     if(mi.w>SOFT_OVERLAP_PX&&mi.h>SOFT_OVERLAP_PX&&nodeAfter)labelOcclusions.push({where:'screen',kind:'mark',mark:mk.kind,step:stepOf(el),node:card.id,overlap:{w:+mi.w.toFixed(1),h:+mi.h.toFixed(1)}});
+    }
+   }
+  });
+ });
+ if(screenLabels.length&&!exportPaired)labelOcclusions.push({where:'export',kind:'structure-mismatch',detail:'exported SVG label/node counts differ from screen DOM'});
+
  return {ready:window.repoFlowmap.ready(),renderError:map.dataset.renderError||null,kind:map.dataset.viewKind,viewId:map.dataset.viewId,
   width,height,bbox:box(vp),clipped,textOverlaps,nodeOverflow,pathTextCollisions,pathNodeCollisions,
+  nearConnectionMimics,labelOcclusions,
   nodes:[...vp.querySelectorAll('.c4-node')].map(e=>e.dataset.canonicalId),boundaries:[...vp.querySelectorAll('.c4-boundary')].map(e=>e.dataset.boundary),
   messages:[...vp.querySelectorAll('.c4-message')].map(e=>({id:e.dataset.stepId,order:+e.dataset.order})),self,
   textCount:texts.length,documentWidth:document.documentElement.scrollWidth,viewport:innerWidth,
@@ -174,7 +297,9 @@ def main() -> int:
                     page.wait_for_function('window.repoFlowmap && document.querySelector("#map").dataset.renderStatus',timeout=10000)
                     g=page.evaluate(GEOMETRY)
                     (out/f'{vid}-{width}-geometry.json').write_text(json.dumps(g,ensure_ascii=False,indent=2))
-                    record(f'{vid}/{width}/geometry',g['ready'] and not any(g[k] for k in ('clipped','textOverlaps','nodeOverflow','pathTextCollisions','pathNodeCollisions')),g)
+                    record(f'{vid}/{width}/geometry',geometry_clean(g),g)
+                    record(f'{vid}/{width}/near-connection-mimics',near_connection_clean(g),g[NEAR_CONNECTION_KEY])
+                    record(f'{vid}/{width}/label-occlusion',label_occlusion_clean(g),g[LABEL_OCCLUSION_KEY])
                     record(f'{vid}/{width}/viewport',g['documentWidth']<=width+1,{'scrollWidth':g['documentWidth'],'viewport':width})
                     source=inputs[vid];view_type=source['c4']['view']['type']
                     record(f'{vid}/{width}/view-type',g['kind']==source['c4']['mode'] and g['viewId']==vid,{'viewType':view_type,'kind':g['kind']})

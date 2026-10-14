@@ -1,5 +1,15 @@
 # Lessons
 
+## Guide stop reason attribution must not race with modal occlusion
+- Date: 2026-10-14
+- Task: Full-suite regression of W3 guided-playback/chronology tests after W4 waves.
+- What failed: `test_tab_switch_and_zoom_controls_stop_guidance` and `test_dialog_close_and_reopen_on_one_screen_is_chronological` intermittently (and later consistently under suite load) timed out waiting for the '사용자 조작으로' stop announce after opening the fullscreen dialog.
+- Root cause (measured via announce dump): opening `dialog.showModal()` makes Chrome treat the background document as non-intersecting, so the IntersectionObserver fired `stopGuide('offscreen')` and its message overwrote the click-path stop. The click path also skipped `stopGuides('user')` for cards without an `iframe[data-native-camera="1"]`. Not a click-loss flake — the guide did stop, with the wrong reason.
+- Category: Report template / guided playback state.
+- Fix: [data-zoom]/[data-full] clicks now stop guides as 'user' regardless of native-camera iframe presence; the IO offscreen branch ignores updates while `#diagram-dialog` is open. Tests keep positive predicates and one idempotent re-click.
+- Prevention rule: When two async stop paths can fire for one user action, attribute the reason to the user action (synchronous path wins); treat IO/visibility signals behind an open modal as occlusion, not offscreen, and verify with an announce dump before blaming test timing.
+- Reuse trigger: Any guided/auto-playing UI with both click handlers and IntersectionObserver/visibilitychange stops.
+
 ## Repeated dialogs must show before loading embed content
 - Date: 2026-09-16
 - Task: Integrated verification of fullscreen diagram dialog fixes.
@@ -159,3 +169,13 @@
 - Fix: Require baseline exit 0 and generated HTML; use a separate mutation output and require MOD-003 after parentId mutation.
 - Prevention rule: Negative integration tests must first prove the unchanged fixture passes, then assert the specific rejection cause and output side effects.
 - Reuse trigger: Validator rejection, strict build, or mutation regression tests.
+
+## Init-script property accessors silently break sandboxed embeds
+- Date: 2026-10-14
+- Task: A9 chronological timeline recorder installed via Playwright add_init_script across report + renderer iframes.
+- What failed: With an `Object.defineProperty(window,'repoFlowmap',...)` accessor installed before navigation, the sandboxed (allow-scripts, opaque-origin) renderer embeds never exposed `window.repoFlowmap` — the page's own assignment silently did not stick, `ready()` stayed false, and report guidance aborted as 'unready' with no console error at all. The same accessor worked fine on top-level file:// renderer pages.
+- Root cause: Property interception installed from the embedding context is not reliably honored by page scripts inside opaque-origin sandboxed iframes; same-realm wrapper behavior differs between top-level documents and sandboxed srcdoc embeds.
+- Category: Test instrumentation / sandboxed iframes.
+- Fix: Observe through message EVENTS ('msg:<type>' records fire in every frame, including sandboxed embeds) instead of wrapping the child's postMessage; wrap exportSvg only after `window.repoFlowmap` exists via a `window.__timelineWrapExport()` helper evaluated after ready. Also observe `document` (not `documentElement`, which is null when init scripts run) and dedupe mark mutations per observer batch (subtree scans see current state).
+- Prevention rule: In sandboxed iframe test instrumentation, never rely on pre-installed window property accessors or on wrapping the child's postMessage from outside; use message-event listeners and post-hoc wrapping, and assert the hook installed (e.g. wrap helper returns true).
+- Reuse trigger: add_init_script instrumentation, srcdoc/sandbox embeds, chronological event logs across frames.

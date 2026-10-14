@@ -1,0 +1,210 @@
+{
+  "$schema": "https://c4-archi-model.local/schema/architecture-model-0.4.0.json",
+  "metadata": {
+    "title": "Ordering System",
+    "description": "주문 생성 흐름을 설명하는 가상 예시 — 개정 0(변경 전 시점). 현재 개정과의 비교 예시로만 사용한다.",
+    "targetSystemId": "ordering-system",
+    "schemaVersion": "0.4.0",
+    "modelRevision": "0",
+    "generatorVersion": "c4-archi-model/0.4.0",
+    "generatedAt": "2026-07-01T00:00:00Z",
+    "sourceSnapshotId": null
+  },
+  "elements": [
+    {
+      "id": "customer",
+      "type": "person",
+      "name": "Customer",
+      "description": "웹 화면에서 주문을 생성한다.",
+      "technology": null,
+      "parentId": null,
+      "environment": null,
+      "tags": [],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": [],
+      "instanceOfId": null
+    },
+    {
+      "id": "ordering-system",
+      "type": "softwareSystem",
+      "name": "Ordering System",
+      "description": "주문 접수와 배송 준비 시작을 조정한다.",
+      "technology": null,
+      "parentId": null,
+      "environment": null,
+      "tags": [],
+      "derivation": "normalized",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": [],
+      "instanceOfId": null
+    },
+    {
+      "id": "legacy-system",
+      "type": "softwareSystem",
+      "name": "Legacy Ordering",
+      "description": "이전 시점에 주문 저장소를 함께 두었던 별도 경계다(가상).",
+      "technology": null,
+      "parentId": null,
+      "environment": null,
+      "tags": [],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": [],
+      "instanceOfId": null
+    },
+    {
+      "id": "web-app",
+      "type": "container",
+      "name": "Order Web",
+      "description": "고객에게 주문 입력 화면을 제공한다.",
+      "technology": null,
+      "parentId": "ordering-system",
+      "environment": null,
+      "tags": [],
+      "derivation": "normalized",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": [],
+      "instanceOfId": null
+    },
+    {
+      "id": "order-database",
+      "type": "container",
+      "name": "Order Database",
+      "description": "주문 데이터를 저장한다. 이전 시점에는 Legacy Ordering 경계에 있다.",
+      "technology": "PostgreSQL",
+      "parentId": "legacy-system",
+      "environment": null,
+      "tags": [],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": [],
+      "instanceOfId": null
+    },
+    {
+      "id": "report-job",
+      "type": "container",
+      "name": "Daily Report Job",
+      "description": "일 단위 주문 리포트를 만든다(가상).",
+      "technology": null,
+      "parentId": "ordering-system",
+      "environment": null,
+      "tags": [],
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": [],
+      "instanceOfId": null
+    }
+  ],
+  "relationships": [
+    {
+      "id": "customer-to-system",
+      "sourceId": "customer",
+      "destinationId": "ordering-system",
+      "description": "주문을 생성한다.",
+      "technology": null,
+      "interactionStyle": "synchronous",
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": []
+    },
+    {
+      "id": "customer-to-web",
+      "sourceId": "customer",
+      "destinationId": "web-app",
+      "description": "주문 정보를 입력한다.",
+      "technology": null,
+      "interactionStyle": "synchronous",
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": []
+    },
+    {
+      "id": "web-to-api",
+      "sourceId": "web-app",
+      "destinationId": "order-database",
+      "description": "주문 생성 요청을 기록한다.",
+      "technology": "JDBC",
+      "interactionStyle": "synchronous",
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": []
+    },
+    {
+      "id": "web-to-db",
+      "sourceId": "web-app",
+      "destinationId": "order-database",
+      "description": "화면이 주문을 직접 저장한다.",
+      "technology": "JDBC",
+      "interactionStyle": "synchronous",
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": []
+    },
+    {
+      "id": "report-to-db",
+      "sourceId": "report-job",
+      "destinationId": "order-database",
+      "description": "일 배치 리포트를 위해 주문을 읽는다.",
+      "technology": null,
+      "interactionStyle": "batch",
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": []
+    },
+    {
+      "id": "worker-to-topic",
+      "sourceId": "report-job",
+      "destinationId": "order-database",
+      "description": "리포트 작업 완료를 기록한다.",
+      "technology": null,
+      "interactionStyle": "batch",
+      "derivation": "explicit",
+      "confidence": "DOC_ONLY",
+      "rationale": null,
+      "claimIds": []
+    }
+  ],
+  "views": [
+    {
+      "id": "ordering-container-v0",
+      "type": "container",
+      "title": "Ordering System - Container View (이전 시점)",
+      "scopeId": "ordering-system",
+      "environment": null,
+      "description": "이전 시점의 실행 단위와 저장 경계다. Order Database가 아직 Legacy Ordering 경계에 있다.",
+      "question": "이전 시점에 주문 접수와 저장은 어떤 실행 단위로 나뉘었는가?",
+      "notShown": [
+        "클래스와 함수",
+        "운영 서버 수"
+      ],
+      "elementIds": [
+        "customer",
+        "web-app",
+        "order-database",
+        "report-job"
+      ],
+      "relationshipIds": [
+        "customer-to-web",
+        "web-to-api",
+        "web-to-db",
+        "report-to-db",
+        "worker-to-topic"
+      ],
+      "steps": [],
+      "nextViewIds": [],
+      "claimIds": []
+    }
+  ]
+}

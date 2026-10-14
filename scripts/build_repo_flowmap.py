@@ -52,11 +52,16 @@ def main() -> int:
     parser.add_argument("--output", type=Path, help="diagrams/<stem>.flowmap.html")
     parser.add_argument("--model", type=Path, help="canonical model inside --root; map, do not render externally")
     parser.add_argument("--view", help="exact canonical View ID")
+    parser.add_argument("--presentation-detail", choices=("full", "labels", "minimal"), default="full",
+                        help="display-only annotation density for --model/--view (D2); canonical facts never change")
     parser.add_argument("--ledger", type=Path, default=Path("qa/evidence-ledger.json"))
     args = parser.parse_args()
     root = args.root.resolve()
     if bool(args.model) != bool(args.view):
         parser.error("--model and --view must be supplied together")
+    if args.presentation_detail != "full" and not args.model:
+        parser.error("--presentation-detail applies to --model/--view mapping; "
+                     "legacy --input carries its own c4.presentationDetail stamp")
     if args.view and (not args.view or any(c in args.view for c in '/\\') or args.view in {'.', '..'}):
         parser.error("View ID is not a safe file stem")
     if not args.model and (args.input is None or args.output is None):
@@ -126,7 +131,8 @@ def main() -> int:
             if report.errors:
                 raise ValueError("canonical/evidence validation failed: " + "; ".join(f.message for f in report.errors))
             mapped = project(model, model_path.resolve().relative_to(root).as_posix(),
-                             hashlib.sha256(model_raw).hexdigest(), args.view)
+                             hashlib.sha256(model_raw).hexdigest(), args.view,
+                             presentation_detail=args.presentation_detail)
             raw = (json.dumps(mapped, ensure_ascii=False, indent=2) + "\n").encode()
         else:
             raw = source.read_bytes()
@@ -157,11 +163,18 @@ def main() -> int:
                 if checks.errors:
                     raise ValueError("canonical/evidence validation failed: " + "; ".join(f.message for f in checks.errors))
             expected = project(json.loads(current), actual_model.relative_to(root).as_posix(),
-                               hashlib.sha256(current).hexdigest(), c4["viewId"])
+                               hashlib.sha256(current).hexdigest(), c4["viewId"],
+                               presentation_detail=c4.get("presentationDetail", "full"))
             if expected != mapped:
                 raise ValueError("DIA-008: typed flowmap does not equal the current canonical projection")
             base.update(viewId=c4["viewId"], renderer="repo-flowmap", forkVersion=1,
                         rendererSha256=implementation_hash(BUNDLE))
+            # D6: 축약 내역 요약만 같은 실행 기록에 붙인다. full(기본) 빌드 영수증은 무변경.
+            presentation_log = c4.get("presentationLog")
+            if isinstance(presentation_log, dict):
+                base["presentation"] = {"detail": c4.get("presentationDetail"),
+                                        "counts": presentation_log.get("counts"),
+                                        "logEntries": len(presentation_log.get("entries") or [])}
         base["specification"] = {"sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
         with tempfile.TemporaryDirectory(prefix=".flowmap-build-", dir=root) as work:
             snapshot = Path(work) / source.name

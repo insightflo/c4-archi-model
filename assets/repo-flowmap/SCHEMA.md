@@ -20,7 +20,31 @@ Deployment의 `c4.deploymentPresentation`:
   실제 인스턴스 배치가 아님을 화면·SVG에 명시한다. 물리 호스트 안으로 논리 요소를 옮기지 않는다.
 - 다른 mode의 deploymentPresentation 또는 알 수 없는 값은 오류다.
 
-이 필드는 표시 계약이며 canonical 스키마/모델 변경이 아니다. 물리 인스턴스를 추론하지 않는다.
+표시 상세도 `c4.presentationDetail`(선택, D2)과 축약 내역 `c4.presentationLog`(D6):
+
+- 생략 또는 `full`: 기본 동작. 노드 `desc`는 canonical 설명 그대로, 단계 `note`·`data`도
+  그대로다. 이 입력에는 두 키가 있으면 안 된다(기본 무변경 원칙).
+- `labels`: 노드 `desc`를 종류·기술 요약(`종류: <유형>[ · 기술: <기술>]`)으로 바꾸고
+  단계 `note`를 화면에서 뺀다. `data`(기술)는 유지한다.
+- `minimal`: 노드 `desc`를 비우고 단계 `note`·`data`도 화면에서 뺀다. 라벨(`label`·`call`)만
+  남는다.
+- `meta`·라벨(`label`·`call`)·흐름 요약(`summary`)은 모든 수준에서 그대로다. typed 렌더러가
+  canonical 복제에서 직접 읽는 표식(배치 경계 설명·클래스 멤버·다중성)도 유지된다.
+- 어떤 수준에서도 요소·관계·단계를 삭제·병합하지 않는다. canonical 복제(`element`·
+  `relationship`·`canonicalStep`·`view`)는 항상 원문 그대로다. 이름변경(rename)은 이 투영이
+  만들지 않는다(`label === element.name` 강제).
+- `labels`/`minimal` 입력에는 `presentationLog`가 함께 있어야 한다:
+  `{detail, counts{elements, relationships, steps{canonical, displayed}}, entries[]}`.
+  `counts`는 원본 수와 표시 수가 같음(미삭제)을 기계 확인한다. 비-동적 뷰는 canonical
+  steps가 0이고 표시 steps는 관계 설명 행 수다. 각 entry는
+  `{kind, id, original, displayed, reason}`이고 kind는 description-shortened·
+  description-omitted·note-omitted·annotation-omitted·view-split-proposal이며,
+  id는 canonical 요소·관계·step ID다. view-split-proposal은 visual-budgets.md 경고선을 넘은
+  뷰에 대한 분리 권고일 뿐 자동 분리가 아니다.
+- 검증기는 상세도별 desc/note/data 규칙과 log의 counts·entry 형식을 검사하고,
+  프로젝트 DIA-008이 전체 projection(로그 포함)을 canonical 재투영과 대조한다.
+
+이 필드는 표식 계약이며 canonical 스키마/모델 변경이 아니다. 물리 인스턴스를 추론하지 않는다.
 아래는 기존 legacy schema다.
 
 ---

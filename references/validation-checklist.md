@@ -9,6 +9,8 @@
 - [ ] SES-002 focus Profile에는 target이 있다.
 - [ ] SES-003 target ID가 canonical model에서 해석된다.
 - [ ] SES-004 HTML이 사람이 여는 기본 출력에 포함된다.
+- [ ] SES-005 presentationDetail(선택)이 모델 범위와 별개 축으로 기록되어 있다. 세션의 값을
+      build_repo_flowmap.py `--presentation-detail`에 그대로 전달했다.
 - [ ] 독자 모드와 분석 Profile이 서로 다른 축으로 기록되어 있다.
 - [ ] 질문, 기대 결과와 stopCondition이 검증 가능하게 적혀 있다.
 
@@ -36,6 +38,8 @@
 - [ ] unresolved 항목을 VERIFIED로 표시하지 않았다.
 - [ ] 모든 element와 relationship에 Claim이 있다.
 - [ ] relationship endpoint가 존재한다.
+- [ ] 표시용 축약(presentationDetail·presentationLog)이 canonical 사실을 재정의하지 않는다.
+      원본 ID·뷰 포함 목록은 상세도와 무관하게 그대로다.
 - [ ] 화살표 설명은 방향·동사·목적을 가진다.
 
 ## D. View
@@ -52,6 +56,17 @@
 - [ ] 관계 검사는 canonical ID·방향·동적 순서를 확인한다. 관계 ID가 없고 끝점이 같은 관계가 여럿이면 표시 라벨(flowmap의 `call`)로 구분한다. 명시적 관계 ID가 있을 때 표시 문구와 모델 설명의 의미 일치까지 보장하지는 않으므로 사람이 확인한다.
 - [ ] 각 View는 답하는 질문과 의도적으로 보여주지 않는 것을 설명한다.
 - [ ] 시각 예산 초과 경고를 확인하고 분리 여부를 결정했다.
+- [ ] 상세도를 낮춘 View는 `c4.presentationLog`로 원본 수·표시 수·변경 이유(설명 축약·생략·
+      뷰 분리 제안)를 원본 모델 ID로 되짚을 수 있다. 이 투영은 표시용 이름 변경을 만들지
+      않는다(label === element.name). 축약을 이유로 요소·관계를 합치거나 삭제하지 않았다.
+- [ ] 뷰 분리가 필요하면 새 View를 명시하고 nextViewIds로 연결했다(presentationLog의
+      view-split-proposal은 권고일 뿐 자동 분리가 아니다).
+- [ ] 관계선 끝·꺾임이 실제 연결 대상이 아닌 노드·라벨에 닿아 연결처럼 보이는 근접선이
+      없다. 실제 양끝 연결점, 같은 노드 쌍 관계의 겹치는 공유 경로, 배지가 번호로 안내하는
+      지점은 모델 근거 예외로만 허용한다(`check_repo_flowmap_browser.py` near-connection-mimics).
+- [ ] 라벨 배경이 나중에 그린 노드에 가려지지 않는다. 배경 경계 겹침·노드 표식 겹침·실제
+      가림을 구분해 보고하고 화면 DOM과 내보낸 SVG 모두에서 확인했다
+      (`check_repo_flowmap_browser.py` label-occlusion).
 
 ## E. Coverage
 
@@ -85,6 +100,13 @@
 - [ ] factual section에는 Claim, model 또는 Coverage issue 연결이 있다.
 - [ ] 모든 Claim과 issue ID가 등록되어 있다.
 - [ ] required expected file이 실제로 존재한다.
+- [ ] 뷰 탐색(내부 보기)은 canonical ID와 뷰 포함 목록·parentId 체인(scopeChain)으로만
+      연결했다. 이름·제목 매칭으로 대상 뷰를 추론하지 않았고, 펼친 뷰가 보고서에 없는 요소는
+      진입 불가로 표시했다(없는 뷰를 지어내지 않는다).
+- [ ] 변경 전후 비교를 넣었다면: comparisonPath가 실제 비교 산출물을 가리키고(CMP 검증
+      통과), 비교는 두 canonical 모델을 ID 기준으로만 만들었다. 같은 ID가 다른 대상을 가리킬
+      가능성이 큰 변경은 미확정으로 표시했고, 어느 뷰에도 속하지 않은 변경도 표에 남았다.
+      비교를 넣지 않았다면 이 항목은 해당 없다(보고서는 무변경).
 
 ## H. SVG와 HTML
 
@@ -105,7 +127,23 @@
 - [ ] `__REPORT_DATA_JSON__`, `{{PLACEHOLDER}}`, 미치환 token이 없다.
 - [ ] 기본 HTML 문서 marker와 charset이 있다.
 - [ ] 다이어그램 title, caption, alt가 있다.
+- [ ] repo-flowmap SVG를 추출해 저장했다면 접근성 이름 구조(role="img", 고유 `<title id>`/
+      `<desc id>`, `aria-labelledby` 연결, ID 고유성)가 `validate_svg_accessibility`를 통과했다.
+      이 검사는 repo-flowmap 추출 산출물에만 적용되며 수제 예제 SVG에 소급 적용하지 않는다.
+- [ ] 인터랙티브 다이어그랬의 자동 재생(있다면)은 화면 밖·숨김·대화상자 닫힘·제거에서 정지되고
+      자동으로 재개되지 않는다(사용자 버튼으로만 재시작).
+- [ ] 텍스트·관계선·포커스 표시의 밝기 대비가 기준(본문 텍스트 4.5:1, 의미 있는 비텍스트
+      3:1, 장식 제외)을 충족한다. `scripts/verify_visual_contrast.py`를 실행했고 한계(LIMIT)는
+      visual-budgets.md의 한계 기록 목록과 대응된다.
+- [ ] 이름 있는 시각 프로필(보고서와 그림이 공유하는 색·글꼴·간격 묶음)을 노출했다면
+      `verify_visual_contrast.py --profile <이름>`으로 같은 역할 검사를 통과했고, 프로필 전환이
+      임베드 그림(전체 화면 포함)에 함께 적용되며 기본 복귀·렌더더 테마 전환과 직교함을
+      확인했다. 미리 렌더링된 인쇄 이미지는 프로필을 반영하지 못한다(한계).
 - [ ] 키보드 탐색, 확대·축소, 전체 화면, 검색, 인쇄 기능을 확인했다.
+- [ ] 내부 보기 진입·복귀를 확인했다: 부모 경로(breadcrumb)가 확대 경로만 표시하고, 한 번에
+      최상위로 돌아갔을 때 떠난 뷰의 선택 요소(canonical ID)와 카메라(또는 문서화된 복원 규칙)
+      가 돌아온다. 직접 탭 선택은 이동 스택을 정리한다. 탐색 이동은 안내 재생을 정지한다(자동
+      재개 없음). 인쇄에서 탐색 UI(부모 경로·내부 보기 단추)는 나오지 않는다.
 - [ ] Desktop·Mobile·한글 렌더링 검사를 실행했거나 NOT RUN으로 기록했다.
 
 ## I. Output Package

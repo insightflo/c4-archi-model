@@ -129,6 +129,14 @@ export function validateFlowmap(data) {
 }
 
 // Local maintained fork: additive typed C4/UML view validation. Legacy inputs are unchanged.
+// D2/D6: display-only presentation detail mirrors the Python adapter rules exactly.
+const TYPE_LABELS = {person:'사람',softwareSystem:'소프트웨어 시스템',container:'컨테이너',component:'컴포넌트',codeElement:'코드 요소',deploymentNode:'배포 노드',infrastructureNode:'인프라 노드'};
+const LOG_KINDS = new Set(['description-shortened','description-omitted','note-omitted','annotation-omitted','view-split-proposal']);
+function kindSummary(element) {
+  const label = TYPE_LABELS[element.type];
+  if (!label) return null;
+  return element.technology ? '종류: '+label+' · 기술: '+element.technology : '종류: '+label;
+}
 function validateTypedView(data, errors) {
   if (data.c4 == null || !isPlainObject(data.c4)) { errors.push('c4: typed extension object required'); return; }
   const c = data.c4, view = c.view;
@@ -147,11 +155,19 @@ function validateTypedView(data, errors) {
   const hasLogical=data.nodes.some(n=>['softwareSystem','container'].includes(n.element?.type));
   if (c.mode==='deployment' && (c.deploymentPresentation!=null && !['physical-instances','logical-placement'].includes(c.deploymentPresentation) || logicalPlacement && !hasLogical)) errors.push('deploymentPresentation: unsupported or inconsistent presentation');
   if (c.mode!=='deployment' && c.deploymentPresentation!=null) errors.push('deploymentPresentation: deployment only');
+  const detail = c.presentationDetail == null ? 'full' : c.presentationDetail;
+  if (!['full','labels','minimal'].includes(detail)) errors.push('presentationDetail: unsupported value');
+  if (detail==='full' && c.presentationLog!=null) errors.push('presentationLog: only allowed with reduced presentationDetail');
+  if (detail!=='full') {
+    if (!isPlainObject(c.presentationLog)) errors.push('presentationLog: required with reduced presentationDetail');
+    else if (c.presentationLog.detail!==detail) errors.push('presentationLog.detail: must match presentationDetail');
+  }
   const nodes=new Map(data.nodes.map(n=>[n.id,n]));
   const elements=[...data.nodes.map(n=>n.element),...(c.boundaries||[])];
   const byId=new Map(elements.filter(Boolean).map(e=>[e.id,e]));
   for(const n of data.nodes) {
-    if (!isPlainObject(n.element) || n.element.id!==n.id || n.label!==n.element.name || n.desc!==n.element.description) { errors.push('c4: node canonical ID/name/description mismatch'); continue; }
+    const expectedDesc = detail==='full' ? n.element?.description : detail==='labels' ? kindSummary(n.element) : '';
+    if (!isPlainObject(n.element) || n.element.id!==n.id || n.label!==n.element.name || n.desc!==expectedDesc) { errors.push('c4: node canonical ID/name/description mismatch'); continue; }
     if (!['person','softwareSystem','container','component','codeElement','deploymentNode','infrastructureNode'].includes(n.element.type)) errors.push('c4: unsupported canonical element type');
     if (!Array.isArray(n.element.claimIds) || !n.element.claimIds.length) errors.push('c4: node evidence claim required');
     if (c.mode==='class') {
@@ -185,12 +201,25 @@ function validateTypedView(data, errors) {
     if(canonical && s.canonicalStep?.kind!=='interaction') errors.push('sequence: decision/failure/recovery fragments unsupported');
     if(canonical) {
       const step=canonical[i];
-      const note=step?.condition ? '조건: '+step.condition+(step.note?'\n'+step.note:'') : step?.note;
+      const note=detail==='full'
+        ? (step?.condition ? '조건: '+step.condition+(step.note?'\n'+step.note:'') : step?.note)
+        : null;
       if(s.note!==note) errors.push('sequence: display note must preserve original condition prefix and note');
     }
     if(c.mode==='class' && (!r.codeRelation || !['inheritance','realization','association','composition','dependency'].includes(r.codeRelation.kind))) errors.push('class: explicit supported UML relationship kind required');
+    if(detail==='minimal' && s.data!=null) errors.push('c4: minimal detail must not display step data');
     for(const key of ['return','async','alt','par']) if(key in s) errors.push('sequence: unsupported explicit '+key);
   });
+  if (detail!=='full' && isPlainObject(c.presentationLog)) {
+    const pc=c.presentationLog.counts, entries=c.presentationLog.entries;
+    if (!isPlainObject(pc) || pc.elements?.canonical!==data.nodes.length || pc.elements?.displayed!==data.nodes.length) errors.push('presentationLog.counts.elements: canonical/displayed must equal the displayed node count (nothing dropped)');
+    if (!isPlainObject(pc) || pc.relationships?.canonical!==pc.relationships?.displayed) errors.push('presentationLog.counts.relationships: canonical/displayed must match (nothing dropped)');
+    if (isPlainObject(pc) && pc.steps?.displayed!==steps.length) errors.push('presentationLog.counts.steps.displayed must equal the displayed step count');
+    if (!Array.isArray(entries)) errors.push('presentationLog.entries: array required');
+    else entries.forEach((en,idx)=>{
+      if(!isPlainObject(en) || !LOG_KINDS.has(en.kind) || typeof en.id!=='string' || !en.id || typeof en.reason!=='string' || !en.reason) errors.push(`presentationLog.entries[${idx}]: known kind + id + reason required`);
+    });
+  }
   const expected=c.mode==='sequence'?canonical.map(s=>s.relationshipId):view.relationshipIds;
   if(JSON.stringify(steps.map(s=>s.relationshipId))!==JSON.stringify(expected)) errors.push('c4: full ordered relationship set mismatch');
 }

@@ -425,8 +425,11 @@ def run(root: Path, model_path: Path | None = None, data_path: Path | None = Non
                     from repo_flowmap_adapter import project
                     import hashlib
                     canonical_path = Path(model_path).resolve()
+                    typed_c4 = source_data["c4"]
+                    stamped_detail = typed_c4.get("presentationDetail", "full") if isinstance(typed_c4, dict) else "full"
                     expected = project(model, canonical_path.relative_to(root).as_posix(),
-                                       hashlib.sha256(canonical_path.read_bytes()).hexdigest(), view_id)
+                                       hashlib.sha256(canonical_path.read_bytes()).hexdigest(), view_id,
+                                       presentation_detail=stamped_detail)
                     if source_data != expected:
                         report.error("DIA-008", rel, "typed flowmap differs from the authoritative canonical View projection/path/hash")
                     else:

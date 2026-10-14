@@ -319,6 +319,8 @@ boundaries          자료·시간·도구·범위 경계
 - 시스템이 해결하는 문제부터 설명한다.
 - Context → Container → 핵심 흐름 → 필요한 Component 순으로 확대한다.
 - 전문 용어 첫 등장 시 영어 원문, 한국어 뜻, 구체적 예 또는 비유를 함께 준다.
+- 비유를 쓸 때는 비유 개념이 실제 구성요소·관계 중 무엇에 대응하는지 밝히고,
+  비유가 맞지 않는 범위를 숨기지 않는다.
 - 각 요소를 `무엇인지 / 왜 필요한지 / 누구와 대화하는지 / 없거나 실패하면 어떤 영향인지`로 설명한다.
 - 실제 요청 하나를 번호 순서로 따라간다.
 - 쉬운 설명을 위해 사실을 삭제하거나 바꾸지 않는다.
@@ -447,6 +449,49 @@ relationship endpoint
 
 HTML 빌더가 canonical model에서 위 사실을 읽어 화면에 채운다.
 이 구조가 이름만 같은 가짜 `Payment API`를 슬쩍 끼워 넣는 사소하고도 인간적인 재앙을 막는다.
+
+비유 대응(mappings)은 canonical 모델 ID로만 쓴다.
+
+- `analogy` 옆의 선택 필드 `mappings`는 `{ term, modelId, kind, note? }` 항목으로
+  비유 개념을 실제 구성요소·관계와 잇는다. `modelId`는 등록된 canonical ID여야 하고
+  `kind`(element·relationship)도 실제 대상과 일치해야 한다(HTML-DATA-023).
+- `limits`에 비유가 맞지 않는 범위를 한국어 문장으로 적는다. 없어도 되지만
+  비유의 한계를 감추지 않는다.
+- 화면에 찍히는 이름은 빌더가 canonical model에서 채운다. 비유가 모델 사실을
+  재정의하지 않는다.
+- mappings가 없으면 기존과 동일하게 렌더링된다(선택 필드 — 기존 데이터 무변경).
+
+### 변경 전후 비교(선택)
+
+현재 문서의 변경 영향 분석을 실제 비교 화면으로 확장할 때만 사용한다. 기존 구성요소
+책임 비교(같은 보고서 안 요소별 역할 비교)와 별개의, 두 모델 시점 간 변경 비교다.
+
+1. **두 시점 모델 구하기**: 이전 리비전의 canonical model을 보존한다(예: 이전 패키지
+   아카이브, git 이력에서의 스냅샷 복원). 현 패키지에
+   `<system>.architecture-model.previous.json` 같은 이름으로 함께 보존할 수 있다.
+   이전 시점 모델도 같은 canonical 계약(스키마·시맨틱)을 통과해야 비교할 수 있다.
+   근거 주장 연결(MOD-006/011)은 경고로만 남는다 — 과거 스냅샷의 원래 근거장은
+   비교 입력에 없고 비교 필드에 claimIds가 없기 때문이다.
+2. **비교 실행**:
+
+   ```bash
+   python3 <skill>/scripts/compare_architecture_models.py \
+     --before <output-root>/model/architecture-model.previous.json \
+     --after <output-root>/model/architecture-model.json \
+     --output <output-root>/qa/architecture-comparison.json
+   ```
+
+   비교는 canonical ID 기준이며 요소 추가·삭제·이동(parentId 변경)·속성 변경(이름
+   등 표시에 영향 주는 필드), 관계 추가·삭제·방향 변경(출발·도착 교체·재연결)을
+   분류한다. 원본 모델은 수정하지 않고 결과는 별도 산출물로 남는다.
+3. **보고서 연결**: `html/report-data.json`의 `build.comparisonPath`에 비교 결과
+   경로를 적는다(선택 필드 — 없으면 보고서에 비교 섹션이 나타나지 않고 기존 데이터는
+   무변경). 빌더가 비교 산출물을 '변경 전후 아키텍처 비교' 섹션으로 표시한다.
+4. **미확정 대응의 의미**: 같은 ID가 서로 다른 대상을 가리킬 가능성이 큰 변화(같은
+   ID의 type 불일치, 관계의 출발·도착이 모두 교체)는 미확정으로 표시되고 이동·변경으로
+   단정하지 않는다. 미확정 행은 사유와 함께 표에 남는다.
+5. **그림 밖 변경**: 표가 완전한 목록이고 그림은 보조다 — 어느 뷰에도 속하지 않은
+   변경도 표에서 사라지지 않는다. 상태는 색과 기호, 한글 라벨을 함께 사용한다.
 
 ### Step 11 — Strict validation 실행
 
@@ -735,6 +780,7 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 - `scripts/validate_coverage.py`
 - `scripts/validate_human_understanding.py`
 - `scripts/validate_html_report_data.py`
+- `scripts/compare_architecture_models.py`
 - `scripts/validate_html_assets.py`
 - `scripts/extract_archify_svg.py`
 - `scripts/build_repo_flowmap.py`
@@ -747,11 +793,13 @@ View가 과밀하면 다른 추상화 수준을 섞지 말고 같은 수준의 �
 
 ### 실행 예시
 
-- `examples/ordering-system.*`
+- `examples/ordering-system.*` (가상 예제 모델·원장·비교 산출물 — 실제 분석 결과가 아님)
 - `examples/html-report-data.example.json`
 - `examples/html-report-example.html`
 - `examples/mini-example.md`
 - `examples/invalid-fixtures/README.md`
+- `diagrams/ordering-{context,container}.flowmap.{json,html,svg}` — 예제 다이어그램의 실제 렌더러 산출물(재생성 절차는 README '예제 보고서 재생성')
+- `qa/repo-flowmap-*.json` — 예제 다이어그램의 실행 시점 영수증
 
 ---
 

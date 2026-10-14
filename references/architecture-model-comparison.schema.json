@@ -1,0 +1,345 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://c4-archi-model.local/schema/architecture-model-comparison-0.4.0.json",
+  "title": "C4 Architecture Model Comparison (Before/After)",
+  "description": "두 canonical model 시점을 ID 기준으로 견준 변경 산출물. 비교가 새 사실을 만들지 않는다 — 두 입력에 있는 것만 담는다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "matchBasis",
+    "before",
+    "after",
+    "summary",
+    "changes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "0.4.0"
+    },
+    "generatedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "matchBasis": {
+      "const": "canonicalId"
+    },
+    "before": {
+      "$ref": "#/$defs/modelRef"
+    },
+    "after": {
+      "$ref": "#/$defs/modelRef"
+    },
+    "summary": {
+      "$ref": "#/$defs/summary"
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/change"
+      }
+    },
+    "notes": {
+      "$ref": "#/$defs/stringArray"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "modelRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "title",
+        "modelRevision",
+        "elementCount",
+        "relationshipCount"
+      ],
+      "properties": {
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "modelRevision": {
+          "type": "string"
+        },
+        "sourceSnapshotId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "elementCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "relationshipCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "elementAdded",
+        "elementRemoved",
+        "elementMoved",
+        "elementModified",
+        "relationshipAdded",
+        "relationshipRemoved",
+        "relationshipChanged",
+        "unmatched",
+        "unchangedElements",
+        "unchangedRelationships"
+      ],
+      "properties": {
+        "elementAdded": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "elementRemoved": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "elementMoved": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "elementModified": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "relationshipAdded": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "relationshipRemoved": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "relationshipChanged": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unmatched": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unchangedElements": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unchangedRelationships": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "target",
+        "kind",
+        "uncertain",
+        "before",
+        "after",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "target": {
+          "enum": [
+            "element",
+            "relationship"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "added",
+            "removed",
+            "moved",
+            "modified",
+            "rewired",
+            "unmatched"
+          ]
+        },
+        "subtype": {
+          "enum": [
+            "reversed",
+            "redirected",
+            null
+          ]
+        },
+        "uncertain": {
+          "type": "boolean"
+        },
+        "uncertainReasons": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "before": {
+          "$ref": "#/$defs/snapshot"
+        },
+        "after": {
+          "$ref": "#/$defs/snapshot"
+        },
+        "changedFields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fieldChange"
+          }
+        },
+        "viewRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/viewRef"
+          }
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "snapshot": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "person",
+            "softwareSystem",
+            "container",
+            "component",
+            "codeElement",
+            "deploymentNode",
+            "infrastructureNode"
+          ]
+        },
+        "parentId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "parentName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "technology": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "sourceId": {
+          "$ref": "#/$defs/id"
+        },
+        "destinationId": {
+          "$ref": "#/$defs/id"
+        },
+        "sourceName": {
+          "type": "string"
+        },
+        "destinationName": {
+          "type": "string"
+        }
+      }
+    },
+    "fieldChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "before",
+        "after"
+      ],
+      "properties": {
+        "field": {
+          "enum": [
+            "name",
+            "type",
+            "technology",
+            "description",
+            "parentId",
+            "sourceId",
+            "destinationId"
+          ]
+        },
+        "before": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "after": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "viewRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "viewId",
+        "title",
+        "phase"
+      ],
+      "properties": {
+        "viewId": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "before",
+            "after"
+          ]
+        }
+      }
+    }
+  }
+}

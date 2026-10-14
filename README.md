@@ -110,6 +110,44 @@ Archify는 native `validate`/`deliver --json` 결과를 보존하고
 
 ---
 
+## 예제 보고서 재생성
+
+예제 패키지는 저장소 루트를 패키지 루트로 쓴다(`--root .`). 예제 다이어그램 2개는
+수제 SVG가 아니라 아래 실제 렌더러 산출물이다. 재생성할 때는 같은 실행에서 영수증을
+다시 기록한다(해시 사후 보충 금지).
+
+```bash
+# 1) canonical 모델 투영 + 렌더러 HTML + 빌드/검증 영수증 (두 뷰 각각)
+python3 scripts/build_repo_flowmap.py --root . \
+  --model examples/ordering-system.architecture-model.json \
+  --ledger examples/ordering-system.evidence-ledger.json --view ordering-context
+python3 scripts/build_repo_flowmap.py --root . \
+  --model examples/ordering-system.architecture-model.json \
+  --ledger examples/ordering-system.evidence-ledger.json --view ordering-container
+
+# 2) 인쇄용 SVG 추출 (Chromium file:// 실행, 추출 영수증 자동 기록)
+python3 scripts/export_repo_flowmap_svg.py --root . \
+  --html diagrams/ordering-context.flowmap.html \
+  --chromium "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+python3 scripts/export_repo_flowmap_svg.py --root . \
+  --html diagrams/ordering-container.flowmap.html \
+  --chromium "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+# 3) 전체 검증 → strict 빌드 (--lenient 사용 금지)
+python3 scripts/validate_all.py --root . --data examples/html-report-data.example.json
+rm -f qa/html-build-validation.json   # 빌더가 qa/ 전체를 읽기 보호하므로 이전 결과 삭제
+python3 scripts/build_html_report.py --root . \
+  --data examples/html-report-data.example.json \
+  --template assets/html-report-template.html \
+  --output examples/html-report-example.html \
+  --validation-output qa/html-build-validation.json
+```
+
+모델·영수증·SVG가 바뀌면 1·2단계를 다시 실행해야 한다(영수증 해시가 현재 파일과
+일치해야 RCP 검사가 통과한다). 예제 모델·보고서는 가상 데이터임을 계속 명시한다.
+
+---
+
 ## Output structure
 
 ```

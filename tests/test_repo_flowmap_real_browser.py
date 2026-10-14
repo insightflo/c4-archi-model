@@ -12,10 +12,19 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
-from check_repo_flowmap_browser import GEOMETRY, read_flow_data, sequence_checks
+sys.path.insert(0, str(ROOT / 'tests'))
+from check_repo_flowmap_browser import (
+    GEOMETRY,
+    LABEL_OCCLUSION_KEY,
+    NEAR_CONNECTION_KEY,
+    read_flow_data,
+    sequence_checks,
+)
+from timeline_recorder import TOLERANCE_MS, Timeline, record_step_index
 
 CHROME = os.environ.get('C4_BROWSER') or shutil.which('chromium') or '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 try:
@@ -157,6 +166,9 @@ class ChromeGeometryTests(unittest.TestCase):
                         self.assertTrue(g['ready'], g.get('renderError'))
                         for key in ('clipped', 'textOverlaps', 'nodeOverflow', 'pathTextCollisions', 'pathNodeCollisions'):
                             self.assertEqual(g[key], [], (key, g[key]))
+                        for key in (NEAR_CONNECTION_KEY, LABEL_OCCLUSION_KEY):
+                            self.assertIn(key, g)
+                            self.assertEqual(g[key], [], (key, g[key]))
                         self.assertGreaterEqual(g['bbox']['x'], 0)
                         self.assertGreaterEqual(g['bbox']['y'], 0)
                         self.assertLessEqual(g['documentWidth'], width + 1)
@@ -172,6 +184,126 @@ class ChromeGeometryTests(unittest.TestCase):
                         self.assertFalse(errors)
                         page.close()
             browser.close()
+
+
+@unittest.skipUnless(sync_playwright and Path(CHROME).is_file() and shutil.which('node'),
+                     'actual Chrome, Playwright and Node required')
+class RendererChronologyTests(unittest.TestCase):
+    """A9: 진행 표시(A4) 수명 주기와 취소 직후 내보내기를 시간순으로 검증한다."""
+
+    @classmethod
+    def setUpClass(cls):
+        from test_report_guided_playback import build_view_html, typed_projection
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.view = build_view_html(typed_projection('ordering-classes'), Path(cls.tmp.name) / 'classes.html')
+        cls.pw = sync_playwright().start()
+        cls.browser = cls.pw.chromium.launch(executable_path=CHROME, headless=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.browser.close()
+        cls.pw.stop()
+        cls.tmp.cleanup()
+
+    def open_view(self):
+        page = self.browser.new_page(viewport={'width': 1440, 'height': 1000}, offline=True)
+        errors = []
+        page.on('pageerror', lambda e: errors.append(str(e)))
+        timeline = Timeline()
+        Timeline.install(page)
+        page.goto(self.view.as_uri())
+        page.evaluate('document.fonts.ready')
+        page.wait_for_function('window.repoFlowmap && window.repoFlowmap.ready()')
+        self.addCleanup(page.close)
+        return page, timeline, errors
+
+    @staticmethod
+    def request_step(page, index):
+        page.evaluate("window.postMessage({type:'repo-flowmap-step',viewId:'ordering-classes',"
+                      "stepIndex:%d},'*')" % index)
+
+    def test_step_selection_mark_lifecycle_is_chronological(self):
+        page, timeline, errors = self.open_view()
+        self.request_step(page, 1)
+        page.wait_for_function("document.querySelectorAll('g.c4-flow-mark').length===1 && "
+                               "document.querySelector('g.c4-flow-mark').getAttribute('data-step-index')==='1'")
+        self.request_step(page, 3)
+        page.wait_for_function("document.querySelectorAll('g.c4-flow-mark').length===1 && "
+                               "document.querySelector('g.c4-flow-mark').getAttribute('data-step-index')==='3'")
+        self.request_step(page, -1)
+        page.wait_for_function("document.querySelectorAll('g.c4-flow-mark').length===0")
+        timeline.collect(page, 'lifecycle')
+        # 단계 선택 → 마커 생성 → 다른 단계 → 이전 마커 제거+새 마커 생성(한 변이 배치, 제거 먼저)
+        # → 해제 → 마커 제거(신규 없음)의 실제 변이 순서가 그대로 기록된다.
+        ordered = sorted(timeline.sends() + timeline.marks(), key=lambda r: r['nt'])
+        self.assertEqual([(record['kind'], record_step_index(record)) for record in ordered], [
+            ('msg:repo-flowmap-step', 1), ('mark-add', '1'),
+            ('msg:repo-flowmap-step', 3), ('mark-remove', '1'), ('mark-add', '3'),
+            ('msg:repo-flowmap-step', -1), ('mark-remove', '3'),
+        ], timeline.render())
+        # 각 지시는 적용 직전 그림 상태를 함께 남긴다(이전 단계 → 지시 → 반영).
+        received = timeline.where('msg:repo-flowmap-step')
+        self.assertEqual([record['state']['step'] for record in received], [-1, 1, 3], timeline.render())
+        self.assertEqual([record_step_index(record) for record in timeline.sends()], [1, 3, -1])
+        self.assertEqual(page.evaluate('window.repoFlowmap.state().step'), -1)
+        self.assertEqual(errors, [], timeline.render())
+
+    def test_playback_stop_request_clears_mark_and_is_quiet(self):
+        page, timeline, errors = self.open_view()
+        page.evaluate('document.getElementById("play").click()')
+        page.wait_for_function('window.repoFlowmap.state().playing===true')
+        page.wait_for_function("document.querySelectorAll('g.c4-flow-mark').length===1")
+        self.request_step(page, -1)  # 보고서 안내(A3)의 취소 경로: 조용한 정지 + 단계 해제
+        page.wait_for_function("window.repoFlowmap.state().step===-1 && "
+                               "document.querySelectorAll('g.c4-flow-mark').length===0")
+        timeline.collect(page, 'cancelled')
+        play_click = timeline.clicks('#play')[0]
+        cancel = timeline.where('msg:repo-flowmap-step')[-1]
+        self.assertTrue(cancel['state']['playing'], '취소 지시 직전 상태가 재생 중이었음을 기록해야 합니다')
+        removal = sorted(timeline.where('mark-remove'), key=lambda r: r['nt'])[-1]
+        self.assertGreaterEqual(removal['nt'], cancel['nt'] - TOLERANCE_MS,
+                                '마커 제거는 취소 지시보다 먼저 기록되면 안 됩니다\n' + timeline.render())
+        first_mark = sorted(timeline.where('mark-add'), key=lambda r: r['nt'])[0]
+        self.assertGreaterEqual(first_mark['nt'], play_click['nt'] - TOLERANCE_MS, timeline.render())
+        state = page.evaluate('window.repoFlowmap.state()')
+        self.assertFalse(state['playing'])
+        self.assertIsNone(state['stopNotice'],
+                          '안내 경로 정지는 조용해야 합니다(보고서 낭독과 이중 안내 방지)')
+        self.assertEqual(errors, [], timeline.render())
+
+    def test_cancel_then_immediate_export_carries_no_mark_overlay(self):
+        page, timeline, errors = self.open_view()
+        self.assertTrue(page.evaluate('window.__timelineWrapExport()'),
+                        '내보내기 계측은 준비된 렌더러에 설치되어야 합니다')
+        page.evaluate('document.getElementById("play").click()')
+        page.wait_for_function("document.querySelectorAll('g.c4-flow-mark').length===1")
+        page.evaluate('document.getElementById("play").click()')  # 재생 중 정지 — 단계(및 강조)는 유지, 마커도 화면엔 남는다
+        page.wait_for_function('window.repoFlowmap.state().playing===false')
+        first = page.evaluate('window.repoFlowmap.exportSvg()')
+        page.wait_for_timeout(250)
+        second = page.evaluate('window.repoFlowmap.exportSvg()')
+        timeline.collect(page, 'exported')
+        exports = timeline.exports()
+        self.assertEqual(len(exports), 2, timeline.render())
+        stop_click = timeline.clicks('#play')[-1]
+        self.assertGreaterEqual(exports[0]['nt'], stop_click['nt'] - TOLERANCE_MS,
+                                '내보내기는 정지 이후에 기록되어야 합니다\n' + timeline.render())
+        self.assertEqual(exports[0]['state']['markCount'], 1,
+                        '내보내기 순간 화면에는 진행 마커가 살아 있었음을 기록으로 남긴다')
+        self.assertFalse(exports[0]['state']['playing'])
+        root = ET.fromstring(first)
+        marks = [e for e in root.iter() if 'c4-flow-mark' in (e.get('class') or '').split()]
+        overlays = [e for e in root.iter()
+                    if {'c4-flow-dash', 'c4-flow-head'} & set((e.get('class') or '').split())]
+        edges = [e for e in root.iter() if e.tag.endswith('}path') and 'c4-edge' in (e.get('class') or '').split()]
+        self.assertEqual(marks, [], '정지 직후 내보내기에도 진행 마커는 남지 않습니다')
+        self.assertEqual(overlays, [])
+        self.assertNotIn('data-step-index', first)
+        self.assertEqual(len(edges), 5, '원본 관계선은 모두 보존됩니다')
+        self.assertEqual(first, second, '정지 뒤 내보내기는 시점과 무관하게 같아야 합니다')
+        # 단계 강조(hot)는 정적 한 장으로 읽히는 저장 계약(W3-1 결정)대로 유지된다.
+        self.assertIn('c4-edge hot', first)
+        self.assertEqual(errors, [], timeline.render())
 
 
 if __name__ == '__main__':

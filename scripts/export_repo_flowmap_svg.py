@@ -15,7 +15,7 @@ from pathlib import Path
 import shutil
 import tempfile
 from build_repo_flowmap import assert_distinct_paths, write_receipt
-from c4_validation import validate_svg
+from c4_validation import validate_svg, validate_svg_accessibility
 
 
 def main() -> int:
@@ -81,6 +81,11 @@ def main() -> int:
                 candidate.write_text(svg,encoding='utf-8')
                 checks=validate_svg(candidate)
                 if checks.errors:raise ValueError('; '.join(f.message for f in checks.errors))
+                # Exported SVG doubles as the report print/poster image, so its
+                # accessibility naming structure (role/title/desc/labelledby) is
+                # verified here — never retroactively on hand-authored SVGs.
+                a11y=validate_svg_accessibility(candidate.read_text(encoding='utf-8'),candidate.name)
+                if a11y.errors:raise ValueError('; '.join(f'{f.code}: {f.message}' for f in a11y.errors))
                 candidate.replace(output)
             b.close()
         result={'ok':True,'exitCode':0,'renderer':'repo-flowmap','source':source.relative_to(root).as_posix(),

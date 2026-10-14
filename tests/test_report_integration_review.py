@@ -32,6 +32,15 @@ class ReportIntegrationTests(unittest.TestCase):
     def save(self) -> None:
         self.data_path.write_text(json.dumps(self.data))
 
+    def stage_expected_files(self) -> None:
+        # 예제 expectedFiles에 렌더러 산출물(diagrams/)·영수증(qa/)이 포함되므로
+        # 저장소 루트에서 임시 루트로 함께 스테이징한다(HTML-DATA-021 실존 검사용).
+        for item in self.data["build"]["expectedFiles"]:
+            rel = item if isinstance(item, str) else item["path"]
+            target = self.root / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / rel, target)
+
     def cli(self, script: str, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             [sys.executable, str(ROOT / "scripts" / script), "--root", str(self.root), *args],
@@ -39,6 +48,7 @@ class ReportIntegrationTests(unittest.TestCase):
         )
 
     def build(self, *args: str) -> subprocess.CompletedProcess[str]:
+        self.stage_expected_files()
         self.save()
         return self.cli("build_html_report.py", "--data", str(self.data_path),
                         "--template", str(ROOT / "assets/html-report-template.html"),
@@ -49,8 +59,8 @@ class ReportIntegrationTests(unittest.TestCase):
         view = next(v for v in model["views"] if v["id"] == "ordering-container")
         elements = {e["id"]: e for e in model["elements"]}
         rels = {r["id"]: r for r in model["relationships"]}
-        (self.root / "diagrams").mkdir()
-        (self.root / "qa").mkdir()
+        (self.root / "diagrams").mkdir(exist_ok=True)
+        (self.root / "qa").mkdir(exist_ok=True)
         source = self.root / "diagrams/ordering-container.architecture.json"
         source.write_text(json.dumps({
             "components": [{"id": eid, "label": elements[eid]["name"]} for eid in view["elementIds"]],

@@ -11,14 +11,27 @@
     "evidenceLedgerPath": "examples/ordering-system.evidence-ledger.json",
     "coveragePath": "examples/ordering-system.coverage.json",
     "understandingPath": "examples/ordering-system.human-understanding.json",
+    "comparisonPath": "examples/ordering-system.architecture-comparison.json",
     "expectedFiles": [
       "examples/ordering-system.architecture-session.json",
       "examples/ordering-system.architecture-model.json",
+      "examples/ordering-system.architecture-model.previous.json",
+      "examples/ordering-system.architecture-comparison.json",
       "examples/ordering-system.evidence-ledger.json",
       "examples/ordering-system.coverage.json",
       "examples/ordering-system.human-understanding.json",
-      "examples/ordering-system-context.svg",
-      "examples/ordering-system-container.svg",
+      "diagrams/ordering-context.flowmap.json",
+      "diagrams/ordering-context.flowmap.html",
+      "diagrams/ordering-context.flowmap.svg",
+      "diagrams/ordering-container.flowmap.json",
+      "diagrams/ordering-container.flowmap.html",
+      "diagrams/ordering-container.flowmap.svg",
+      "qa/repo-flowmap-validate-ordering-context.json",
+      "qa/repo-flowmap-build-ordering-context.json",
+      "qa/repo-flowmap-svg-ordering-context.json",
+      "qa/repo-flowmap-validate-ordering-container.json",
+      "qa/repo-flowmap-build-ordering-container.json",
+      "qa/repo-flowmap-svg-ordering-container.json",
       "examples/ordering-system.puml",
       "examples/mini-example.md"
     ]
@@ -44,9 +57,10 @@
     {
       "id": "context-diagram",
       "viewId": "ordering-context",
-      "assetPath": "examples/ordering-system-context.svg",
+      "assetPath": "diagrams/ordering-context.flowmap.html",
       "dataUri": null,
-      "mimeType": "image/svg+xml",
+      "mimeType": "text/html",
+      "printAssetPath": "diagrams/ordering-context.flowmap.svg",
       "required": true,
       "presentation": {
         "intro": "고객과 Ordering System의 가장 바깥 경계를 보여준다.",
@@ -67,9 +81,10 @@
     {
       "id": "container-diagram",
       "viewId": "ordering-container",
-      "assetPath": "examples/ordering-system-container.svg",
+      "assetPath": "diagrams/ordering-container.flowmap.html",
       "dataUri": null,
-      "mimeType": "image/svg+xml",
+      "mimeType": "text/html",
+      "printAssetPath": "diagrams/ordering-container.flowmap.svg",
       "required": true,
       "presentation": {
         "intro": "주문 생성과 배송 준비에 참여하는 실행 단위와 저장 경계를 보여준다.",
@@ -121,6 +136,15 @@
             "explanation": "Order API가 주문 생성 이벤트를 topic에 발행한다.",
             "attention": "저장과 발행 사이 실패 복구는 확인되지 않았다.",
             "analogy": "전달대에 주문서를 올리는 단계",
+            "mappings": [
+              {
+                "term": "전달대에 주문서 올리기",
+                "modelId": "api-to-topic",
+                "kind": "relationship",
+                "note": "넘어가는 것은 종이 주문서가 아니라 이벤트다"
+              }
+            ],
+            "limits": "전달대의 주문서는 그대로 남지만, topic의 전달 보장·재시도 정책은 입력 자료에 없다.",
             "stepId": "step-api-topic"
           },
           {
@@ -169,6 +193,15 @@
             "whyItMatters": "주문 저장과 이벤트 발행 조정을 한 경계에 모은다.",
             "withoutIt": "주문 규칙과 저장 책임이 여러 곳에 흩어질 수 있다.",
             "analogy": "주문 접수 창구",
+            "mappings": [
+              {
+                "term": "주문 접수 창구",
+                "modelId": "order-api",
+                "kind": "element",
+                "note": "고객의 주문을 받아 규칙대로 장부와 전달대로 넘긴다"
+              }
+            ],
+            "limits": "접수 창구와 달리 Order API는 한 창구에서 동시에 여러 주문 요청을 받아 처리한다.",
             "notes": [
               "Web App, Database, topic과 연결된다."
             ]
@@ -348,6 +381,26 @@
       "content": null,
       "mimeType": "application/json",
       "downloadName": "ordering-system.architecture-model.json",
+      "required": true
+    },
+    {
+      "id": "architecture-comparison",
+      "name": "ordering-system.architecture-comparison.json",
+      "kind": "model comparison",
+      "contentPath": "examples/ordering-system.architecture-comparison.json",
+      "content": null,
+      "mimeType": "application/json",
+      "downloadName": "ordering-system.architecture-comparison.json",
+      "required": true
+    },
+    {
+      "id": "previous-model",
+      "name": "ordering-system.architecture-model.previous.json",
+      "kind": "canonical model (previous revision)",
+      "contentPath": "examples/ordering-system.architecture-model.previous.json",
+      "content": null,
+      "mimeType": "application/json",
+      "downloadName": "ordering-system.architecture-model.previous.json",
       "required": true
     },
     {

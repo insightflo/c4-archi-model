@@ -1,0 +1,250 @@
+{
+  "validatorVersion": "0.4.0",
+  "name": "c4-html-build",
+  "result": "PASS",
+  "errorCount": 0,
+  "warningCount": 0,
+  "findings": [],
+  "checks": [
+    {
+      "id": "SCHEMA-001",
+      "label": "architecture-session matches JSON Schema",
+      "result": "PASS",
+      "detail": "architecture-session.schema.json"
+    },
+    {
+      "id": "SES-001",
+      "label": "Scope inclusion and exclusion do not conflict",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SES-002",
+      "label": "Analysis profile has a usable target scope",
+      "result": "PASS",
+      "detail": "guided"
+    },
+    {
+      "id": "SES-003",
+      "label": "Session target IDs resolve in the canonical model",
+      "result": "PASS",
+      "detail": "1"
+    },
+    {
+      "id": "SES-004",
+      "label": "HTML is included as the human entry point",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SCHEMA-001",
+      "label": "architecture-model matches JSON Schema",
+      "result": "PASS",
+      "detail": "architecture-model.schema.json"
+    },
+    {
+      "id": "MOD-001",
+      "label": "Canonical IDs are globally unique",
+      "result": "PASS",
+      "detail": "21"
+    },
+    {
+      "id": "MOD-002",
+      "label": "Target software system resolves",
+      "result": "PASS",
+      "detail": "ordering-system"
+    },
+    {
+      "id": "MOD-003",
+      "label": "C4 parent hierarchy is valid",
+      "result": "PASS",
+      "detail": "7"
+    },
+    {
+      "id": "MOD-007",
+      "label": "Relationship endpoints, descriptions, and evidence links are valid",
+      "result": "PASS",
+      "detail": "6"
+    },
+    {
+      "id": "VIEW-001",
+      "label": "C4 views reference valid scopes, elements, relationships, and ordered steps",
+      "result": "PASS",
+      "detail": "3"
+    },
+    {
+      "id": "MOD-012",
+      "label": "All canonical claim IDs resolve in the evidence ledger",
+      "result": "PASS",
+      "detail": "16"
+    },
+    {
+      "id": "SCHEMA-001",
+      "label": "evidence-ledger matches JSON Schema",
+      "result": "PASS",
+      "detail": "evidence-ledger.schema.json"
+    },
+    {
+      "id": "EVD-001",
+      "label": "Evidence ledger session matches",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "EVD-002",
+      "label": "Source and claim IDs are unique",
+      "result": "PASS",
+      "detail": "sources=1, claims=17"
+    },
+    {
+      "id": "EVD-008",
+      "label": "Claims use registered sources and valid canonical references",
+      "result": "PASS",
+      "detail": "17"
+    },
+    {
+      "id": "EVD-018",
+      "label": "Canonical claims exist in the ledger",
+      "result": "PASS",
+      "detail": "16"
+    },
+    {
+      "id": "SCHEMA-001",
+      "label": "coverage matches JSON Schema",
+      "result": "PASS",
+      "detail": "coverage.schema.json"
+    },
+    {
+      "id": "COV-001",
+      "label": "Coverage session matches",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "COV-003",
+      "label": "Coverage item IDs are unique",
+      "result": "PASS",
+      "detail": "6"
+    },
+    {
+      "id": "COV-004",
+      "label": "Coverage references resolve",
+      "result": "PASS",
+      "detail": "6"
+    },
+    {
+      "id": "COV-008",
+      "label": "Coverage completion is consistent",
+      "result": "PASS",
+      "detail": "PASS_BOUNDED"
+    },
+    {
+      "id": "SCHEMA-001",
+      "label": "human-understanding matches JSON Schema",
+      "result": "PASS",
+      "detail": "human-understanding.schema.json"
+    },
+    {
+      "id": "HUG-001",
+      "label": "Human-understanding gate is internally consistent",
+      "result": "PASS",
+      "detail": "PASS_BOUNDED"
+    },
+    {
+      "id": "SCHEMA-001",
+      "label": "architecture-model-comparison matches JSON Schema",
+      "result": "PASS",
+      "detail": "architecture-model-comparison.schema.json"
+    },
+    {
+      "id": "CMP-001",
+      "label": "Model comparison is internally consistent and after-side IDs resolve in the canonical model",
+      "result": "PASS",
+      "detail": "13 changes"
+    },
+    {
+      "id": "SCHEMA-001",
+      "label": "html-report-data matches JSON Schema",
+      "result": "PASS",
+      "detail": "html-report-data.schema.json"
+    },
+    {
+      "id": "HTML-DATA-023",
+      "label": "Analogy mappings resolve to canonical model IDs",
+      "result": "PASS",
+      "detail": "2"
+    },
+    {
+      "id": "HTML-DATA-018",
+      "label": "HTML factual sections map to evidence claims",
+      "result": "PASS",
+      "detail": "11"
+    },
+    {
+      "id": "HTML-DATA-001",
+      "label": "Presentation data resolves canonical IDs without redefining canonical facts",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "DIA-008",
+      "label": "typed canonical facts, members, boundaries, targets and ordered messages match",
+      "result": "PASS",
+      "detail": "ordering-container"
+    },
+    {
+      "id": "DIA-008",
+      "label": "typed canonical facts, members, boundaries, targets and ordered messages match",
+      "result": "PASS",
+      "detail": "ordering-context"
+    },
+    {
+      "id": "DIA-001",
+      "label": "diagram inputs cross-checked against the canonical model",
+      "result": "PASS",
+      "detail": "2 source(s), canonical identity matching"
+    },
+    {
+      "id": "RCP-001",
+      "label": "source receipts and supplied report assets verified",
+      "result": "PASS",
+      "detail": "2 source(s); integrity only, not renderer authenticity"
+    },
+    {
+      "id": "SVG-001",
+      "label": "SVG is parseable and self-contained",
+      "result": "PASS",
+      "detail": "ordering-context.flowmap.svg"
+    },
+    {
+      "id": "SVG-001",
+      "label": "SVG is parseable and self-contained",
+      "result": "PASS",
+      "detail": "ordering-container.flowmap.svg"
+    },
+    {
+      "id": "HTML-STATIC-001",
+      "label": "HTML is offline and has no unresolved template tokens",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "HTML-STATIC-005",
+      "label": "all referenced local files exist",
+      "result": "PASS",
+      "detail": "0"
+    },
+    {
+      "id": "HTML-STATIC-006",
+      "label": "all in-document fragment targets exist",
+      "result": "PASS",
+      "detail": "1"
+    },
+    {
+      "id": "HTML-STATIC-001",
+      "label": "HTML is offline and has no unresolved template tokens",
+      "result": "PASS",
+      "detail": ""
+    }
+  ]
+}

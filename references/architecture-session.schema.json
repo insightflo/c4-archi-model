@@ -65,6 +65,15 @@
         "full"
       ]
     },
+    "presentationDetail": {
+      "enum": [
+        "full",
+        "labels",
+        "minimal"
+      ],
+      "default": "full",
+      "description": "Optional display-only annotation density for rendered views (D2). Model scope never changes; view inclusion lists are preserved at every level."
+    },
     "targetIds": {
       "$ref": "#/$defs/idArray"
     },

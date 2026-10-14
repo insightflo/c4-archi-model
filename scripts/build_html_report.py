@@ -127,6 +127,32 @@ def canonical_name(item_id: str | None, elements: dict[str, dict[str, Any]],
     return item_id or ""
 
 
+def hydrate_analogy_mappings(mappings: list[dict[str, Any]] | None,
+                             elements: dict[str, dict[str, Any]],
+                             relationships: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    """비유 대응(A1) 표시용 하이드레이션 — canonical 이름만 채운다.
+
+    term·modelId·kind·note·limits는 원문 그대로 두고, 보고서 화면에서 읽을
+    `name`(요소 이름 또는 관계는 `출발 → 도착`)만 덧붙인다. 이름은 canonical
+    model에서만 오기 때문에 비유가 모델 사실을 재정의할 수 없다. 검증기가
+    modelId·kind를 canonical 등록 ID로 확인하므로 여기서는 재검사하지 않는다.
+    """
+    hydrated: list[dict[str, Any]] = []
+    for item in (mappings or []):
+        entry = dict(item)
+        model_id = item.get("modelId")
+        if item.get("kind") == "relationship":
+            rel = relationships.get(model_id, {})
+            source = elements.get(rel.get("sourceId"), {})
+            destination = elements.get(rel.get("destinationId"), {})
+            entry["name"] = f"{source.get('name', rel.get('sourceId', ''))} → " \
+                            f"{destination.get('name', rel.get('destinationId', ''))}"
+        else:
+            entry["name"] = elements.get(model_id, {}).get("name", model_id)
+        hydrated.append(entry)
+    return hydrated
+
+
 def coverage_items(coverage: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
     items: dict[str, dict[str, Any]] = {}
     kinds: dict[str, str] = {}
@@ -144,6 +170,22 @@ def coverage_items(coverage: dict[str, Any]) -> tuple[dict[str, dict[str, Any]],
                 items[item["id"]] = item
                 kinds[item["id"]] = label
     return items, kinds
+
+
+def scope_chain(scope_id: Any, elements: dict[str, dict[str, Any]]) -> list[str]:
+    """A5: 뷰 경계가 어느 요소 안에 있는지 parentId 체인으로 한다(순환 안전).
+
+    첫 항이 뷰의 scopeId 자신이고 이후는 상위 경계들이다. 탐색(내부 보기 진입)은
+    이 체인과 canonical ID로만 연결한다 — 이름 매칭으로 뷰를 지어내지 않는다.
+    """
+    chain: list[str] = []
+    seen: set[str] = set()
+    current = scope_id
+    while isinstance(current, str) and current in elements and current not in seen:
+        chain.append(current)
+        seen.add(current)
+        current = elements[current].get("parentId")
+    return chain
 
 
 def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None],
@@ -183,6 +225,8 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
             "type": view.get("type", "unknown"),
             "elementIds": list(view.get("elementIds", [])),
             "relationshipIds": list(view.get("relationshipIds", [])),
+            "scopeId": view.get("scopeId"),
+            "scopeChain": scope_chain(view.get("scopeId"), elements),
             "scope": canonical_name(view.get("scopeId"), elements, relationships, views),
             "description": presentation.get("intro") or view.get("description", ""),
             "question": view.get("question", ""),
@@ -222,6 +266,8 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
                 "confidence": rel.get("confidence", "UNVERIFIED"),
                 "attention": presentation_step.get("attention"),
                 "analogy": presentation_step.get("analogy"),
+                "analogyMappings": hydrate_analogy_mappings(presentation_step.get("mappings"), elements, relationships),
+                "analogyLimits": presentation_step.get("limits"),
                 "kind": step.get("kind", "interaction"),
                 "condition": step.get("condition"),
                 "sourceIds": source_ids_for_claims(claims, step_claim_ids),
@@ -255,6 +301,8 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
                 "why": presentation.get("whyItMatters"),
                 "without": presentation.get("withoutIt"),
                 "analogy": presentation.get("analogy"),
+                "analogyMappings": hydrate_analogy_mappings(presentation.get("mappings"), elements, relationships),
+                "analogyLimits": presentation.get("limits"),
                 "notes": presentation.get("notes", []),
                 "claimIds": canonical.get("claimIds", []),
                 "sourceIds": source_ids_for_claims(claims, canonical.get("claimIds", [])),
@@ -276,6 +324,14 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
 
     for section in hydrated.get("audienceSections", []):
         section["sourceIds"] = source_ids_for_claims(claims, section.get("claimIds", []))
+
+    # 용어집 비유 대응(A1): 화면에서 읽을 canonical 이름을 여기서 채운다.
+    # 단계·요소와 마찬가지로 원문 mappings/limits는 hydrated 필드(analogyMappings/
+    # analogyLimits)로만 전달해 세 표면의 데이터 구조를 같게 유지한다.
+    for term in hydrated.get("glossary", []):
+        if term.get("mappings") or term.get("limits"):
+            term["analogyMappings"] = hydrate_analogy_mappings(term.pop("mappings", []), elements, relationships)
+            term["analogyLimits"] = term.pop("limits", None)
 
     for key in ("benefits", "tradeoffs", "risks"):
         hydrated["analysis"][key] = [
@@ -381,6 +437,13 @@ def hydrate_report(data: dict[str, Any], bundle: dict[str, dict[str, Any] | None
         {"label": "Views", "value": len(views)},
         {"label": "Open Boundaries", "value": len(coverage.get("unknownRelevant", []))},
     ]
+
+    # 변경 전후 비교(D10): 비교 산출물이 있을 때만 화면 데이터로 전달한다(선택 — 없는
+    # 보고서는 무변경). 이름·설명은 비교 산출물이 이미 두 입력 모델에서 채운 값이라
+    # 여기서 새로 만들지 않고 원본 그대로 복사만 한다.
+    comparison = bundle.get("comparison")
+    if comparison is not None:
+        hydrated["modelComparison"] = copy.deepcopy(comparison)
 
     hydrated["integrity"] = {
         "result": validation.result,

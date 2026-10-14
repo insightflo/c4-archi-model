@@ -252,6 +252,11 @@ def validate_session(data: dict[str, Any], schema_path: Path, model: dict[str, A
         report.warning("SES-004", "$.outputSurface.requestedFormats", "HTML is the default human entry point but was not requested")
     else:
         report.pass_check("SES-004", "HTML is included as the human entry point")
+
+    # D2: 표시 상세도는 모델 범위와 별개 축이다(값 자체는 스키마 enum이 검증한다).
+    if "presentationDetail" in data:
+        report.pass_check("SES-005", "presentation detail is recorded separately from model scope",
+                          data["presentationDetail"])
     return report
 
 
@@ -714,6 +719,26 @@ def validate_understanding(data: dict[str, Any], schema_path: Path, session: dic
     return report
 
 
+def _analogy_mapping_sites(data: dict[str, Any]) -> list[tuple[str, list[dict[str, Any]]]]:
+    """비유 대응(A1) mappings이 등장하는 경로와 항목을 모은다."""
+    sites: list[tuple[str, list[dict[str, Any]]]] = []
+    for flow_index, flow in enumerate(data.get("flows", [])):
+        for note_index, step_note in enumerate(flow.get("presentation", {}).get("stepNotes", [])):
+            mappings = step_note.get("mappings") or []
+            if mappings:
+                sites.append((f"$.flows[{flow_index}].presentation.stepNotes[{note_index}].mappings", mappings))
+    for group_index, group in enumerate(data.get("elementGroups", [])):
+        for item_index, item in enumerate(group.get("elements", [])):
+            mappings = (item.get("presentation", {}) or {}).get("mappings") or []
+            if mappings:
+                sites.append((f"$.elementGroups[{group_index}].elements[{item_index}].presentation.mappings", mappings))
+    for term_index, term in enumerate(data.get("glossary", [])):
+        mappings = term.get("mappings") or []
+        if mappings:
+            sites.append((f"$.glossary[{term_index}].mappings", mappings))
+    return sites
+
+
 def _report_claim_refs(data: dict[str, Any]) -> set[str]:
     found = set(data.get("overview", {}).get("claimIds", []))
     for flow in data.get("flows", []):
@@ -749,6 +774,7 @@ def validate_report_data(data: dict[str, Any], schema_path: Path, *, root: Path 
         return report
 
     model_elements = {item["id"]: item for item in model.get("elements", [])} if model else {}
+    model_relationships = {item["id"]: item for item in model.get("relationships", [])} if model else {}
     model_views = {item["id"]: item for item in model.get("views", [])} if model else {}
     claim_ids = _ids(ledger.get("claims", [])) if ledger else set()
     issue_ids = _coverage_item_ids(coverage)
@@ -817,6 +843,17 @@ def validate_report_data(data: dict[str, Any], schema_path: Path, *, root: Path 
             if not (item["claimIds"] or item["issueIds"]):
                 report.error("HTML-DATA-017", f"$.analysis.{key}[{index}]", "analysis item needs a claim or coverage issue")
 
+    mapping_total = 0
+    for path, mappings in _analogy_mapping_sites(data):
+        mapping_total += len(mappings)
+        for mapping_index, mapping in enumerate(mappings):
+            target = model_elements if mapping["kind"] == "element" else model_relationships
+            if model is not None and mapping["modelId"] not in target:
+                report.error("HTML-DATA-023", f"{path}[{mapping_index}].modelId",
+                             f"analogy mapping must reference a canonical {mapping['kind']} ID, got {mapping['modelId']!r}")
+    if mapping_total:
+        report.pass_check("HTML-DATA-023", "Analogy mappings resolve to canonical model IDs", str(mapping_total))
+
     if ledger is not None:
         unknown_claims = sorted(_report_claim_refs(data) - claim_ids)
         if unknown_claims:
@@ -844,6 +881,92 @@ def validate_report_data(data: dict[str, Any], schema_path: Path, *, root: Path 
 
     if not report.errors:
         report.pass_check("HTML-DATA-001", "Presentation data resolves canonical IDs without redefining canonical facts")
+    return report
+
+
+# 변경 전후 비교(D10): 산출물 자체의 무결성 검사. 비교가 새 사실을 만들지 않는다-
+# after 측 참조만 번들 canonical model과 대조하고 before 측은 기록된 대로 보존한다.
+def validate_model_comparison(data: dict[str, Any], schema_path: Path,
+                             model: dict[str, Any] | None = None) -> ValidationReport:
+    report = schema_report("architecture-model-comparison", data, schema_path)
+    if report.errors:
+        return report
+
+    changes = data["changes"]
+    summary = data["summary"]
+
+    def counted(target: str, kind: str) -> int:
+        return sum(1 for item in changes if item["target"] == target and item["kind"] == kind)
+
+    expected_summary = {
+        "elementAdded": counted("element", "added"),
+        "elementRemoved": counted("element", "removed"),
+        "elementMoved": counted("element", "moved"),
+        "elementModified": counted("element", "modified"),
+        "relationshipAdded": counted("relationship", "added"),
+        "relationshipRemoved": counted("relationship", "removed"),
+        "relationshipChanged": counted("relationship", "rewired") + counted("relationship", "modified"),
+        "unmatched": counted("element", "unmatched") + counted("relationship", "unmatched"),
+    }
+    for key, expected in expected_summary.items():
+        if summary[key] != expected:
+            report.error("CMP-002", f"$.summary.{key}", f"summary count {summary[key]} does not match changes list ({expected})")
+
+    for index, change in enumerate(changes):
+        path = f"$.changes[{index}]"
+        kind, target = change["kind"], change["target"]
+        if kind == "added" and not (change["before"] is None and change["after"] is not None):
+            report.error("CMP-003", path, "added change must have before=null and a non-null after snapshot")
+        elif kind == "removed" and not (change["after"] is None and change["before"] is not None):
+            report.error("CMP-003", path, "removed change must have after=null and a non-null before snapshot")
+        elif kind in {"moved", "modified", "rewired", "unmatched"} and not (change["before"] and change["after"]):
+            report.error("CMP-003", path, f"{kind} change must keep both before and after snapshots")
+        if kind == "unmatched" and not change["uncertain"]:
+            report.error("CMP-004", path, "unmatched change must be marked uncertain")
+        if change["uncertain"] and not change.get("uncertainReasons"):
+            report.error("CMP-004", path + ".uncertainReasons", "uncertain change needs at least one reason")
+        if kind == "rewired":
+            if change.get("subtype") not in {"reversed", "redirected"}:
+                report.error("CMP-005", path + ".subtype", "rewired change needs subtype reversed or redirected")
+        elif change.get("subtype") is not None:
+            report.error("CMP-005", path + ".subtype", "only rewired changes may carry a subtype")
+        fields = [item["field"] for item in change.get("changedFields", [])]
+        if kind == "modified" and not fields:
+            report.error("CMP-006", path + ".changedFields", "modified change must list the changed fields")
+        if kind == "moved" and "parentId" not in fields:
+            report.error("CMP-006", path + ".changedFields", "moved change must include the parentId field diff")
+        if kind == "rewired" and not ("sourceId" in fields or "destinationId" in fields):
+            report.error("CMP-006", path + ".changedFields", "rewired change must include an endpoint field diff")
+        for phase in ("before", "after"):
+            snapshot = change[phase]
+            if snapshot is None:
+                continue
+            if target == "element" and not ("name" in snapshot and "type" in snapshot):
+                report.error("CMP-007", f"{path}.{phase}", "element snapshot needs name and type")
+            if target == "relationship" and not ("sourceId" in snapshot and "destinationId" in snapshot):
+                report.error("CMP-007", f"{path}.{phase}", "relationship snapshot needs sourceId and destinationId")
+        if model is not None and change["after"] is not None:
+            pool = model.get("elements", []) if target == "element" else model.get("relationships", [])
+            if change["id"] not in {item["id"] for item in pool}:
+                report.error("CMP-008", path + ".id",
+                             f"after-side {target} {change['id']!r} does not exist in the report canonical model")
+
+    if model is not None:
+        view_by_id = {item["id"]: item for item in model.get("views", [])}
+        for index, change in enumerate(changes):
+            path = f"$.changes[{index}]"
+            for ref_index, ref in enumerate(change.get("viewRefs", [])):
+                if ref["phase"] != "after":
+                    continue
+                view = view_by_id.get(ref["viewId"])
+                key = "elementIds" if change["target"] == "element" else "relationshipIds"
+                if view is None or change["id"] not in view.get(key, []):
+                    report.error("CMP-008", f"{path}.viewRefs[{ref_index}]",
+                                 f"after-phase view {ref['viewId']!r} does not contain {change['id']!r}")
+
+    if not report.errors:
+        report.pass_check("CMP-001", "Model comparison is internally consistent and after-side IDs resolve in the canonical model",
+                          f"{len(changes)} changes")
     return report
 
 
@@ -936,6 +1059,61 @@ def validate_svg(path: Path) -> ValidationReport:
         report.warning("SVG-005", str(path), "SVG has no viewBox; responsive scaling may be poor")
     if not report.errors:
         report.pass_check("SVG-001", "SVG is parseable and self-contained", path.name)
+    return report
+
+
+_SVG_ID = re.compile(r"^[A-Za-z][A-Za-z0-9_.-]*$")
+
+
+def validate_svg_accessibility(svg_text: str, name: str = "svg") -> ValidationReport:
+    """Check the exported SVG's accessibility naming structure.
+
+    Separated from validate_svg on purpose: hand-authored example SVGs and
+    existing callers are NOT retroactively required to carry this structure.
+    Only the repo-flowmap export path (scripts/export_repo_flowmap_svg.py)
+    and its tests call this.
+    """
+    report = ValidationReport(f"svg-a11y:{name}")
+    try:
+        root = ET.fromstring(svg_text)
+    except ET.ParseError as exc:
+        report.error("SVG-A11Y-001", name, f"invalid SVG: {exc}")
+        return report
+    if root.tag.rsplit("}", 1)[-1] != "svg":
+        report.error("SVG-A11Y-001", name, f"root element is not svg: {root.tag}")
+        return report
+    role = root.get("role")
+    if role != "img":
+        report.error("SVG-A11Y-002", name, f"exported SVG must carry role=\"img\" for static figures, got {role!r}")
+    title = next((c for c in root if c.tag.rsplit("}", 1)[-1] == "title"), None)
+    desc = next((c for c in root if c.tag.rsplit("}", 1)[-1] == "desc"), None)
+    title_id = title.get("id") if title is not None else None
+    desc_id = desc.get("id") if desc is not None else None
+    if title is None or not (title.text or "").strip():
+        report.error("SVG-A11Y-003", name, "direct-child <title> with non-empty text is required")
+    if desc is None or not (desc.text or "").strip():
+        report.error("SVG-A11Y-003", name, "direct-child <desc> with non-empty text is required")
+    for label, value in (("title", title_id), ("desc", desc_id)):
+        if not value or not _SVG_ID.match(value):
+            report.error("SVG-A11Y-004", name, f"{label} id must be a non-empty XML name (letters first): {value!r}")
+    labelledby = (root.get("aria-labelledby") or "").split()
+    if not labelledby:
+        report.error("SVG-A11Y-005", name, "root aria-labelledby is required to name the figure")
+    else:
+        all_ids = [element.get("id") for element in root.iter() if element.get("id")]
+        duplicate_ids = sorted(duplicate_values(all_ids))
+        if duplicate_ids:
+            report.error("SVG-A11Y-006", name, f"duplicate id values break name references: {duplicate_ids[:5]}")
+        existing = set(all_ids)
+        for label, value in (("title", title_id), ("desc", desc_id)):
+            if value and value not in labelledby:
+                report.error("SVG-A11Y-005", name, f"aria-labelledby must reference the {label} id {value!r}")
+        missing = [token for token in labelledby if token not in existing]
+        if missing:
+            report.error("SVG-A11Y-005", name, f"aria-labelledby references missing ids: {missing[:5]}")
+    if not report.errors:
+        report.pass_check("SVG-A11Y-000", "SVG accessibility naming structure is present",
+                          f"role={role} title={title_id!r} desc={desc_id!r}")
     return report
 
 
@@ -1193,7 +1371,7 @@ def bundle_reports(root: Path, skill_root: Path, report_data: dict[str, Any]) ->
     refs = skill_root / "references"
     report_schema = schema_report("html-report-data", report_data, refs / "html-report-data.schema.json")
     if report_schema.errors:
-        return {"session": None, "model": None, "ledger": None, "coverage": None, "understanding": None}, [report_schema]
+        return {"session": None, "model": None, "ledger": None, "coverage": None, "understanding": None, "comparison": None}, [report_schema]
 
     load_report = ValidationReport("bundle-load")
     build = report_data["build"]
@@ -1203,6 +1381,8 @@ def bundle_reports(root: Path, skill_root: Path, report_data: dict[str, Any]) ->
         "ledger": _load_bundle_file(root, build["evidenceLedgerPath"], "evidenceLedgerPath", True, load_report),
         "coverage": _load_bundle_file(root, build["coveragePath"], "coveragePath", True, load_report),
         "understanding": _load_bundle_file(root, build["understandingPath"], "understandingPath", False, load_report),
+        # 변경 전후 비교(D10): 선택 산출물 — 있을 때만 함께 검증한다.
+        "comparison": _load_bundle_file(root, build.get("comparisonPath"), "comparisonPath", False, load_report),
     }
     reports: list[ValidationReport] = [load_report]
     session = bundle["session"]
@@ -1220,5 +1400,7 @@ def bundle_reports(root: Path, skill_root: Path, report_data: dict[str, Any]) ->
         reports.append(validate_coverage(coverage, refs / "coverage.schema.json", model, ledger, session))
     if understanding is not None:
         reports.append(validate_understanding(understanding, refs / "human-understanding.schema.json", session, model, ledger))
+    if bundle["comparison"] is not None:
+        reports.append(validate_model_comparison(bundle["comparison"], refs / "architecture-model-comparison.schema.json", model))
     reports.append(validate_report_data(report_data, refs / "html-report-data.schema.json", root=root, session=session, model=model, ledger=ledger, coverage=coverage, understanding=understanding))
     return bundle, reports

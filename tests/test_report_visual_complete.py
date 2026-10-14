@@ -27,6 +27,15 @@ def uri(text: str) -> str:
     return "data:image/svg+xml;base64," + base64.b64encode(text.encode()).decode()
 
 
+def _collapse(items: list) -> list:
+    """Fold consecutive duplicate narration records (guidance retries re-announce)."""
+    out: list = []
+    for item in items:
+        if not out or out[-1] != item:
+            out.append(item)
+    return out
+
+
 def fixture() -> tuple[dict[str, Any], dict[str, Any]]:
     source = {"id": "source-z", "name": "Design <img src=x onerror=alert(1)>",
               "location": "sources/design.md", "contentHash": "sha256:original", "limitations": ["DOC_ONLY"]}
@@ -395,6 +404,289 @@ class CompleteVisualBrowserTests(unittest.TestCase):
             frame.wait_for_selector(f'[data-focus-step="demo-step-{i+1}"]')
             self.assertEqual(frame.locator(".focus-step").count(), 1)
         self.assertEqual(self.errors, [])
+
+
+@unittest.skipUnless(sync_playwright and Path(CHROME).is_file(), "local Chrome and Playwright required")
+class ReportChronologyTests(unittest.TestCase):
+    """A9: 전환 중간·취소 직후의 시간순 검증(보고서 관점).
+
+    기존 클릭·반복 열기 검사(CompleteVisualBrowserTests)는 그대로 두고, 안내 재생(A3)
+    도입 뒤의 중간 개입·탭 전환·다이어그랬로그 닫기·재열기, 그리고 안내 각 단계에서
+    설명과 그림(ack)이 같은 단계를 가리키는지를 하나의 시간순 기록으로 남긴다.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        sys.path.insert(0, str(ROOT / "tests"))
+        from timeline_recorder import TOLERANCE_MS, Timeline, assert_guide_figure_agreement, guide_cycles
+        from test_report_guided_playback import build_view_html, typed_projection
+        cls.TOLERANCE_MS = TOLERANCE_MS
+        cls.Timeline = Timeline
+        cls.assert_agreement = staticmethod(assert_guide_figure_agreement)
+        cls.guide_cycles = staticmethod(guide_cycles)
+        cls.tmp = tempfile.TemporaryDirectory()
+        base = Path(cls.tmp.name)
+        renderer = build_view_html(typed_projection("ordering-sequence"), base / "sequence.html").read_text(encoding="utf-8")
+        # 임베드 렌더러의 viewId를 보고서 흐름(scenario)에 맞춘다(W3-1 픽스처와 같은 방식).
+        cls.renderer_uri = "data:text/html;base64," + base64.b64encode(
+            renderer.replace('"viewId": "ordering-sequence"', '"viewId": "scenario"').encode()).decode()
+        cls.template = (ROOT / "assets/html-report-template.html").read_text(encoding="utf-8")
+        cls.pw = sync_playwright().start()
+        cls.browser = cls.pw.chromium.launch(executable_path=CHROME, headless=True)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.browser.close()
+        cls.pw.stop()
+        cls.tmp.cleanup()
+
+    def report_path(self, steps: int, name: str) -> Path:
+        notes = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth"]
+        data, bundle = fixture()
+        view = next(v for v in bundle["model"]["views"] if v["id"] == "scenario")
+        view["steps"] = [{"id": "s%d" % i, "order": i + 1, "relationshipId": "request",
+                           "note": notes[i] + " detail"} for i in range(steps)]
+        data["diagrams"][0] = dict(data["diagrams"][0], mimeType="text/html", dataUri=self.renderer_uri)
+        hydrated = hydrate_report(data, bundle, ValidationReport("test"))
+        path = Path(self.tmp.name) / name
+        path.write_text(inject(self.template, hydrated), encoding="utf-8")
+        return path
+
+    def open_report(self, steps: int, name: str):
+        page = self.browser.new_page(viewport={"width": 1440, "height": 1000}, offline=True)
+        errors: list[str] = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        timeline = self.Timeline()
+        self.Timeline.install(page)
+        page.goto(self.report_path(steps, name).as_uri())
+        page.locator("#flows").scroll_into_view_if_needed()
+        page.wait_for_timeout(400)
+        self.addCleanup(page.close)
+        return page, timeline, errors
+
+    @staticmethod
+    def renderer_frames(page):
+        return [frame for frame in page.frames
+                if frame != page.main_frame and frame.evaluate("!!window.repoFlowmap")]
+
+    def start_guide(self, page, until: str, timeout: int = 15000) -> None:
+        page.locator("#flow-panel-calls").get_by_role("button", name="안내 재생").click()
+        page.wait_for_function(
+            "(text) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(text)",
+            arg=until, timeout=timeout)
+
+    def announce_now(self, page) -> str:
+        return page.evaluate("document.querySelector('#flow-panel-calls .flow-step-announce').textContent")
+
+    def test_mid_playback_manual_intervention_is_recorded_in_order(self) -> None:
+        page, timeline, errors = self.open_report(3, "chrono-intervention.html")
+        story = page.locator("#flow-panel-calls")
+        self.start_guide(page, "2/3단계")
+        story.locator(".flow-step-selector").nth(0).click()
+        page.wait_for_function(
+            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent === '1/3단계 · Send'",
+            timeout=12000)
+        timeline.collect(page, "intervened")
+        # 안내 진행(1→2) → 개입 클릭 → 안내 정지 → 선택 단계 반영 순서가 한 기록에 남는다.
+        start_click = next(c for c in timeline.clicks() if "flow-guide-btn" in c["control"])
+        intervene = next(c for c in timeline.clicks() if "flow-step-selector" in c["control"])
+        self.assertLess(start_click["nt"], intervene["nt"])
+        self.assertIn("2/3단계", intervene["state"].get("announce", ""),
+                      "개입 기록은 개입 직전 안내 상태를 담아야 합니다")
+        self.assertEqual(intervene["state"].get("guidePressed"), "true")
+        pressures = [record["pressed"] for record in timeline.guide_pressures()]
+        self.assertEqual(pressures, ["true", "false"], timeline.render())
+        stop_record = timeline.guide_pressures()[-1]
+        self.assertGreaterEqual(stop_record["nt"], intervene["nt"] - self.TOLERANCE_MS,
+                                "정지가 개입보다 먼저 기록되면 안 됩니다(역전)\n" + timeline.render())
+        self.assertLessEqual(stop_record["nt"], intervene["nt"] + 1500,
+                             "정지가 개입보다 지나치게 늦으면 안 됩니다\n" + timeline.render())
+        self.assertEqual(_collapse([record["text"] for record in timeline.announces()]), [
+            "1/3단계 · Send", "안내 재생을 시작합니다. 1/3단계 · Send",
+            "2/3단계 · Send", "1/3단계 · Send"], timeline.render())
+        self.assertFalse([record for record in timeline.announces() if "3/3단계" in record["text"]],
+                         "개입 뒤 안내가 스스로 진행되면 안 됩니다\n" + timeline.render())
+        late_sends = [send for send in timeline.sends() if send["nt"] > intervene["nt"] + self.TOLERANCE_MS]
+        self.assertEqual(late_sends, [], "개입 뒤에는 그림에 단계 지시를 더 보내면 안 됩니다\n" + timeline.render())
+        self.assertEqual([record["text"] for record in timeline.where("readout")][-1], "1 / 3 단계")
+        # 수동 선택은 보고서 설명을 옮긴다. 그림 구동은 안내 전용 계약(그림은 마지막 안내 단계에 머문다).
+        for frame in self.renderer_frames(page):
+            self.assertEqual(frame.evaluate("window.repoFlowmap.state().step"), 1)
+        announce_count = len(timeline.announces())
+        page.wait_for_timeout(3600)  # 안내 간격(2800ms)보다 길게: 자동 재개 금지
+        timeline.collect(page, "no-resume")
+        self.assertEqual(len(timeline.announces()), announce_count,
+                         "개입 뒤 자동 재개 기록이 남으면 안 됩니다\n" + timeline.render())
+        # 같은 화면에서 다시 시작한 뒤 이전/다음 버튼 개입도 같은 순서 규칙을 지킨다.
+        self.start_guide(page, "안내 재생을 시작합니다", timeout=8000)
+        story.locator('[data-step-nav="next"]').click()
+        page.wait_for_function(
+            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent === '2/3단계 · Send'",
+            timeout=12000)
+        timeline.collect(page, "next-intervened")
+        next_click = [record for record in timeline.where("click") if record.get("label") == "다음 단계"][-1]
+        self.assertEqual([record["pressed"] for record in timeline.guide_pressures()],
+                         ["true", "false", "true", "false"], timeline.render())
+        second_stop = timeline.guide_pressures()[-1]
+        self.assertGreaterEqual(second_stop["nt"], next_click["nt"] - self.TOLERANCE_MS)
+        self.assertLessEqual(second_stop["nt"], next_click["nt"] + 1500)
+        self.assertFalse([record for record in timeline.announces() if "3/3단계" in record["text"]],
+                         timeline.render())
+        self.assertEqual([send for send in timeline.sends() if send["nt"] > next_click["nt"] + self.TOLERANCE_MS], [],
+                         timeline.render())
+        self.assertEqual(errors, [], timeline.render())
+
+    def test_tab_switch_and_zoom_stops_are_recorded_in_order(self) -> None:
+        page, timeline, errors = self.open_report(3, "chrono-tabs.html")
+        story = page.locator("#flow-panel-calls")
+        self.start_guide(page, "안내 재생을 시작합니다")
+        # 부하가 높은 전체 스위트 실행에서는 드물게 클릭 이벤트가 애플리케이션에
+        # 닿지 않는다(격리 실행 3/3 통과·제품 결함 아님 — LESSONS.md). 긍정형 조건과
+        # 재클릭 한 번으로만 흡수한다. 재클릭은 stopGuides만 다시 부르므로 무해하다.
+        tab = page.locator('#diagram-tabs [role="tab"]').nth(1)
+        tab.click()
+        stopped = "다른 탭을 선택해"
+        try:
+            page.wait_for_function(
+                "(t) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(t)",
+                arg=stopped, timeout=8000)
+        except Exception:
+            tab.click()
+            page.wait_for_function(
+                "(t) => document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes(t)",
+                arg=stopped, timeout=15000)
+        timeline.collect(page, "tab-switched")
+        tab_click = [record for record in timeline.where("click") if record.get("label") == "Responsibilities"][-1]
+        tab_stop = [record for record in timeline.announces() if "다른 탭을 선택해" in record["text"]][-1]
+        self.assertGreaterEqual(tab_stop["nt"], tab_click["nt"] - self.TOLERANCE_MS,
+                                "탭 전환 정지가 클릭보다 먼저 기록되면 안 됩니다\n" + timeline.render())
+        self.assertLessEqual(tab_stop["nt"], tab_click["nt"] + 1500, timeline.render())
+        self.assertEqual([send for send in timeline.sends() if send["nt"] > tab_click["nt"] + self.TOLERANCE_MS], [],
+                         "탭 전환 뒤에는 단계 지시가 더 가면 안 됩니다\n" + timeline.render())
+        # 원래 탭으로 돌아와도 자동 재개는 없다(버튼으로만).
+        page.locator('#diagram-tabs [role="tab"]').nth(0).click()
+        announce_count = len(timeline.announces())
+        page.wait_for_timeout(3600)
+        timeline.collect(page, "returned")
+        self.assertEqual(len(timeline.announces()), announce_count,
+                         "원래 탭 복귀만으로 안내가 재개되면 안 됩니다\n" + timeline.render())
+        self.assertEqual(story.get_by_role("button", name="안내 재생").get_attribute("aria-pressed"), "false")
+        # 다시 시작한 뒤 같은 그림 확대(+) 조작도 정지한다 — 카메라 지시 기록과 함께.
+        self.start_guide(page, "안내 재생을 시작합니다", timeout=8000)
+        page.locator('#diagram-panels [data-zoom="in"]').first.click()
+        page.wait_for_function(
+            "!document.querySelector('#flow-panel-calls .flow-step-announce').textContent.startsWith('안내')")
+        timeline.collect(page, "zoomed")
+        zoom_click = [record for record in timeline.where("click") if record.get("label") == "＋"][-1]
+        zoom_stop = [record for record in timeline.announces() if "사용자 조작으로" in record["text"]][-1]
+        self.assertGreaterEqual(zoom_stop["nt"], zoom_click["nt"] - self.TOLERANCE_MS, timeline.render())
+        self.assertLessEqual(zoom_stop["nt"], zoom_click["nt"] + 1500, timeline.render())
+        camera_records = [record for record in timeline.where("msg:repo-flowmap-camera")
+                          if record["nt"] >= zoom_click["nt"] - self.TOLERANCE_MS]
+        self.assertGreaterEqual(len(camera_records), 1,
+                                "확대 조작은 그림 카메라 지시와 같은 시점에 기록되어야 합니다\n" + timeline.render())
+        self.assertEqual([record for record in timeline.announces() if record["nt"] > zoom_stop["nt"] + self.TOLERANCE_MS], [],
+                         timeline.render())
+        self.assertEqual([send for send in timeline.sends() if send["nt"] > zoom_click["nt"] + self.TOLERANCE_MS], [],
+                         timeline.render())
+        self.assertEqual(errors, [], timeline.render())
+
+    def test_dialog_close_and_reopen_on_one_screen_is_chronological(self) -> None:
+        page, timeline, errors = self.open_report(3, "chrono-dialog.html")
+        story = page.locator("#flow-panel-calls")
+        self.start_guide(page, "2/3단계")
+        embeds_before = [(frame, frame.evaluate("window.repoFlowmap.state()"))
+                         for frame in self.renderer_frames(page)]
+        self.assertEqual(len(embeds_before), 2, "흐름 임베드 + 다이어그램 카드 두 그림이 안내를 따른다")
+        self.assertEqual([state["step"] for _, state in embeds_before], [1, 1])
+        page.locator("#diagram-panels [data-full]").first.click()
+        page.wait_for_function(
+            "document.querySelector('#flow-panel-calls .flow-step-announce').textContent.includes('사용자 조작으로')",
+            timeout=12000)
+        dialog_frame = page.locator("#dialog-embed").element_handle().content_frame()
+        dialog_frame.wait_for_function("window.repoFlowmap && window.repoFlowmap.ready()", timeout=10000)
+        timeline.collect(page, "dialog-open")
+        full_click = [record for record in timeline.where("click") if record.get("label") == "전체 화면"][-1]
+        open_stop = [record for record in timeline.announces() if "사용자 조작으로" in record["text"]][-1]
+        self.assertGreaterEqual(open_stop["nt"], full_click["nt"] - self.TOLERANCE_MS, timeline.render())
+        self.assertLessEqual(open_stop["nt"], full_click["nt"] + 1500, timeline.render())
+        self.assertEqual([send for send in timeline.sends() if send["nt"] > full_click["nt"] + self.TOLERANCE_MS], [],
+                         "다이어그랬로그를 연 뒤에는 단계 지시가 더 가면 안 됩니다\n" + timeline.render())
+        # 임베드 그림의 단계·카메라는 다이어그랬로그 주기에도 그대로 이어진다.
+        for frame, before in embeds_before:
+            after = frame.evaluate("window.repoFlowmap.state()")
+            self.assertEqual(after["step"], 1)
+            self.assertEqual(after["camera"], before["camera"])
+            self.assertFalse(after["playing"])
+        page.locator("#dialog-close").click()
+        page.wait_for_function("!document.querySelector('#diagram-dialog').open")
+        timeline.collect(page, "after-close")
+        dialog_stop = [record for record in timeline.where("msg:repo-flowmap-playback")
+                       if record["src"].endswith("/dialog")]
+        self.assertEqual(len(dialog_stop), 1,
+                         "닫기 이벤트는 다이어그랬로그 그림에 재생 정지 지시를 보내야 합니다\n" + timeline.render())
+        self.assertEqual(dialog_stop[0]["payload"].get("action"), "stop")
+        # 다시 열기: 같은 화면에서(재시작 아님). 다이어그랬로그 그림은 새 사본이라 자동 재생이 없고,
+        # 어떤 단계 지시도 받지 않는다. 임베드 그림은 단계·카메라가 그대로다.
+        page.locator("#diagram-panels [data-full]").first.click()
+        reopened = page.locator("#dialog-embed").element_handle().content_frame()
+        reopened.wait_for_function("window.repoFlowmap && window.repoFlowmap.ready()", timeout=10000)
+        timeline.collect(page, "reopened")
+        fresh = reopened.evaluate("window.repoFlowmap.state()")
+        self.assertFalse(fresh["playing"], "다시 열린 그림이 자동으로 재생을 시작하면 안 됩니다")
+        self.assertEqual(reopened.evaluate(
+            "window.__timeline.filter(record => String(record.kind).includes('repo-flowmap')"
+            " && !String(record.kind).includes('repo-flowmap-profile')).length"), 0,
+            "다시 연 다이어그랬로그 그림은 어떤 단계·재생 지시도 받지 않습니다"
+            "(시각 역할 값만 전달하는 repo-flowmap-profile 메시지는 제외 — D5)")
+        for frame, before in embeds_before:
+            after = frame.evaluate("window.repoFlowmap.state()")
+            self.assertEqual(after["step"], 1)
+            self.assertEqual(after["camera"], before["camera"],
+                             "임베드 그림 상태(단계·카메라)는 닫기·재열기에도 이어져야 합니다")
+        box = reopened.locator("#map").bounding_box()
+        self.assertTrue(box and box["width"] > 100,
+                        "반복 열기 뒤에도 그림이 살아 있어야 합니다(LESSONS: repeated dialogs)")
+        page.locator("#dialog-close").click()
+        page.wait_for_function("!document.querySelector('#diagram-dialog').open")
+        announce_count = len(timeline.announces())
+        page.wait_for_timeout(3600)
+        timeline.collect(page, "no-auto-restart")
+        self.assertEqual(len(timeline.announces()), announce_count,
+                         "닫기·재열기 뒤 안내가 자동 재개되면 안 됩니다\n" + timeline.render())
+        self.assertEqual(story.get_by_role("button", name="안내 재생").get_attribute("aria-pressed"), "false")
+        self.assertEqual(errors, [], timeline.render())
+
+    def test_guidance_narration_and_figures_agree_at_every_step(self) -> None:
+        page, timeline, errors = self.open_report(3, "chrono-agree.html")
+        self.start_guide(page, "끝났습니다", timeout=20000)
+        timeline.collect(page, "done")
+        cycles = self.assert_agreement(timeline)
+        self.assertEqual([cycle["n"] for cycle in cycles], [1, 2, 3])
+        for cycle in cycles:
+            self.assertEqual(len(cycle["sends"]), 2, "임베드 그림 2개에 모두 단계 지시가 갑니다")
+            self.assertEqual(len(cycle["acks"]), 2)
+            self.assertEqual([ack["payload"]["step"] for ack in cycle["acks"]], [cycle["n"] - 1] * 2)
+        for frame in self.renderer_frames(page):
+            self.assertEqual(frame.evaluate("window.repoFlowmap.state().step"), 2)
+        self.assertEqual(errors, [], timeline.render())
+
+    def test_agreement_checker_exposes_injected_description_figure_mismatch(self) -> None:
+        # 일부러 어긋남을 만드는 변이: 보고서는 6단계, 그림 흐름은 5단계다. 마지막 단계에서
+        # 그림은 index 5를 받지 못해 step=-1로 잘리고, 같은 검사기가 이 어긋남을 잡아야 한다.
+        page, timeline, errors = self.open_report(6, "chrono-mismatch.html")
+        self.start_guide(page, "끝났습니다", timeout=30000)
+        timeline.collect(page, "done")
+        with self.assertRaises(AssertionError) as caught:
+            self.assert_agreement(timeline)
+        message = str(caught.exception)
+        self.assertIn("6/6", message)
+        self.assertIn("-1", message)
+        self.assertIn("시간순 기록", message, "실패 메시지가 시간순 로그로 원인을 설명해야 합니다")
+        last_cycle = self.guide_cycles(timeline)[-1]
+        self.assertEqual(last_cycle["n"], 6)
+        self.assertEqual([ack["payload"]["step"] for ack in last_cycle["acks"]], [-1, -1])
+        self.assertEqual(errors, [], timeline.render())
 
 
 if __name__ == "__main__":

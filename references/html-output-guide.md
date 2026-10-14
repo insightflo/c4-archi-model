@@ -29,6 +29,7 @@ HTML은 canonical model을 대체하지 않는다. report data는 canonical 이�
 
 설계 검토
   경계·상태·계약·실패·배포·트레이드오프
+  변경 전후 아키텍처 비교(선택) — 두 시점 모델의 추가·삭제·이동·관계 변경 표
   Coverage와 다음 결정
 
 근거·QA
@@ -129,12 +130,17 @@ Schema가 금지 필드를 거부해야 한다.
     "evidenceLedgerPath": "qa/evidence-ledger.json",
     "coveragePath": "qa/coverage.json",
     "understandingPath": "qa/human-understanding.json",
+    "comparisonPath": "qa/architecture-comparison.json",
     "expectedFiles": []
   }
 }
 ```
 
 required file은 실제로 존재해야 한다. 선택 파일은 누락 시 경고로 남긴다.
+`comparisonPath`는 선택이다 — 두 시점 모델 비교 산출물(`scripts/compare_architecture_models.py`
+출력)을 넣으면 보고서에 '변경 전후 아키텍처 비교' 섹션이 표로 나타난다. 없으면 이 섹션은
+나타나지 않는다. 표가 완전 목록이고 그림은 보조다 — 어느 뷰에도 속하지 않은 변경도
+표에 남는다.
 
 ## 7. 빌드
 

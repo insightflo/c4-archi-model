@@ -236,6 +236,27 @@ def diagram_edge_mismatch_test() -> TestResult:
     return expect_code("dia-edge-endpoint-mismatch", report, "DIA-005")
 
 
+def presentation_stamp_mismatch_test() -> TestResult:
+    """W4-a D2/D6: a forged presentationDetail stamp must trip DIA-008 re-projection."""
+    from repo_flowmap_adapter import project
+
+    with tempfile.TemporaryDirectory(prefix="c4-dia-pd-") as temp:
+        root = Path(temp)
+        model_path = root / "examples/ordering-system.architecture-model.json"
+        model_path.parent.mkdir(parents=True)
+        shutil.copy2(EXAMPLES / "ordering-system.architecture-model.json", model_path)
+        model = load_json(model_path)
+        digest = hashlib.sha256(model_path.read_bytes()).hexdigest()
+        data = project(model, "examples/ordering-system.architecture-model.json", digest,
+                       "ordering-context", presentation_detail="labels")
+        data["c4"]["presentationDetail"] = "minimal"  # content is labels; stamp lies
+        (root / "diagrams").mkdir(exist_ok=True)
+        (root / "diagrams" / "ordering-context.flowmap.json").write_text(
+            json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        report = run_diagram_inputs(root, model_path=model_path)
+    return expect_code("presentation-stamp-mismatch", report, "DIA-008")
+
+
 def _receipt_fixture(root: Path) -> None:
     """Minimal consistent archify source + validate receipt (+ deliver receipt)."""
     (root / "diagrams").mkdir()
@@ -327,6 +348,7 @@ def run() -> list[TestResult]:
     results.append(diagram_edge_mismatch_test())
     results.append(receipt_missing_deliver_test())
     results.append(receipt_artifact_tamper_test())
+    results.append(presentation_stamp_mismatch_test())
     return results
 
 

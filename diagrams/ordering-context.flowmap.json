@@ -1,0 +1,138 @@
+{
+  "meta": {
+    "project": "Ordering System",
+    "title": "Ordering System - System Context",
+    "last_analyzed_commit": "canonical-sha256-6046ce30ad2a",
+    "basis": "examples/ordering-system.architecture-model.json · View ordering-context · canonical IDs preserved",
+    "subtitle": "누가 Ordering System을 사용하며 어떤 가치를 얻는가?",
+    "note": "주문 생성과 배송 준비 흐름을 설명하는 가상 예시"
+  },
+  "c4": {
+    "extensionVersion": 1,
+    "mode": "structure",
+    "modelPath": "examples/ordering-system.architecture-model.json",
+    "modelSha256": "6046ce30ad2a820640d1215906f810889af60a103405f4cd326551b84cbefc5d",
+    "viewId": "ordering-context",
+    "view": {
+      "id": "ordering-context",
+      "type": "systemContext",
+      "title": "Ordering System - System Context",
+      "scopeId": "ordering-system",
+      "environment": null,
+      "description": "고객과 Ordering System의 관계를 보여준다.",
+      "question": "누가 Ordering System을 사용하며 어떤 가치를 얻는가?",
+      "elementIds": [
+        "customer",
+        "ordering-system"
+      ],
+      "relationshipIds": [
+        "customer-to-system"
+      ],
+      "steps": [],
+      "nextViewIds": [
+        "ordering-container"
+      ],
+      "claimIds": [
+        "CL-014"
+      ],
+      "notShown": [
+        "내부 Container",
+        "배포 인프라"
+      ]
+    },
+    "boundaries": [],
+    "targets": []
+  },
+  "layers": [
+    {
+      "id": "canonical",
+      "label": "systemContext",
+      "color": "#365d91"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "customer",
+      "label": "Customer",
+      "desc": "웹 화면에서 주문을 생성한다.",
+      "layer": "canonical",
+      "file": "customer",
+      "element": {
+        "id": "customer",
+        "type": "person",
+        "name": "Customer",
+        "description": "웹 화면에서 주문을 생성한다.",
+        "technology": null,
+        "parentId": null,
+        "environment": null,
+        "tags": [],
+        "derivation": "explicit",
+        "rationale": null,
+        "claimIds": [
+          "CL-001"
+        ],
+        "instanceOfId": null,
+        "confidence": "DOC_ONLY"
+      }
+    },
+    {
+      "id": "ordering-system",
+      "label": "Ordering System",
+      "desc": "주문 접수와 배송 준비 시작을 조정한다.",
+      "layer": "canonical",
+      "file": "ordering-system",
+      "element": {
+        "id": "ordering-system",
+        "type": "softwareSystem",
+        "name": "Ordering System",
+        "description": "주문 접수와 배송 준비 시작을 조정한다.",
+        "technology": null,
+        "parentId": null,
+        "environment": null,
+        "tags": [],
+        "derivation": "normalized",
+        "rationale": "예시 설명을 위해 관련 Container를 하나의 분석 범위로 묶었다.",
+        "claimIds": [
+          "CL-002"
+        ],
+        "instanceOfId": null,
+        "confidence": "PARTIAL"
+      }
+    }
+  ],
+  "flows": [
+    {
+      "id": "canonical-view",
+      "group": "systemContext",
+      "title": "Ordering System - System Context",
+      "summary": "고객과 Ordering System의 관계를 보여준다.",
+      "steps": [
+        {
+          "id": "customer-to-system",
+          "relationshipId": "customer-to-system",
+          "from": "customer",
+          "to": "ordering-system",
+          "call": "주문을 생성한다.",
+          "data": "기술 미확인",
+          "note": "Context View를 위한 상위 관계로 정규화했다.",
+          "relationship": {
+            "id": "customer-to-system",
+            "sourceId": "customer",
+            "destinationId": "ordering-system",
+            "description": "주문을 생성한다.",
+            "technology": null,
+            "interactionStyle": "synchronous",
+            "derivation": "normalized",
+            "rationale": "Context View를 위한 상위 관계로 정규화했다.",
+            "claimIds": [
+              "CL-008"
+            ],
+            "confidence": "PARTIAL"
+          },
+          "canonicalStep": null,
+          "order": 1
+        }
+      ]
+    }
+  ]
+}

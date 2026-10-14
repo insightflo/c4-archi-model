@@ -7,11 +7,11 @@
 <title>C4 Architecture Report</title>
 <style>
 :root{
-  --ink:#1a1a1a;--muted:#5d6879;--soft:#7f8998;--line:#d8d8d0;--paper:#fff;
+  --ink:#1a1a1a;--muted:#5d6879;--soft:#626e7d;--line:#d8d8d0;--paper:#fff;
   --canvas:#f5f5f0;--navy:#172033;--blue:#315fca;--blue-bg:#edf3ff;
   --green:#247653;--green-bg:#eef7f1;--gold:#93620e;--gold-bg:#fff5dc;
   --red:#a34236;--red-bg:#fff0ee;--violet:#7151a0;--violet-bg:#f3eefb;
-  --accent:#e63946;--accent-soft:#fce4e6;
+  --accent:#c1121f;--accent-soft:#fce4e6;
   --hl-yellow:#ffe9a3;--hl-blue:#cfe5f5;--hl-pink:#fbd3da;
   --term-bg:#fffaf2;--term-border:#e8d9b8;
   --analogy-bg:#f0f4f8;--analogy-border:#b8cad8;
@@ -26,28 +26,38 @@ button,input{font:inherit}button{cursor:pointer}a{color:var(--blue)}[hidden]{dis
 .topbar{position:sticky;top:0;z-index:100;background:var(--canvas);border-bottom:1px solid var(--line)}
 .topbar-inner{max-width:1280px;margin:auto;display:flex;gap:16px;align-items:center;padding:10px 24px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;font-weight:900;white-space:nowrap}.brand-mark{width:36px;height:36px;border-radius:10px;background:var(--navy);color:#fff;display:grid;place-items:center;font:900 12px var(--mono)}
-.nav{display:flex;align-items:center;gap:4px;overflow:auto;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}.nav-group{font:900 9px var(--mono);letter-spacing:.08em;color:#a0a8b5;margin-left:9px;padding-left:9px;border-left:1px solid var(--line);white-space:nowrap}.nav a{padding:7px 9px;border-radius:9px;color:var(--muted);text-decoration:none;font-weight:800;font-size:12px;white-space:nowrap}.nav a:hover,.nav a.active{background:var(--blue-bg);color:var(--blue)}
+.nav{display:flex;align-items:center;gap:4px;overflow:auto;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}.nav-group{font:900 9px var(--mono);letter-spacing:.08em;color:var(--soft);margin-left:9px;padding-left:9px;border-left:1px solid var(--line);white-space:nowrap}.nav a{padding:7px 9px;border-radius:9px;color:var(--muted);text-decoration:none;font-weight:800;font-size:12px;white-space:nowrap}.nav a:hover,.nav a.active{background:var(--blue-bg);color:var(--blue)}
 .btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 11px;font-weight:850;font-size:12px}.btn:hover{border-color:#b9c3d3;background:#fafcff}.btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.profile-switch{display:flex;align-items:center;gap:6px;font:800 11px var(--mono);color:var(--soft);white-space:nowrap}.profile-switch select{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:6px 8px;font:800 11px var(--sans);cursor:pointer}
 .wrap{max-width:1280px;margin:auto;padding:40px 28px 80px}.hero{background:transparent;border:0;border-radius:0;box-shadow:none;padding:0 0 28px;margin-bottom:16px;border-bottom:1px solid var(--line)}.hero-content{position:relative;z-index:1;max-width:100%}.kicker-sm{font:800 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}.eyebrow{display:none}.hero h1{font-family:var(--serif);font-size:clamp(26px,3.2vw,34px);line-height:1.3;letter-spacing:-.01em;margin:0 0 10px;color:var(--ink)}.hero-summary{max-width:100%;font-size:15px;color:var(--muted);margin:0;line-height:1.7}.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.badge{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid var(--line);font:800 11px var(--mono);color:var(--ink)}.dot{width:7px;height:7px;border-radius:50%;background:#72d6a7}.dot.warn{background:#f2c35c}.dot.fail{background:#ff8b78}.hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.hero-actions .btn{background:#fff;border-color:var(--line);color:var(--ink)}.hero-actions .btn:hover{background:var(--canvas)}
 .stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:16px}.stat{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 12px;box-shadow:none;transition:border-color .15s}.stat.primary strong{color:var(--blue)}.stats-hybrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:16px}
 @media screen and (max-width:720px){.stats-hybrid{grid-template-columns:repeat(3,1fr)}}
 .stats-hybrid .stat.big{grid-column:auto}
 .section{margin-top:56px;padding-top:0;border-top:0;position:relative}.section-head{display:flex;justify-content:space-between;gap:16px;align-items:start;margin-bottom:14px}.section-kicker{display:none}.section h2{font-family:var(--serif);font:700 clamp(22px,2.4vw,25px)/1.4 var(--serif);letter-spacing:-.005em;margin:0;display:flex;align-items:center;gap:10px}.section h2:before{content:"";width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:inline-grid;place-items:center;font:700 12px var(--sans);flex:0 0 30px}.section h3{line-height:1.3}
-#overview-detail h2:before{content:"0"}.section#diagrams h2:before{content:"1"}.section#flows h2:before{content:"2"}.section#elements h2:before{content:"3"}.section#audience h2:before{content:"4"}.section#analysis h2:before{content:"5"}.section#issues h2:before{content:"6"}.section#glossary h2:before{content:"7"}.section#evidence h2:before{content:"8"}.section#qa h2:before{content:"9"}.section#raw h2:before{content:"10"}
+#overview-detail h2:before{content:"0"}.section#diagrams h2:before{content:"1"}.section#flows h2:before{content:"2"}.section#elements h2:before{content:"3"}.section#audience h2:before{content:"4"}.section#analysis h2:before{content:"5"}.section#comparison h2:before{content:"6"}.section#issues h2:before{content:"7"}.section#glossary h2:before{content:"8"}.section#evidence h2:before{content:"9"}.section#qa h2:before{content:"10"}.section#raw h2:before{content:"11"}
 .section-sub{font-size:13px;color:var(--soft);margin:2px 0 0 40px}.section-desc{max-width:900px;color:var(--muted);margin:0}.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
 .section .lead{font-size:1.02rem;color:var(--ink);line-height:1.7;margin:12px 0}.inline-em{color:var(--blue);font-weight:800;background:var(--blue-bg);padding:1px 5px;border-radius:5px}
 .overview-grid{display:grid;grid-template-columns:1fr;gap:0}.overview-card{background:transparent;border:0;border-radius:0;box-shadow:none;padding:18px 0;border-bottom:1px solid var(--line)}.overview-card:last-child{border-bottom:0}.overview-card h3{margin:0 0 8px;font-size:16px;letter-spacing:-.01em}.overview-card p{color:var(--muted);margin:0;font-size:14px}.overview-card .overview-highlight{margin-top:10px;padding:14px 16px;border:1px solid var(--term-border);background:var(--term-bg);border-radius:5px;color:var(--ink);font-size:13.5px;line-height:1.65}.overview-card .overview-highlight b{color:var(--accent)}.reading-path{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:18px}.path-step{position:relative;padding:12px 10px 12px 12px;background:#fff;border:1px solid var(--line);border-radius:10px}.path-step b{display:block;font:900 10px var(--mono);color:var(--soft);margin-bottom:4px}.path-step span{font-size:12px;font-weight:700;color:var(--ink);line-height:1.45}.path-step:not(:last-child):after{content:"→";position:absolute;right:-10px;top:50%;transform:translateY(-50%);color:var(--soft);font-weight:900;z-index:1}
-.callout{padding:14px 18px;border-radius:5px;border:1px solid;margin-top:12px;font-size:13.5px}.callout .label{font:700 11px var(--mono);letter-spacing:.12em;margin-bottom:6px}.callout.info{background:var(--analogy-bg);border-color:var(--analogy-border)}.callout.info .label{color:#3a6280}.callout.warn{background:var(--term-bg);border-color:var(--term-border)}.callout.warn .label{color:#a07020}.callout.danger{background:var(--red-bg);border-color:#e8b8b2}.callout.danger .label{color:var(--accent)}.callout.good{background:var(--green-bg);border-color:#b8d8c2}.callout.good .label{color:#2a7d5a}.callout h3,.callout h4{margin:0 0 6px;font-size:15px}.callout p{margin:0;color:var(--muted);font-size:13.5px}
+.callout{padding:14px 18px;border-radius:5px;border:1px solid;margin-top:12px;font-size:13.5px}.callout .label{font:700 11px var(--mono);letter-spacing:.12em;margin-bottom:6px}.callout.info{background:var(--analogy-bg);border-color:var(--analogy-border)}.callout.info .label{color:#3a6280}.callout.warn{background:var(--term-bg);border-color:var(--term-border)}.callout.warn .label{color:var(--gold)}.callout.danger{background:var(--red-bg);border-color:#e8b8b2}.callout.danger .label{color:var(--accent)}.callout.good{background:var(--green-bg);border-color:#b8d8c2}.callout.good .label{color:#2a7d5a}.callout h3,.callout h4{margin:0 0 6px;font-size:15px}.callout p{margin:0;color:var(--muted);font-size:13.5px}
 em.t{font-style:normal;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:3px;font-weight:600;font-size:13px}
 .hl{--hl-c:var(--hl-yellow);background-image:linear-gradient(transparent 78%, var(--hl-c) 78%);background-repeat:no-repeat;background-size:0% 100%;padding:0 3px;border-radius:3px;box-decoration-break:clone;-webkit-box-decoration-break:clone;animation:hl-sweep .65s cubic-bezier(.4,0,.2,1) .3s forwards}.hl.blue{--hl-c:var(--hl-blue)}.hl.pink{--hl-c:var(--hl-pink)}@keyframes hl-sweep{to{background-size:100% 100%}}@media(prefers-reduced-motion:reduce){.hl{animation:none;background-size:100% 100%}}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;padding:5px;background:#e9edf3;border-radius:13px;margin-bottom:11px}.tab{border:0;background:transparent;border-radius:9px;padding:9px 12px;color:var(--muted);font-weight:850;font-size:12px;white-space:nowrap}.tab[aria-selected="true"]{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(35,47,72,.1)}
+.view-breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:2px;list-style:none;margin:0 0 11px;padding:7px 12px;background:#fff;border:1px solid var(--line);border-radius:10px;font-size:12px}
+.view-breadcrumb .crumb{border:0;background:transparent;color:var(--blue);font-weight:800;padding:3px 5px;border-radius:6px;text-decoration:underline}
+.view-breadcrumb .crumb:hover{background:var(--blue-bg)}
+.view-breadcrumb .crumb:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.view-breadcrumb .crumb-current{color:var(--ink);font-weight:850;padding:3px 5px}
+.guide ul .guide-next-view{border:0;background:transparent;color:var(--blue);font-weight:750;font-size:13px;padding:0;text-decoration:underline;text-align:left}
+.guide ul .guide-next-view:hover{color:var(--ink)}
+.element-zoom{display:flex;align-items:center;gap:8px;margin:12px 0 0;flex-wrap:wrap}
+.element-zoom-note{font-size:11px;color:var(--muted)}
 .diagram-card{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}.diagram-layout{display:grid;grid-template-columns:minmax(0,1.55fr) 360px}.viewer{min-width:0;border-right:1px solid var(--line);background:#f8f6ef}.viewer-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 12px;background:#fff;border-bottom:1px solid var(--line)}.viewer-toolbar .group{display:flex;gap:5px;align-items:center}.viewer-title{font-weight:700;font-size:12px;color:var(--ink)}.viewer button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 8px;font-weight:700;font-size:11px}.diagram-frame{min-height:540px;max-height:760px;overflow:auto;padding:18px;display:flex;align-items:flex-start;justify-content:center;cursor:grab;user-select:none}.diagram-frame.dragging{cursor:grabbing}.diagram-frame img{display:block;width:100%;height:auto;transform-origin:top left;transition:none;user-select:none;-webkit-user-drag:none;pointer-events:auto}
 .diagram-frame iframe{display:block;width:100%;height:680px;border:0;background:#fff;transform-origin:top left}
 .diagram-frame .diagram-print-img{display:none}
 #dialog-embed{width:100%;height:82vh;border:0;background:#fff}.diagram-layout.guide-collapsed{grid-template-columns:minmax(0,1.55fr) 44px}.diagram-layout.guide-collapsed .guide{width:44px;min-width:44px;padding:10px 6px;border-left:1px solid var(--line);background:#fafaf6;display:flex;align-items:center;justify-content:center;overflow:visible}.diagram-missing{margin:auto;padding:25px;text-align:center;color:var(--muted)}
 .guide{padding:20px;align-self:start;position:relative}.guide-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.guide h3{margin:0;font-size:18px}.guide p{margin:0 0 14px;color:var(--muted);font-size:13px}.guide-toggle{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 9px;font:700 11px var(--mono);color:var(--muted);cursor:pointer;white-space:nowrap;flex:0 0 auto}.guide-toggle:hover{background:var(--canvas)}.guide-reopen{border:1px solid var(--line);background:#fff;border-radius:999px;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 8px rgba(30,42,66,.12);flex:0 0 auto}.guide-reopen:hover{background:var(--canvas)}
 .guide-block{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}.guide-block h4{margin:0 0 6px;font-size:13px}.guide ul{margin:0;padding-left:19px;color:var(--muted);font-size:13px}.caption{font:750 10px var(--mono);color:var(--soft);margin-top:12px;word-break:break-word}
-.flow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px 16px;position:relative;padding:8px 0 4px;align-items:stretch}.flow-grid:before{content:"";position:absolute;top:15px;left:16px;right:16px;height:2px;background:var(--line);z-index:0}.flow-step{display:flex;flex-direction:column;background:transparent;border:0;border-radius:0;box-shadow:none;padding:0;position:relative;z-index:1}.flow-step>div,.flow-step>h3,.flow-step>p{margin-top:0;margin-bottom:0}.step-no{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font:900 11px var(--mono);margin-bottom:10px;border:2px solid var(--canvas);box-shadow:0 0 0 1px var(--line)}.lane{font:850 9px var(--mono);letter-spacing:.04em;color:var(--violet);margin-bottom:6px;line-height:1.45}.flow-step h3{font-size:14px;margin:0 0 6px;line-height:1.35}.flow-step p{font-size:12.5px;color:var(--muted);margin:0;line-height:1.55}.attention{margin:8px 0 0;padding:7px 9px;background:var(--gold-bg);border-radius:8px;font-size:11px;color:#75500b;min-height:2.2em}.analogy{margin:8px 0 0;padding:7px 9px;background:var(--violet-bg);border-radius:8px;font-size:11px;color:#63488f;min-height:2.2em}.source-ids{margin-top:8px;min-height:22px}.source-ids{display:flex;gap:5px;flex-wrap:wrap}.source-id{font:800 9px var(--mono);padding:4px 6px;border-radius:6px;background:#f0f3f7;color:var(--muted)}
+.flow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px 16px;position:relative;padding:8px 0 4px;align-items:stretch}.flow-grid:before{content:"";position:absolute;top:15px;left:16px;right:16px;height:2px;background:var(--line);z-index:0}.flow-step{display:flex;flex-direction:column;background:transparent;border:0;border-radius:0;box-shadow:none;padding:0;position:relative;z-index:1}.flow-step>div,.flow-step>h3,.flow-step>p{margin-top:0;margin-bottom:0}.step-no{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font:900 11px var(--mono);margin-bottom:10px;border:2px solid var(--canvas);box-shadow:0 0 0 1px var(--line)}.lane{font:850 9px var(--mono);letter-spacing:.04em;color:var(--violet);margin-bottom:6px;line-height:1.45}.flow-step h3{font-size:14px;margin:0 0 6px;line-height:1.35}.flow-step p{font-size:12.5px;color:var(--muted);margin:0;line-height:1.55}.attention{margin:8px 0 0;padding:7px 9px;background:var(--gold-bg);border-radius:8px;font-size:11px;color:#75500b;min-height:2.2em}.analogy{margin:8px 0 0;padding:7px 9px;background:var(--violet-bg);border-radius:8px;font-size:11px;color:#63488f;min-height:2.2em}.analogy-map{margin:8px 0 0;padding:8px 9px;background:var(--violet-bg);border-radius:8px;font-size:11px;color:#63488f;overflow-wrap:anywhere}.analogy-map-label{display:block;font-weight:800;margin-bottom:5px}.analogy-map table{border-collapse:collapse;width:100%}.analogy-map th,.analogy-map td{text-align:left;padding:4px 7px;border-bottom:1px solid rgba(99,72,143,.22);vertical-align:top;white-space:normal;background:transparent}.analogy-map th{font:800 10px var(--mono);position:static;white-space:nowrap;padding-top:0;padding-bottom:0}.analogy-map td .model-id{font:800 9px var(--mono);opacity:.75}.analogy-map .analogy-note{display:block;margin-top:2px;opacity:.85}.analogy-limits{margin:6px 0 0;font-weight:700;color:#63448f}.flow-story .analogy-map{font-size:12px;margin-top:10px;padding:10px 11px}.flow-story .analogy-limits{font-size:12px;line-height:1.7;white-space:pre-wrap}.term .analogy-map{margin-top:8px}@media(hover:none) and (pointer:coarse){.kbd-clause{display:none}}.source-ids{margin-top:8px;min-height:22px}.source-ids{display:flex;gap:5px;flex-wrap:wrap}.source-id{font:800 9px var(--mono);padding:4px 6px;border-radius:6px;background:#f0f3f7;color:var(--muted)}
 .group-switch{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.group-switch .tab{background:#e9edf3}.group-switch .tab[aria-selected="true"]{background:var(--navy);color:#fff}
 .element-grid{display:grid;grid-template-columns:1fr;gap:0}.element-card{background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;margin:0;padding:20px 4px;position:relative}.element-card:last-child{border-bottom:0}.element-card:before{display:none}
 .element-top{display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:start}.element-no{width:56px;min-height:56px;border-radius:999px;background:var(--blue-bg);color:var(--blue);border:1px solid var(--line);padding:6px 6px;display:flex;align-items:center;justify-content:center;text-align:center;font:800 9px var(--mono);line-height:1.25;white-space:normal;word-break:keep-all}.element-desc{color:#3f4b60;margin:13px 0}.kv{display:grid;grid-template-columns:105px 1fr;gap:7px 10px;font-size:12px}.kv b{color:var(--soft)}.kv span{color:var(--muted);min-width:0;word-break:break-word}.status{display:inline-flex;padding:5px 8px;border-radius:999px;font:850 9px var(--mono);background:var(--green-bg);color:var(--green)}.status.normalized,.status.inferred,.status.warn{background:var(--gold-bg);color:var(--gold)}.status.unresolved,.status.fail{background:var(--red-bg);color:var(--red)}.status.not-run{background:#eef1f5;color:var(--muted)}
@@ -70,7 +80,7 @@ em.t{font-style:normal;background:var(--accent-soft);color:var(--accent);padding
 dialog{border:0;border-radius:18px;padding:0;width:min(96vw,1600px);height:min(94vh,1000px);box-shadow:0 30px 120px rgba(0,0,0,.38)}dialog::backdrop{background:rgba(8,13,24,.8)}.dialog-head{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;border-bottom:1px solid var(--line);background:#fff}.dialog-head h3{margin:0;font-size:15px}.dialog-frame{height:calc(100% - 58px);overflow:auto;background:#f8f6ef;padding:14px}.dialog-frame img{width:100%;max-width:none;display:block}.dialog-tools{display:flex;gap:5px}.toast{position:fixed;right:18px;bottom:18px;background:var(--navy);color:#fff;border-radius:11px;padding:10px 13px;font-size:12px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s;z-index:300}.toast.show{opacity:1;transform:translateY(0)}
 @media screen and (max-width:980px){.diagram-layout{grid-template-columns:1fr}.viewer{border-right:0;border-bottom:1px solid var(--line)}.qa-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
 @media screen and (max-width:720px){.topbar-inner{grid-template-columns:auto 1fr;padding:8px 12px}.nav{display:none}.topbar .btn{justify-self:end}.wrap{padding:16px 12px 54px}.hero{padding:32px 22px;border-radius:20px}.hero h1{font-size:36px}.stats{grid-template-columns:repeat(2,1fr)}.overview-grid,.audience-grid,.glossary-grid,.artifact-grid,.integrity-warnings,.analysis-grid{grid-template-columns:1fr}.flow-grid{grid-template-columns:1fr}.flow-grid:before{left:15px;right:auto;top:16px;bottom:16px;width:2px;height:auto}.reading-path{grid-template-columns:1fr}.path-step:not(:last-child):after{content:"↓";right:auto;left:50%;top:auto;bottom:-13px}.diagram-frame{min-height:300px;padding:8px}.section-head{align-items:start;flex-direction:column}.hero-actions{display:grid;grid-template-columns:1fr 1fr}.hero-actions .btn{width:100%}.table-tools{align-items:stretch;flex-direction:column}}
-@media print{.topbar,.hero-actions,.viewer-toolbar,.tabs,.group-switch,.raw-actions,.toast{display:none!important}body{background:#fff}.wrap{max-width:none;padding:0}.hero{box-shadow:none;border-radius:0;break-after:page}.card{box-shadow:none}.tab-panel[hidden],.group-panel[hidden]{display:block!important}.diagram-layout{grid-template-columns:1fr}.viewer{border:0}.diagram-frame{display:block;min-height:0;max-height:none;overflow:visible}.diagram-frame img{width:100%!important;max-width:100%!important;height:auto!important}.diagram-frame iframe{display:none!important}.diagram-frame .diagram-print-img{display:block!important;width:100%!important;height:auto!important}.table-wrap{max-height:none;overflow:visible}.artifact-grid{display:block}.raw{margin-bottom:8px}.section{break-inside:auto}.element-card,.flow-step,.analysis-card,.issue,.term{break-inside:avoid}}
+@media print{.topbar,.hero-actions,.viewer-toolbar,.tabs,.group-switch,.raw-actions,.toast,.view-breadcrumb,.element-zoom{display:none!important}body{background:#fff}.wrap{max-width:none;padding:0}.hero{box-shadow:none;border-radius:0;break-after:page}.card{box-shadow:none}.tab-panel[hidden],.group-panel[hidden]{display:block!important}.diagram-layout{grid-template-columns:1fr}.viewer{border:0}.diagram-frame{display:block;min-height:0;max-height:none;overflow:visible}.diagram-frame img{width:100%!important;max-width:100%!important;height:auto!important}.diagram-frame iframe{display:none!important}.diagram-frame .diagram-print-img{display:block!important;width:100%!important;height:auto!important}.table-wrap{max-height:none;overflow:visible}.artifact-grid{display:block}.raw{margin-bottom:8px}.section{break-inside:auto}.element-card,.flow-step,.analysis-card,.issue,.term{break-inside:avoid}}
 .viewer-toolbar{flex-wrap:wrap}.viewer-toolbar .group{flex-wrap:wrap}.viewer-title{overflow-wrap:anywhere;min-width:0}.diagram-frame:has(iframe){padding:0;display:block}
 .flow-story{display:grid;grid-template-columns:minmax(210px,.8fr) minmax(0,2fr);gap:22px;align-items:start}
 .flow-step-selectors{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -81,6 +91,8 @@ dialog{border:0;border-radius:18px;padding:0;width:min(96vw,1600px);height:min(9
 .flow-story button:focus-visible,.flow-step:focus-visible,.flow-related-diagram:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 .flow-story-body{min-width:0}.flow-step-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .flow-progress{color:var(--muted);font-size:12px;white-space:nowrap}.flow-step-nav button:disabled{cursor:default;opacity:.45}
+.flow-guide-btn[aria-pressed="true"]{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
 .flow-story .flow-step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px;overflow-wrap:anywhere}
 .flow-story .flow-step>*+*{margin-top:12px}.flow-story .flow-step h3{font-size:20px;line-height:1.5}.flow-story .flow-step p{font-size:14px;line-height:1.8;white-space:pre-wrap}
 .flow-story .lane{font:700 12px/1.6 var(--sans);color:var(--blue)}.flow-story .flow-condition{background:var(--gold-bg);color:var(--gold);padding:10px 12px;border-radius:8px}
@@ -108,20 +120,39 @@ dialog{border:0;border-radius:18px;padding:0;width:min(96vw,1600px);height:min(9
 @media screen and (max-width:1199px){.flow-focus-workspace{grid-template-columns:minmax(0,1fr)}.responsibility-workspace{grid-template-columns:minmax(0,1fr)}.responsibility-diagram{position:static;grid-row:1}}
 @media screen and (max-width:720px){.flow-story{grid-template-columns:minmax(0,1fr)}.semantic-frame{height:280px}.issue-chain{grid-template-columns:minmax(0,1fr)}.responsibility-table,.responsibility-table tbody,.responsibility-table tr,.responsibility-table td,.responsibility-table tbody th{display:block;width:100%}.responsibility-table thead{display:none}.responsibility-table td:before{content:attr(data-label);display:block;font-weight:800;color:var(--ink);margin-bottom:8px}.responsibility-table caption{display:block}.responsibility-table tr{padding:12px;border-bottom:2px solid var(--line)}.responsibility-table td,.responsibility-table tbody th{border:0;padding:8px}.responsibility-table .is-selected{outline-offset:-2px}}
 @media print{.flow-focus-workspace,.responsibility-workspace{display:block}.semantic-tools,.semantic-frame,.semantic-fallback,.responsibility-selection,#claim-dialog{display:none!important}.semantic-print{display:block;width:100%;height:auto}.semantic-diagram{break-inside:avoid}.responsibility-diagram{position:static}.issue-chain{display:block}.responsibility-scroll{overflow:visible}.responsibility-table{display:table;table-layout:fixed;font-size:11px}.responsibility-table thead th:nth-child(1){width:16%}.responsibility-table thead th:nth-child(2){width:25%}.responsibility-table thead th:nth-child(3){width:34%}.responsibility-table thead th:nth-child(4){width:25%}.responsibility-table thead{display:table-header-group}.responsibility-table tbody{display:table-row-group}.responsibility-table tr{display:table-row;break-inside:avoid}.responsibility-table th,.responsibility-table td{display:table-cell;position:static;vertical-align:top;padding:6px}.responsibility-table td:before{display:none}.responsibility-select,.responsibility-table .claim-link{font-size:11px}.responsibility-details{display:block}}
-</style>
+/* ── 변경 전후 아키텍처 비교(D10) ── 표가 완전 목록, 그림은 보조. 색만으로 구분하지
+   않는다: 모든 상태는 색 + 기호 + 한글 라벨을 함께 쓴다(접근성 원칙 유지). */
+.cmp-refs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.cmp-ref{padding:14px 16px;overflow-wrap:anywhere}.cmp-ref h3{margin:0 0 6px;font-size:15px}.cmp-ref p{margin:0;color:var(--ink);font-weight:700}.cmp-ref small{display:block;margin-top:4px;color:var(--muted);font-size:11px}
+.cmp-stats{margin:0 0 10px;color:var(--muted);font-size:12.5px}
+.cmp-legend{display:flex;gap:8px;flex-wrap:wrap;list-style:none;margin:0 0 12px;padding:0}
+.cmp-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid;font:800 11px var(--sans);white-space:nowrap}
+.cmp-symbol{font:900 13px var(--mono);line-height:1}
+.cmp-added{background:var(--green-bg);color:var(--green);border-color:#b8d8c2}
+.cmp-removed{background:var(--red-bg);color:var(--red);border-color:#e8b8b2}
+.cmp-moved{background:var(--violet-bg);color:var(--violet);border-color:#cdbcec}
+.cmp-modified{background:var(--gold-bg);color:var(--gold);border-color:#e8d9b8}
+.cmp-unmatched{background:#eef1f5;color:var(--muted);border-color:var(--line)}
+.cmp-table small{display:block;margin-top:3px;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+.cmp-table .cmp-kind small{margin-top:5px;color:var(--soft)}
+.cmp-outside{font-weight:800;color:var(--gold)}
+.cmp-empty{padding:18px;border:1px dashed var(--line);border-radius:10px;color:var(--muted)}
+@media screen and (max-width:720px){.cmp-refs{grid-template-columns:1fr}.cmp-table,.cmp-table tbody,.cmp-table tr,.cmp-table td{display:block;width:100%}.cmp-table thead{display:none}.cmp-table td:before{content:attr(data-label);display:block;font-weight:800;color:var(--ink);margin-bottom:8px}.cmp-table tr{padding:12px;border-bottom:2px solid var(--line)}.cmp-table td{border:0;padding:8px}}
+@media print{.cmp-legend{display:flex}.cmp-table tr{break-inside:avoid}}</style>
 </head>
 <body>
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
-<header class="topbar"><div class="topbar-inner"><div class="brand"><span class="brand-mark">C4</span><span id="brand-title">Architecture Report</span></div><nav id="top-nav" class="nav" aria-label="문서 목차"></nav><button class="btn" type="button" id="print-btn">인쇄 / PDF</button></div></header>
+<header class="topbar"><div class="topbar-inner"><div class="brand"><span class="brand-mark">C4</span><span id="brand-title">Architecture Report</span></div><nav id="top-nav" class="nav" aria-label="문서 목차"></nav><div class="profile-switch"><label for="visual-profile">시각 프로필</label><select id="visual-profile" title="보고서와 임베드된 그림에 같은 색·글꼴·간격 역할 값을 적용합니다"></select></div><button class="btn" type="button" id="print-btn">인쇄 / PDF</button></div></header>
 <main id="main" class="wrap">
 <section id="overview" class="hero" aria-labelledby="page-title"><div class="hero-content"><div id="eyebrow" class="eyebrow">C4 Architecture Report</div><h1 id="page-title">Architecture Report</h1><p id="hero-summary" class="hero-summary"></p><div id="hero-badges" class="badges"></div><div class="hero-actions"><button class="btn" type="button" data-jump="diagrams">다이어그램</button><button class="btn" type="button" data-jump="flows">실행 흐름</button><button class="btn" type="button" data-jump="evidence">근거</button><button class="btn" type="button" data-jump="qa">검증</button></div></div></section>
 <div id="stats" class="stats" aria-label="아키텍처 통계"></div>
 <section id="overview-detail" class="section"><div class="section-head"><div><div class="section-kicker">Understand</div><h2>먼저 알아야 할 것</h2><p class="section-desc">그림보다 문제, 범위, 한 문장 구조를 먼저 확인합니다.</p></div></div><div id="overview-grid" class="overview-grid"></div><div id="reading-path" class="reading-path" aria-label="권장 읽기 순서"></div></section>
-<section id="diagrams" class="section"><div class="section-head"><div><div class="section-kicker">C4 Views</div><h2>아키텍처 다이어그램</h2><p class="section-desc">같은 시스템을 서로 다른 확대 수준으로 나누어 봅니다.</p></div></div><div id="diagram-tabs" class="tabs" role="tablist" aria-label="C4 다이어그램 선택"></div><div id="diagram-panels"></div></section>
+<section id="diagrams" class="section"><div class="section-head"><div><div class="section-kicker">C4 Views</div><h2>아키텍처 다이어그램</h2><p class="section-desc">같은 시스템을 서로 다른 확대 수준으로 나누어 봅니다.</p></div></div><div id="diagram-tabs" class="tabs" role="tablist" aria-label="C4 다이어그램 선택"></div><ol id="view-breadcrumb" class="view-breadcrumb" hidden aria-label="뷰 이동 경로"></ol><div id="diagram-panels"></div></section>
 <section id="flows" class="section"><div class="section-head"><div><div class="section-kicker">Dynamic Scenarios</div><h2>핵심 실행 흐름</h2><p class="section-desc">정상, 실패, 복구 흐름을 시나리오별로 분리합니다.</p></div></div><div id="flow-tabs" class="tabs" role="tablist" aria-label="실행 흐름 선택"></div><div id="flow-panels"></div></section>
 <section id="elements" class="section"><div class="section-head"><div><div class="section-kicker">Architecture Elements</div><h2>구성요소와 책임</h2><p class="section-desc">Canonical model의 사실을 재사용하고, 설명 카드에는 이해를 돕는 표현만 추가합니다.</p></div></div><div id="group-switch" class="group-switch" role="tablist" aria-label="구성요소 그룹 선택"></div><div id="group-panels"></div></section>
 <section id="audience" class="section"><div class="section-head"><div><div class="section-kicker">Audience Explanation</div><h2>독자 수준에 맞춘 설명</h2><p class="section-desc">사실은 같고, 설명 순서와 용어 밀도만 달라집니다.</p></div></div><div id="audience-grid" class="audience-grid"></div></section>
 <section id="analysis" class="section"><div class="section-head"><div><div class="section-kicker">Architecture Review</div><h2>장점, 비용, 위험</h2><p class="section-desc">근거 Claim이나 Coverage issue에 연결된 해석만 표시합니다.</p></div></div><div id="analysis-grid" class="analysis-grid"></div></section>
+<section id="comparison" class="section"><div class="section-head"><div><div class="section-kicker">Change Review</div><h2>변경 전후 아키텍처 비교</h2><p class="section-desc">두 시점의 canonical model을 ID 기준으로 견줘 추가·삭제·이동·관계 변경을 표로 모두 남깁니다. 그림은 보조이고 표가 완전한 목록입니다.</p></div></div><div id="comparison-body"></div></section>
 <section id="issues" class="section"><div class="section-head"><div><div class="section-kicker">Coverage Boundaries</div><h2>확인 필요와 다음 확인</h2><p class="section-desc">무엇을 모르는지, 왜 중요한지, 다음에 무엇을 확인할지를 분리합니다.</p></div></div><div id="issue-grid" class="issue-grid"></div></section>
 <section id="glossary" class="section"><div class="section-head"><div><div class="section-kicker">Glossary</div><h2>용어 정리</h2><p class="section-desc">처음 보는 독자가 구조를 따라갈 수 있도록 핵심 용어를 풉니다.</p></div></div><div id="glossary-grid" class="glossary-grid"></div></section>
 <section id="evidence" class="section"><div class="section-head"><div><div class="section-kicker">Evidence & Traceability</div><h2>근거와 추적성</h2><p class="section-desc">Source Snapshot과 Claim이 어떤 요소, 관계, View에 사용되었는지 확인합니다.</p></div></div><div id="evidence-tabs" class="tabs" role="tablist" aria-label="근거 자료 선택"></div><div id="evidence-panels"></div></section>
@@ -133,6 +164,17 @@ dialog{border:0;border-radius:18px;padding:0;width:min(96vw,1600px);height:min(9
 <dialog id="claim-dialog" aria-labelledby="claim-title"><div class="dialog-head"><h3 id="claim-title">근거 주장</h3><button class="btn" type="button" id="claim-close">닫기</button></div><div id="claim-body"></div></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script id="report-data" type="application/json">__REPORT_DATA_JSON__</script>
+<script id="visual-profiles" type="application/json">{
+  "default": {"label": "기본", "report": {}, "renderer": {"light": {}, "dark": {}}},
+  "high-contrast": {
+    "label": "고대비",
+    "report": {"--ink": "#000000", "--muted": "#454f5e", "--soft": "#3e4855"},
+    "renderer": {
+      "light": {"--color-ink": "#000000", "--color-ink-2": "#333d38", "--color-ink-3": "#454f49", "--color-edge": "#000000", "--color-accent-line": "#245743", "--color-warn-line": "#7a4d0e", "--color-warn-text": "#5c3608", "--color-uncertain": "#6f3d0c"},
+      "dark": {"--color-ink": "#ffffff", "--color-ink-2": "#c9d3cc", "--color-ink-3": "#aeb9b1", "--color-edge": "#ffffff", "--color-accent-line": "#a9e0c5", "--color-warn-line": "#e6b061", "--color-warn-text": "#f7d9a5", "--color-uncertain": "#eaa963"}
+    }
+  }
+}</script>
 <script>
 (() => {
 'use strict';
@@ -148,12 +190,56 @@ const resultDot=value=>{const cls=resultClass(value);return cls==='fail'?'fail':
 const sourceChips=ids=>{const row=make('div','source-ids');(ids||[]).forEach(id=>row.appendChild(make('span','source-id',id)));return row;};
 const setHiddenIfEmpty=(id,empty)=>{byId(id).hidden=!!empty;};
 const showToast=message=>{const t=byId('toast');t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
+// ── 공유 시각 프로필(D5) ──────────────────────
+// 색·글꼴·간격 역할 값(역할 ID = 두 템플릿의 기존 CSS 변수명)을 하나의 프로필로 묶어
+// 보고서와 임베드된 그림에 함께 적용한다. 개별 그림의 light/dark 테마 전환은 그대로다
+// — 프로필은 테마별 덮어쓰기로 테마와 직교한다(렌더더가 테마를 바꾸면 새 테마의 프로필
+// 값을 다시 적용한다). 프로필은 부분 정의다: 없는 역할은 템플릿 기본값 그대로 남는다
+// (오래된 프로필의 빠진 역할은 기본으로 보충, 원본 값을 덮어쓰지 않는다). 상태는 세션
+// 메모리만 쓴다(오프라인 단일 HTML·file:// — 저장·불러오기 없음, 새로고침이면 기본).
+// 미리 렌더링된 인쇄 이미지(printDataUri)는 프로필을 반영하지 못한다(문서화된 한계).
+const visualProfiles=JSON.parse(document.getElementById('visual-profiles').textContent);
+let currentProfileName='default',appliedProfileRoles=[];
+const profileSelect=byId('visual-profile');
+Object.entries(visualProfiles).forEach(([name,profile])=>{const option=make('option','',profile.label||name);option.value=name;profileSelect.appendChild(option);});
+const profileMessage=name=>{const profile=visualProfiles[name]||visualProfiles.default;return {type:'repo-flowmap-profile',roles:{light:{...(profile.renderer?.light||{})},dark:{...(profile.renderer?.dark||{})}}};};
+const sendProfileToFrame=frame=>frame?.contentWindow?.postMessage(profileMessage(currentProfileName),'*');
+const pushProfileToFrames=()=>[...document.querySelectorAll('iframe[data-native-camera="1"]')].forEach(sendProfileToFrame);
+function applyProfile(name){
+  const profile=visualProfiles[name];
+  if(!profile)return;
+  currentProfileName=name;
+  const root=document.documentElement;
+  appliedProfileRoles.forEach(key=>root.style.removeProperty(key));
+  const roles=profile.report||{};
+  // 이 템플릿이 이미 정의한 역할만 덮어쓴다 — 모르는 역할(미래·과거 프로필)은 무시한다.
+  // 값 검사 스킴 문자열은 연결해 만든다(템플릿 정적 검사가 원문의 스킴 문자열을 걸러낸다).
+  const UNSAFE_ROLE_VALUE=/\burl\(|\bexpression\(/i,SCRIPT_SCHEME='java'+'script:';
+  appliedProfileRoles=Object.keys(roles).filter(key=>/^--[\w-]+$/.test(key)&&getComputedStyle(root).getPropertyValue(key).trim()&&!UNSAFE_ROLE_VALUE.test(String(roles[key]))&&!String(roles[key]).toLowerCase().includes(SCRIPT_SCHEME));
+  appliedProfileRoles.forEach(key=>root.style.setProperty(key,String(roles[key])));
+  pushProfileToFrames();
+}
+profileSelect.addEventListener('change',()=>{applyProfile(profileSelect.value);showToast(`시각 프로필: ${visualProfiles[profileSelect.value]?.label||profileSelect.value}`);});
 function renderHeader(){const m=data.meta||{},o=data.overview||{};document.title=`${m.title||'Architecture'} · C4 Architecture Report`;byId('brand-title').textContent=m.title||'Architecture Report';byId('page-title').textContent=m.title||'Architecture Report';byId('hero-summary').textContent=o.oneSentence||'';byId('eyebrow').textContent=`C4 Architecture · ${modeLabels[m.mode]||m.mode||''}`;const b=byId('hero-badges');[[modeLabels[m.mode],m.completionResult],[`분석: ${profileLabels[m.analysisProfile]||m.analysisProfile}`,null],[`완료: ${m.completionResult||'NOT_RUN'}`,m.completionResult],[`모델: ${m.modelVersion||'미확인'}`,null],[m.generatedAt?`생성: ${m.generatedAt}`:null,null]].filter(x=>x[0]).forEach(([text,result])=>{const badge=make('span','badge');append(badge,make('span',`dot ${resultDot(result)}`),document.createTextNode(text));b.appendChild(badge);});byId('footer-text').textContent=`${m.title||'Architecture'} · ${modeLabels[m.mode]||''} · ${profileLabels[m.analysisProfile]||''} · model ${m.modelVersion||''}`;}
 function renderStats(){const root=byId('stats');const primaryLabels=new Set(['기술 무결성','분석 범위','다이어그램','검증']);const primaryCount=Math.min(3,(data.stats||[]).filter(s=>primaryLabels.has(s.label)).length||3);(data.stats||[]).forEach((item,index)=>{const c=make('div','stat');if(index<primaryCount)c.classList.add('primary');append(c,make('strong','',item.value??0),make('span','',item.label||''));root.appendChild(c);});root.hidden=!(data.stats||[]).length;}
 function renderOverview(){const o=data.overview||{},m=data.meta||{},grid=byId('overview-grid');const history=make('aside','callout warn historical-scope');append(history,make('b','','입력 원문의 시점과 범위 — 과거 기록'),make('p','',`입력 보고서 표기 시각: ${m.generatedAt||'기록 없음'} (개별 QA 수행 시각은 아님). 아래 ‘현재 범위’, ‘최신 증거’는 보존된 원문의 표현입니다. 해당 기록이 가리킨 당시 산출물에만 적용하며, 현재 HTML의 새 브라우저·인쇄·운영 검증 결과를 뜻하지 않습니다. QA별 시각과 대상은 검증 절에서 구분합니다.`));grid.before(history);const isBeginner=(m.mode||'')==='beginner'||m.mode==='both';const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const hlWrap=text=>{const t=String(text||'');if(t.includes(' — ')){const at=t.indexOf(' — '),a=t.slice(0,at),b=t.slice(at+3);return esc(a)+' — <span class="hl">'+esc(b)+'</span>';}if(t.includes('Portal')&&t.includes('Board')){return t.split(/(Portal|Board)/g).map(x=>x==='Portal'||x==='Board'?'<em class="t">'+esc(x)+'</em>':esc(x)).join('');}return '<span class="hl">'+esc(t)+'</span>';};const overviewData=[['이 시스템이 해결하는 문제',o.problem||'확인할 수 없음',null,true],['구조를 한 문장으로',o.oneSentence||'확인할 수 없음',o.oneSentence||null,true],['현재 범위와 경계',o.scopeSummary||m.scope||'확인할 수 없음',null,false]];overviewData.forEach(([title,text,highlight,doHl])=>{const c=make('article','card overview-card');append(c,make('h3','',title));const p=make('p','');if(doHl&&highlight)p.innerHTML=hlWrap(highlight||text);else if(doHl&&text)p.innerHTML=hlWrap(text);else p.textContent=text;c.appendChild(p);grid.appendChild(c);});const path=byId('reading-path');if(isBeginner&&o.readingOrder?.length)path.classList.add('beginner');(o.readingOrder||[]).forEach((item,index)=>{const c=make('div','path-step');if(isBeginner&&index<2)c.classList.add('on');append(c,make('b','',String(index+1).padStart(2,'0')),make('span','',item));path.appendChild(c);});path.hidden=!(o.readingOrder||[]).length;}
 function activateTabs(tabRoot,panelRoot,selectedId){[...tabRoot.querySelectorAll('[role="tab"]')].forEach(b=>{const on=b.dataset.target===selectedId;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});[...panelRoot.children].forEach(p=>p.hidden=p.id!==selectedId);}
 function tabKeyHandler(event,button,tabs){const buttons=[...tabs.querySelectorAll('[role="tab"]')],current=buttons.indexOf(button);let next=null;if(event.key==='ArrowRight')next=buttons[(current+1)%buttons.length];if(event.key==='ArrowLeft')next=buttons[(current-1+buttons.length)%buttons.length];if(next){event.preventDefault();next.click();next.focus();}}
-function renderDiagramGuide(d,layout){const g=make('aside','guide');const head=make('div','guide-head');const titleEl=make('h3','',d.title||'Diagram');const btn=make('button','guide-toggle','');btn.type='button';btn.setAttribute('aria-expanded','true');btn.setAttribute('aria-label','설명 접기');btn.textContent='접기';append(head,titleEl,btn);g.appendChild(head);const descEl=make('p','',d.description||'');g.appendChild(descEl);const blockEls=[];const blocks=[['이 View가 답하는 질문',d.question?[d.question]:[]],['먼저 볼 곳',d.readingTips||[]],['이 View에서 일부러 뺀 것',d.notShown||[]],['다음으로 확대할 View',d.nextViews||[]]];blocks.filter(x=>x[1].length).forEach(([title,items])=>{const w=make('div','guide-block');append(w,make('h4','',title),list(items));blockEls.push(w);g.appendChild(w);});const capEl=make('div','caption',`${d.type||''}${d.scope?' · '+d.scope:''}${d.sourcePath?' · '+d.sourcePath:''}${d.caption?' · '+d.caption:''}`);g.appendChild(capEl);btn.addEventListener('click',()=>{const isCollapsed=layout.classList.contains('guide-collapsed');if(isCollapsed){layout.classList.remove('guide-collapsed');g.removeAttribute('data-collapsed');head.style.display='';descEl.style.display='';blockEls.forEach(el=>el.style.display='');capEl.style.display='';btn.textContent='접기';btn.setAttribute('aria-label','설명 접기');btn.setAttribute('aria-expanded','true');} else {layout.classList.add('guide-collapsed');g.setAttribute('data-collapsed','true');head.style.display='none';descEl.style.display='none';blockEls.forEach(el=>el.style.display='none');capEl.style.display='none';const reopen=make('button','guide-reopen','');reopen.type='button';reopen.setAttribute('aria-label','설명 펼치기');reopen.textContent='열기';reopen.addEventListener('click',()=>{layout.classList.remove('guide-collapsed');g.removeAttribute('data-collapsed');head.style.display='';descEl.style.display='';blockEls.forEach(el=>el.style.display='');capEl.style.display='';reopen.remove();btn.textContent='접기';btn.setAttribute('aria-label','설명 접기');btn.setAttribute('aria-expanded','true');});g.appendChild(reopen);}});return g;}
+function renderDiagramGuide(d,layout){const g=make('aside','guide');const head=make('div','guide-head');const titleEl=make('h3','',d.title||'Diagram');const btn=make('button','guide-toggle','');btn.type='button';btn.setAttribute('aria-expanded','true');btn.setAttribute('aria-label','설명 접기');btn.textContent='접기';append(head,titleEl,btn);g.appendChild(head);const descEl=make('p','',d.description||'');g.appendChild(descEl);const blockEls=[];const blocks=[['이 View가 답하는 질문',d.question?[d.question]:[]],['먼저 볼 곳',d.readingTips||[]],['이 View에서 일부러 뺀 것',d.notShown||[]]];blocks.filter(x=>x[1].length).forEach(([title,items])=>{const w=make('div','guide-block');append(w,make('h4','',title),list(items));blockEls.push(w);g.appendChild(w);});
+// A5: 다음 뷰 안내를 같은 탐색 체계로 잇는다. 이 보고서에 그림이 있는 뷰만
+// 링크로 만들고, 없는 뷰는 기존처럼 안내 문구로만 표시한다(링크를 지어내지 않는다).
+if((d.nextViewIds||[]).length){
+const w=make('div','guide-block');append(w,make('h4','','다음으로 확대할 View'));
+const ul=make('ul');
+d.nextViewIds.forEach(nextId=>{
+const li=make('li');const target=(data.diagrams||[]).find(x=>x.viewId===nextId);
+const label=(d.nextViews||[])[d.nextViewIds.indexOf(nextId)]||target?.title||nextId;
+if(target){const link=make('button','guide-next-view',label);link.type='button';link.dataset.nextView=nextId;link.title=`${target.title} 그림으로 이동합니다`;link.addEventListener('click',()=>{const state=rendererStates.get(d.viewId);enterInternalView(nextId,{viewId:d.viewId,selectedId:state?.selectedId||null,camera:state?.camera||null});});li.appendChild(link);}
+else li.textContent=label;
+ul.appendChild(li);
+});
+w.appendChild(ul);blockEls.push(w);g.appendChild(w);
+}const capEl=make('div','caption',`${d.type||''}${d.scope?' · '+d.scope:''}${d.sourcePath?' · '+d.sourcePath:''}${d.caption?' · '+d.caption:''}`);g.appendChild(capEl);btn.addEventListener('click',()=>{const isCollapsed=layout.classList.contains('guide-collapsed');if(isCollapsed){layout.classList.remove('guide-collapsed');g.removeAttribute('data-collapsed');head.style.display='';descEl.style.display='';blockEls.forEach(el=>el.style.display='');capEl.style.display='';btn.textContent='접기';btn.setAttribute('aria-label','설명 접기');btn.setAttribute('aria-expanded','true');} else {layout.classList.add('guide-collapsed');g.setAttribute('data-collapsed','true');head.style.display='none';descEl.style.display='none';blockEls.forEach(el=>el.style.display='none');capEl.style.display='none';const reopen=make('button','guide-reopen','');reopen.type='button';reopen.setAttribute('aria-label','설명 펼치기');reopen.textContent='열기';reopen.addEventListener('click',()=>{layout.classList.remove('guide-collapsed');g.removeAttribute('data-collapsed');head.style.display='';descEl.style.display='';blockEls.forEach(el=>el.style.display='');capEl.style.display='';reopen.remove();btn.textContent='접기';btn.setAttribute('aria-label','설명 접기');btn.setAttribute('aria-expanded','true');});g.appendChild(reopen);}});return g;}
 function attachZoom(card,img){if(img.tagName==='IFRAME'&&img.dataset.nativeCamera==='1'){
 const command=action=>img.contentWindow?.postMessage({type:'repo-flowmap-camera',viewId:img.dataset.viewId,action},'*');
 card.querySelectorAll('[data-zoom]').forEach(b=>b.addEventListener('click',()=>command(b.dataset.zoom==='reset'?'one':b.dataset.zoom)));
@@ -165,7 +251,33 @@ if(comma<0||!/^data:text\/html(?:;|$)/i.test(header))throw new Error('Invalid em
 const html=/;base64(?:;|$)/i.test(header)?new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(atob(body),c=>c.charCodeAt(0))):decodeURIComponent(body);
 frame.srcdoc=html;frame.dataset.nativeCamera=html.includes('repo-flowmap-camera')?'1':'0';
 }
-function renderDiagrams(){const diagrams=data.diagrams||[];setHiddenIfEmpty('diagrams',!diagrams.length);if(!diagrams.length)return;const tabs=byId('diagram-tabs'),panels=byId('diagram-panels');diagrams.forEach((d,index)=>{const panelId=`diagram-panel-${d.id||index}`,button=make('button','tab',d.title||`View ${index+1}`);button.type='button';button.setAttribute('role','tab');button.dataset.target=panelId;button.setAttribute('aria-selected',String(index===0));button.tabIndex=index===0?0:-1;tabs.appendChild(button);const panel=make('div','tab-panel');panel.id=panelId;panel.hidden=index!==0;const card=make('article','card diagram-card');card.classList.add('enhanced');card.dataset.title=d.title||'';const layout=make('div','diagram-layout'),viewer=make('div','viewer'),toolbar=make('div','viewer-toolbar'),group=make('div','group');[['out','−'],['reset','100%'],['in','＋']].forEach(([action,label])=>{const b=make('button','',label);b.type='button';b.dataset.zoom=action;group.appendChild(b);});const full=make('button','','전체 화면');full.type='button';full.dataset.full='1';group.appendChild(full);append(toolbar,make('div','viewer-title',d.title||'Diagram'),group);const frame=make('div','diagram-frame');let img=null;const htmlEmbed=!!d.dataUri&&(d.mimeType==='text/html'||String(d.dataUri).startsWith('data:text/html'));if(htmlEmbed){img=make('iframe');img.dataset.viewId=d.viewId;setEmbedSource(img,d.dataUri);img.title=d.alt||`${d.title||'C4'} 인터랙티브 다이어그램`;img.setAttribute('sandbox','allow-scripts allow-downloads');img.loading='lazy';frame.appendChild(img);if(d.printDataUri){const pimg=make('img');pimg.className='diagram-print-img';pimg.src=d.printDataUri;pimg.alt=d.alt||`${d.title||'C4'} 다이어그램(인쇄용)`;frame.appendChild(pimg);}}else if(d.dataUri){img=make('img');img.src=d.dataUri;img.alt=d.alt||`${d.title||'C4'} 다이어그램`;img.loading='lazy';frame.appendChild(img);}else frame.appendChild(make('div','diagram-missing','렌더링된 그림을 확인할 수 없습니다. 원본 source와 QA를 확인하세요.'));append(viewer,toolbar,frame);const guide=renderDiagramGuide(d,layout);append(layout,viewer,guide);card.appendChild(layout);if(img)attachZoom(card,img);panel.appendChild(card);panels.appendChild(panel);button.addEventListener('click',()=>activateTabs(tabs,panels,panelId));button.addEventListener('keydown',e=>tabKeyHandler(e,button,tabs));});}
+function renderDiagrams(){const diagrams=data.diagrams||[];setHiddenIfEmpty('diagrams',!diagrams.length);if(!diagrams.length)return;const tabs=byId('diagram-tabs'),panels=byId('diagram-panels');diagrams.forEach((d,index)=>{const panelId=`diagram-panel-${d.id||index}`,button=make('button','tab',d.title||`View ${index+1}`);button.type='button';button.setAttribute('role','tab');button.dataset.target=panelId;button.setAttribute('aria-selected',String(index===0));button.tabIndex=index===0?0:-1;tabs.appendChild(button);const panel=make('div','tab-panel');panel.id=panelId;panel.hidden=index!==0;const card=make('article','card diagram-card');card.classList.add('enhanced');card.dataset.title=d.title||'';card.dataset.viewId=d.viewId||'';const layout=make('div','diagram-layout'),viewer=make('div','viewer'),toolbar=make('div','viewer-toolbar'),group=make('div','group');[['out','−'],['reset','100%'],['in','＋']].forEach(([action,label])=>{const b=make('button','',label);b.type='button';b.dataset.zoom=action;group.appendChild(b);});const full=make('button','','전체 화면');full.type='button';full.dataset.full='1';group.appendChild(full);append(toolbar,make('div','viewer-title',d.title||'Diagram'),group);const frame=make('div','diagram-frame');let img=null;const htmlEmbed=!!d.dataUri&&(d.mimeType==='text/html'||String(d.dataUri).startsWith('data:text/html'));if(htmlEmbed){img=make('iframe');img.dataset.viewId=d.viewId;setEmbedSource(img,d.dataUri);img.title=d.alt||`${d.title||'C4'} 인터랙티브 다이어그램`;img.setAttribute('sandbox','allow-scripts allow-downloads');img.loading='lazy';img.addEventListener('load',()=>sendProfileToFrame(img));frame.appendChild(img);if(d.printDataUri){const pimg=make('img');pimg.className='diagram-print-img';pimg.src=d.printDataUri;pimg.alt=d.alt||`${d.title||'C4'} 다이어그램(인쇄용)`;frame.appendChild(pimg);}}
+if(htmlEmbed){
+// A5 내부 보기: 그림에서 선택한 요소(canonical ID)를 펼친 View로 들어간다.
+// 선택 상태는 렌더러의 repo-flowmap-state 보고로만 안다 — 상태를 지어내지 않는다.
+const expand=make('button','','내부 보기');expand.type='button';expand.dataset.expand='1';expand.disabled=true;
+expand.title='그림에서 요소를 먼저 선택하면 그 요소를 펼친 View로 들어갑니다';
+expand.addEventListener('click',()=>{const state=rendererStates.get(d.viewId);const selected=state?.selectedId;if(!selected)return;const target=zoomTargetFor(d,selected);if(!target)return;enterInternalView(target.viewId,{viewId:d.viewId,selectedId:selected,camera:state?.camera||null});});
+group.appendChild(expand);
+}
+else if(d.dataUri){img=make('img');img.src=d.dataUri;img.alt=d.alt||`${d.title||'C4'} 다이어그램`;img.loading='lazy';frame.appendChild(img);}else frame.appendChild(make('div','diagram-missing','렌더링된 그림을 확인할 수 없습니다. 원본 source와 QA를 확인하세요.'));append(viewer,toolbar,frame);const guide=renderDiagramGuide(d,layout);append(layout,viewer,guide);card.appendChild(layout);if(img)attachZoom(card,img);panel.appendChild(card);panels.appendChild(panel);
+button.addEventListener('click',()=>{
+// A5: 확대 진입·복귀는 떠난 뷰의 상태를 스택에 남긴다. 직접 탭 선택(사용자
+// 클릭·흐름의 관련 그림 단추)은 확대 경로가 아니므로 스택을 정리한다 —
+// 경로에 있는 뷰로 돌아가면 그 아래 항목만, 없는 뷰면 전체를 비운다.
+const intent=navIntent;navIntent=null;
+currentDiagramViewId=d.viewId;
+if(intent?.push)viewNavStack.push(intent.push);
+else{const index=viewNavStack.findIndex(entry=>entry.viewId===d.viewId);if(intent?.restore||index>=0)viewNavStack.length=Math.max(index,0);else viewNavStack.length=0;}
+activateTabs(tabs,panels,panelId);
+renderBreadcrumb();
+refreshZoomControls();
+if(intent?.restore)applyNavRestore(intent.restore);
+});
+button.addEventListener('keydown',e=>tabKeyHandler(e,button,tabs));});
+currentDiagramViewId=diagrams[0]?.viewId||null;
+refreshZoomControls();
+}
 // Runs only our bridge in an opaque-origin sandbox. Original SVG pixels stay in
 // image mode (no active content); an inert shadow tree is used ONLY for geometry.
 // No selector interpolation, message-order joins or stored coordinate maps.
@@ -279,9 +391,12 @@ function semanticDiagram(diagram){
     });root.appendChild(tools);
     frame=make('iframe','semantic-frame');frame.title=`${diagram.title||'원본 다이어그램'} — 선택 부분`;frame.setAttribute('sandbox','allow-scripts');
     const payload=JSON.stringify({uri:svgUri,viewId:diagram.viewId,title:diagram.title||'',token}).replace(/</g,'\\u003c');
-    frame.srcdoc='<!doctype html><html lang="ko"><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data:; style-src \'unsafe-inline\'; script-src \'nonce-'+token+'\'; base-uri \'none\'; form-action \'none\'"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:white}#window{width:100%;height:100%;overflow:auto}.snapshot{display:block;min-width:100%;min-height:100%}.focus-overlays{pointer-events:none}.focus-step,.focus-element{fill:rgba(49,95,202,.04);stroke:#315fca;stroke-width:3;vector-effect:non-scaling-stroke}.focus-element{stroke:#93620e;stroke-dasharray:8 5}</style><div id="window" tabindex="0" role="region" aria-label="원본 그림, 확대 시 방향키로 이동"></div><scr'+'ipt nonce="'+token+'">('+semanticSandbox.toString()+')('+payload+');</scr'+'ipt></html>';
+    const coarsePointer=!!(window.matchMedia&&(window.matchMedia('(pointer: coarse)').matches||window.matchMedia('(hover: none)').matches));
+    frame.srcdoc='<!doctype html><html lang="ko"><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data:; style-src \'unsafe-inline\'; script-src \'nonce-'+token+'\'; base-uri \'none\'; form-action \'none\'"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:white}#window{width:100%;height:100%;overflow:auto}.snapshot{display:block;min-width:100%;min-height:100%}.focus-overlays{pointer-events:none}.focus-step,.focus-element{fill:rgba(49,95,202,.04);stroke:#315fca;stroke-width:3;vector-effect:non-scaling-stroke}.focus-element{stroke:#93620e;stroke-dasharray:8 5}</style><div id="window" tabindex="0" role="region" aria-label="'+(coarsePointer?'원본 그림, 확대 시 화면을 밀어 이동':'원본 그림, 확대 시 방향키로 이동')+'"></div><scr'+'ipt nonce="'+token+'">('+semanticSandbox.toString()+')('+payload+');</scr'+'ipt></html>';
     root.appendChild(frame);
-    root.appendChild(make('p','semantic-help','긴 메시지는 읽기 크기로 표시합니다. 그림 안에서 좌우로 스크롤하거나, 그림에 초점을 두고 방향키로 이동하세요. 전체 맥락은 ‘전체 그림’에서 확인합니다.'));
+    const help=make('p','semantic-help','긴 메시지는 읽기 크기로 표시합니다. 그림 안에서 좌우로 스크롤');
+    append(help,make('span','kbd-clause','하거나, 그림에 초점을 두고 방향키로 이동'),document.createTextNode('하세요. 전체 맥락은 ‘전체 그림’에서 확인합니다.'));
+    root.appendChild(help);
     const print=make('img','semantic-print');print.src=svgUri;print.alt=diagram.alt||diagram.title||'원본 전체 그림';root.appendChild(print);
     receive=event=>{
       const m=event.data;if(event.source!==frame.contentWindow||!m||m.type!=='c4-semantic-status'||m.token!==token)return;
@@ -302,7 +417,7 @@ function semanticDiagram(diagram){
   }else{
     unavailable();
     if(diagram?.dataUri){
-      if(diagram.mimeType==='text/html'||diagram.dataUri.startsWith('data:text/html')){const fallback=make('iframe','semantic-frame');fallback.title=diagram.title||'원본 그림';fallback.setAttribute('sandbox','allow-scripts allow-downloads');setEmbedSource(fallback,diagram.dataUri);root.appendChild(fallback);}
+      if(diagram.mimeType==='text/html'||diagram.dataUri.startsWith('data:text/html')){const fallback=make('iframe','semantic-frame');fallback.title=diagram.title||'원본 그림';fallback.setAttribute('sandbox','allow-scripts allow-downloads');setEmbedSource(fallback,diagram.dataUri);fallback.dataset.viewId=diagram.viewId;fallback.addEventListener('load',()=>sendProfileToFrame(fallback));root.appendChild(fallback);}
       else{const image=make('img','semantic-fallback');image.src=diagram.dataUri;image.alt=diagram.alt||diagram.title||'원본 그림';root.appendChild(image);}
     }
     const printUri=[diagram?.printDataUri,diagram?.dataUri].find(u=>/^data:image\//i.test(u||''));
@@ -350,6 +465,126 @@ function relatedIssues(flow,step){
   if(!issues.length)row.appendChild(make('p','','이 단계에 직접 연결된 미확인 기록 없음. 검증 완료라는 뜻은 아닙니다.'));
   issues.forEach(issue=>{const a=make('a','',`${issue.title} (${issue.id})`);a.href=`#issue-${(data.issues||[]).indexOf(issue)}`;append(row,a,make('p','',issue.description));});return row;
 }
+// ── 안내 재생(A3) 공용 등록부 ──────────────────────
+// 여러 실행 흐름 패널이 각자 안내를 소유한다. 탭 전환·인쇄·확대 조작처럼 특정 패널
+// 밖에서 일어나는 조작은 이 등록부로 모든 안내를 한 번에 멈춘다(자동 재개 금지 —
+// 다시 시작은 항상 사용자가 안내 재생 버튼을 누른다).
+const activeGuides=new Set();
+const stopGuides=(reason,viewId=null)=>{activeGuides.forEach(stop=>stop(reason,viewId));};
+document.addEventListener('click',event=>{
+  const tab=event.target.closest('#flow-tabs [role="tab"], #diagram-tabs [role="tab"]');
+  if(tab){stopGuides('tab');return;}
+  const zoom=event.target.closest('[data-zoom],[data-full]');
+  if(zoom){
+    // 확대·전체 화면 열기는 그림 종류와 무관한 사용자 조작이다. 어떤 그림을
+    // 조작했든 진행 중인 모든 안내를 '사용자 조작' 사유로 멈춘다 — 조작한 카드의
+    // 뷰가 안내 흐름의 뷰와 다르면 정지가 스킵되고, 모달이 배경을 가린 IO
+    // '화면 밖' 정지와 경합해 사유 귀속이 뒤바뀌는 결함으로 이어진다.
+    stopGuides('user');
+    return;
+  }
+  const tool=event.target.closest('#dialog-minus,#dialog-plus,#dialog-reset');
+  if(tool&&!byId('dialog-embed').hidden&&byId('dialog-embed').dataset.viewId)stopGuides('user',byId('dialog-embed').dataset.viewId);
+});
+window.addEventListener('beforeprint',()=>stopGuides('print'));
+window.addEventListener('pagehide',()=>stopGuides('pagehide'));
+// ── 상위 경계를 유지하는 내부 펼치기(A5) ──────────────
+// 레벨별 보기 전환을 실제 탐색으로 잇는다. 확대 진입은 떠난 뷰의 선택 요소(canonical ID)와
+// 카메라를 내부 스택에 남기고, 부모 경로(breadcrumb)에서 한 번에 되돌아간다. 대상 뷰는
+// scopeChain(parentId 포함 관계)·뷰 포함 목록로만 식별한다 — 이름 매칭으로 뷰를 지어내지
+// 않는다. 뒤로가기는 내부 스택(정적 문서·브라우저 히스토리와 무관)이다.
+const C4_ZOOM_RANKS={systemContext:1,container:2,component:3,code:4};
+const viewNavStack=[];         // [{viewId,selectedId,camera}] — 확대로 떠난 뷰의 복원 상태
+const rendererStates=new Map(); // viewId -> {selectedId,camera} — 렌더러가 알린 마지막 상태
+let currentDiagramViewId=null,navIntent=null;
+const embedFrames=viewId=>[...document.querySelectorAll('#diagram-panels iframe[data-native-camera="1"]')].filter(frame=>frame.dataset.viewId===viewId&&!frame.closest('dialog'));
+const zoomTargetFor=(from,elementId)=>{
+  // 그 요소를 경계로 펼친 더 깊은 구조 뷰(구조 확대 순서만 인정)를 문서 순서대로 찾는다.
+  // 같은 깊이라면 먼저 나온 뷰, 더 얕은 확대 단계가 있으면 그것을 먼저 준다.
+  const fromRank=C4_ZOOM_RANKS[from?.type]||0;
+  let best=null;
+  (data.diagrams||[]).forEach(d=>{
+    const rank=C4_ZOOM_RANKS[d.type]||0;
+    if(!rank||rank<=fromRank||!d.viewId||d.viewId===from?.viewId)return;
+    if(!(d.scopeChain||[]).includes(elementId))return;
+    if(!best||rank<best.rank)best={diagram:d,rank};
+  });
+  return best?best.diagram:null;
+};
+const elementName=elementId=>{for(const g of data.elementGroups||[])for(const e of g.elements||[])if(e.id===elementId)return e.name||elementId;return elementId;};
+const elementOverlapView=(elementId,contextElements)=>{
+  // 요소 카드의 진입 맥락 뷰: 이름·제목이 아니라 실제 뷰 포함 목록(elementIds)의
+  // 겹침이 가장 큰 정적 뷰를 쓴다(기존 책임 비교표와 같은 기준).
+  const matches=(data.diagrams||[]).filter(d=>d.type!=='dynamic'&&(d.elementIds||[]).includes(elementId));
+  matches.sort((a,b)=>contextElements.filter(x=>(b.elementIds||[]).includes(x.id)).length-contextElements.filter(x=>(a.elementIds||[]).includes(x.id)).length);
+  return matches[0];
+};
+window.addEventListener('message',event=>{
+  const m=event.data;
+  if(!m||m.type!=='repo-flowmap-state'||!m.viewId)return;
+  const known=[...document.querySelectorAll('#diagram-panels iframe[data-native-camera="1"]')].some(frame=>frame.contentWindow===event.source&&!frame.closest('dialog'));
+  if(!known)return;
+  rendererStates.set(m.viewId,{selectedId:m.selectedId||null,camera:m.camera||null});
+  refreshZoomControls();
+});
+function applyNavRestore(entry){
+  // 복귀 규칙: 대화형 그림(viewId 일치 embed)에 선택 요소와 카메라를 정확히 되돌린다.
+  // 렌더러가 없는 정적 그림은 DOM 상태가 그대로 남아 있으므로 아무것도 보내지 않는다.
+  embedFrames(entry.viewId).forEach(frame=>frame.contentWindow?.postMessage({type:'repo-flowmap-focus',viewId:entry.viewId,canonicalId:entry.selectedId||null,camera:entry.camera||null},'*'));
+}
+function activateDiagramView(viewId,{push=null,restore=null}={}){
+  const index=(data.diagrams||[]).findIndex(d=>d.viewId===viewId);
+  const tab=index>=0?byId('diagram-tabs')?.querySelectorAll('[role="tab"]')[index]:null;
+  if(!tab)return false;
+  navIntent={push,restore}; // 탭 클릭 처리부(renderDiagrams)가 스택을 정리한다
+  tab.click();
+  return true;
+}
+function enterInternalView(targetViewId,entry){
+  if(!activateDiagramView(targetViewId,{push:entry}))return false;
+  byId('diagrams').scrollIntoView({block:'start'});
+  return true;
+}
+function returnToNavIndex(index){
+  const entry=viewNavStack[index];
+  if(!entry)return false;
+  return activateDiagramView(entry.viewId,{restore:entry});
+}
+function renderBreadcrumb(){
+  const host=byId('view-breadcrumb');
+  if(!host)return;
+  host.replaceChildren();
+  if(!viewNavStack.length){host.hidden=true;return;}
+  const title=viewId=>{const d=(data.diagrams||[]).find(x=>x.viewId===viewId);return d?.title||viewId;};
+  viewNavStack.forEach((entry,i)=>{
+    const li=make('li'),b=make('button','crumb',title(entry.viewId));
+    b.type='button';b.dataset.crumbView=entry.viewId;
+    b.setAttribute('aria-label',`${title(entry.viewId)}로 돌아가기 — 이 뷰에서 선택한 요소와 카메라를 복원합니다`);
+    b.addEventListener('click',()=>returnToNavIndex(i));
+    append(li,b);
+    const sep=make('li');sep.setAttribute('aria-hidden','true');sep.textContent='›';
+    append(host,li,sep);
+  });
+  const current=make('li','crumb-current',title(currentDiagramViewId));
+  current.setAttribute('aria-current','true');
+  host.appendChild(current);
+  host.hidden=false;
+}
+function refreshZoomControls(){
+  (data.diagrams||[]).forEach(d=>{
+    if(!d.viewId)return;
+    const card=document.querySelector(`.diagram-card[data-view-id="${CSS.escape(d.viewId)}"]`);
+    const btn=card?.querySelector('[data-expand]');
+    if(!btn)return;
+    const state=rendererStates.get(d.viewId);
+    const selected=state?.selectedId||null;
+    const target=selected?zoomTargetFor(d,selected):null;
+    btn.disabled=!target;
+    if(target)btn.title=`선택한 요소 ${elementName(selected)}를 펼친 View(${target.title})로 들어갑니다`;
+    else if(selected)btn.title=`선택한 요소 ${elementName(selected)}를 펼친 별도 View가 이 보고서에 없습니다`;
+    else btn.title='그림에서 요소를 먼저 선택하면 그 요소를 펼친 View로 들어갑니다';
+  });
+}
 function renderFlows(){
   const flows=data.flows||[];
   setHiddenIfEmpty('flows',!flows.length);
@@ -389,30 +624,150 @@ function renderFlows(){
       const body=make('div','flow-story-body'),details=make('div','flow-step-details');
       const diagram=semanticDiagram(diagramIndex>=0?data.diagrams[diagramIndex]:null);
       const nav=make('div','flow-step-nav'),prev=make('button','btn','이전 단계'),next=make('button','btn','다음 단계');
-      const progress=make('span','flow-progress');progress.setAttribute('role','status');progress.setAttribute('aria-live','polite');
+      // A6: 진행 표시(숫자)는 시각 전용으로 두고, 낭독 알림은 별도 영역이 단계 제목 같은
+      // 의미 있는 변화에서만 갱신한다. 숫자만 바뀌는 갱신으로 낭독을 반복하지 않는다.
+      const progress=make('span','flow-progress');progress.setAttribute('aria-hidden','true');
+      const announce=make('span','sr-only flow-step-announce');announce.setAttribute('role','status');announce.setAttribute('aria-live','polite');
       prev.type=next.type='button';prev.dataset.stepNav='prev';next.dataset.stepNav='next';
       const stepButtons=[],stepPanels=[];let selected=0;
+      let announcePrefix='';
+      const stepMessage=position=>`${position+1}/${steps.length}단계 · ${steps[position].title||`단계 ${position+1}`}`;
+      const announceStep=position=>{announce.textContent=announcePrefix+stepMessage(position);announcePrefix='';};
       const selectStep=position=>{
         selected=Math.max(0,Math.min(steps.length-1,position));
         stepButtons.forEach((b,i)=>{b.setAttribute('aria-selected',String(i===selected));b.tabIndex=i===selected?0:-1;});
         stepPanels.forEach((p,i)=>p.hidden=i!==selected);
         prev.disabled=selected===0;next.disabled=selected===steps.length-1;
         progress.textContent=`${selected+1} / ${steps.length} 단계`;
+        announceStep(selected);
         const step=steps[selected];diagram.select({stepId:step.id,relationshipId:step.relationshipId,sourceId:step.sourceId,destinationId:step.destinationId});
       };
+      // ── 안내 재생(A3): 보고서가 구동하는 단계 안내 ──────────────
+      // 개별 그림의 ▶ 재생(렌더러 togglePlay)을 다시 만들지 않는다. 보고서가 단계 설명·진행
+      // 표시를 갱신하고, 같은 View의 원본 그림(임베드 iframe·다이어그랬로그 제외)에 단계
+      // 메시지(repo-flowmap-step)를 보내 반영 확인(ack)을 기다린 뒤 다음 단계로 넘어간다.
+      // 사용자가 조작하면 즉시 멈추고 다시 시작은 안내 재생 버튼뿐이다(자동 재개 금지).
+      const GUIDE_STEP_MS=2800;   // 렌더러 재생 간격(1500ms)보다 넉넉히 — 그림만 보던 간격에 단계 설명 읽기를 더했다
+      const GUIDE_ACK_MS=1500;    // ack 상한: 그림이 응답하지 않아도 안내가 멈추지 않게 한다
+      const GUIDE_READY_TRIES=8;  // 첫 단계 전 그림 준비(repoFlowmap.ready) 확인 재시도(약 350ms 간격)
+      const guide={playing:false,index:0,timer:null,seq:0};
+      const guideWaiters=new Map();
+      const guideButton=make('button','btn flow-guide-btn','▶ 안내 재생');
+      guideButton.type='button';guideButton.dataset.guidePlay='1';guideButton.setAttribute('aria-pressed','false');
+      guideButton.hidden=steps.length<2; // 안내할 흐름이 1단계뿐이면 시작 의미가 없다 — 대상에서 제외한다
+      const guideTargets=()=>[...document.querySelectorAll('iframe[data-native-camera="1"]')].filter(frame=>frame.dataset.viewId===flow.viewId&&!frame.closest('dialog'));
+      const guidePost=(type,extra)=>guideTargets().forEach(frame=>frame.contentWindow?.postMessage(Object.assign({type,viewId:flow.viewId},extra||{}),'*'));
+      const guideDelay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+      const guideReceiveAck=event=>{
+        const message=event.data;
+        if(!message||message.type!=='repo-flowmap-step-ack'||message.viewId!==flow.viewId)return;
+        if(!guideTargets().some(frame=>frame.contentWindow===event.source))return;
+        const waiter=guideWaiters.get(message.requestId);
+        if(!waiter)return;
+        waiter.acks.push(message);
+        if(waiter.acks.length>=waiter.expect)waiter.settle(waiter.acks.every(ack=>ack.ready===true));
+      };
+      window.addEventListener('message',guideReceiveAck);
+      const guideApplyStep=position=>new Promise(resolve=>{
+        selectStep(position); // 보고서 단계 설명·진행 표시·시맨틱 그림 초점이 함께 움직인다
+        const targets=guideTargets();
+        if(!targets.length){resolve(true);return;} // 대화형 그림이 없으면 보고서 단위로만 안내한다
+        const requestId=++guide.seq;
+        let settled=false;
+        const settle=ready=>{if(settled)return;settled=true;clearTimeout(timeout);guideWaiters.delete(requestId);resolve(ready);};
+        const timeout=setTimeout(()=>settle(true),GUIDE_ACK_MS);
+        const waiter={expect:targets.length,acks:[],settle};
+        guideWaiters.set(requestId,waiter);
+        targets.forEach(frame=>frame.contentWindow?.postMessage({type:'repo-flowmap-step',viewId:flow.viewId,stepIndex:position,requestId},'*'));
+      });
+      const guideApplyChecked=async position=>{
+        for(let attempt=0;attempt<GUIDE_READY_TRIES;attempt++){
+          const ready=await guideApplyStep(position);
+          if(ready)return true;
+          if(!guide.playing)return false;
+          await guideDelay(350); // 그림이 아직 준비되지 않았다 — 같은 단계로 다시 확인한다
+        }
+        return false;
+      };
+      const GUIDE_STOP_MESSAGES={
+        manual:'안내 재생을 멈추었습니다.',
+        user:'사용자 조작으로 안내 재생을 멈추었습니다. 다시 보려면 안내 재생 버튼을 누르세요.',
+        tab:'다른 탭을 선택해 안내 재생을 멈추었습니다.',
+        offscreen:'안내 영역이 화면 밖으로 나가 안내 재생을 멈추었습니다.',
+        print:'인쇄를 위해 안내 재생을 멈추었습니다.',
+        done:'안내 재생이 끝났습니다.',
+        unready:'그림이 아직 준비되지 않아 안내를 시작하지 못했습니다. 잠시 뒤 안내 재생 버튼을 다시 누르세요.'
+      };
+      let lastStop={reason:null,at:0};
+      const stopGuide=(reason,viewId)=>{
+        if(viewId&&viewId!==flow.viewId)return;
+        clearTimeout(guide.timer);
+        guideWaiters.forEach(waiter=>waiter.settle(true));
+        guideWaiters.clear();
+        if(!guide.playing){
+          // 같은 사용자 동작의 경합 바로잡기: 그림 카드 클릭이 스크롤을 옮기면
+          // 안내 패널이 화면 밖으로 나가 offscreen으로 먼저 멈추고, 이어 오는 클릭
+          // '사용자 조작' 정지는 이미 멈춘 상태라 스킵된다. 최근 offscreen 직후의
+          // user 정지는 안내 문구를 사용자 조작 사유로 바로잡는다(거짓 '화면 밖' 방지).
+          if(reason==='user'&&lastStop.reason==='offscreen'&&(Date.now()-lastStop.at)<2500){
+            announce.textContent=GUIDE_STOP_MESSAGES.user;
+          }
+          return;
+        }
+        guide.playing=false;
+        lastStop={reason,at:Date.now()};
+        guideButton.textContent='▶ 안내 재생';guideButton.setAttribute('aria-pressed','false');
+        // 'step'은 사용자가 직접 단계를 고른 경우 — 정지 안내 대신 고른 단계 알림이 말한다.
+        if(GUIDE_STOP_MESSAGES[reason])announce.textContent=GUIDE_STOP_MESSAGES[reason];
+      };
+      activeGuides.add(stopGuide);
+      const guideAdvance=async()=>{
+        if(!guide.playing)return;
+        if(guide.index>=steps.length-1){stopGuide('done');return;}
+        guide.index+=1;
+        const ready=await guideApplyChecked(guide.index);
+        if(!guide.playing)return;
+        if(!ready){stopGuide('unready');return;}
+        guide.timer=setTimeout(guideAdvance,GUIDE_STEP_MS);
+      };
+      const startGuide=async()=>{
+        if(guide.playing){stopGuide('manual');return;}
+        guide.playing=true;
+        guideButton.textContent='■ 안내 정지';guideButton.setAttribute('aria-pressed','true');
+        // 그림 자체 재생(렌더러 ▶)과 겹치지 않게 시작 전에 먼저 정지 요청을 보낸다.
+        guidePost('repo-flowmap-playback',{action:'stop'});
+        guide.index=selected>=steps.length-1?0:selected; // 끝 단계에 있으면 처음부터(기존 재생과 같은 규칙)
+        announcePrefix='안내 재생을 시작합니다. ';
+        const ready=await guideApplyChecked(guide.index);
+        if(!guide.playing)return;
+        if(!ready){stopGuide('unready');return;}
+        guide.timer=setTimeout(guideAdvance,GUIDE_STEP_MS);
+      };
+      guideButton.addEventListener('click',startGuide);
+      if('IntersectionObserver' in window){
+        new IntersectionObserver(entries=>{entries.forEach(entry=>{
+          if(!entry.isIntersecting){
+            // 전체 화면 모달이 배경을 가리면 Chrome이 배경 요소를 교차 없음으로
+            // 보고한다. 이때는 '화면 밖' 사유를 남기지 않는다 — 모달을 연 클릭
+            // 경로가 이미 '사용자 조작'으로 멈췄거나, 대화상자를 닫으면 다시 보인다.
+            if(document.querySelector('#diagram-dialog')?.open)return;
+            stopGuide('offscreen');
+          }
+        });},{threshold:0}).observe(story);
+      }
       steps.forEach((s,i)=>{
         // DOM identities and navigation use array positions, not canonical step numbers.
         const stepId=`flow-${index}-step-${i}`,label=s.title||`단계 ${i+1}`;
         const selector=make('button','flow-step-selector');selector.type='button';selector.id=`${stepId}-tab`;
         selector.setAttribute('role','tab');selector.setAttribute('aria-controls',stepId);
         append(selector,make('span','step-no',s.number??i+1),make('span','flow-step-label',label));
-        selector.addEventListener('click',()=>selectStep(i));
+        selector.addEventListener('click',()=>{stopGuide('step');selectStep(i);});
         selector.addEventListener('keydown',event=>{
           let position=null;
           if(event.key==='ArrowDown'||event.key==='ArrowRight')position=(i+1)%steps.length;
           if(event.key==='ArrowUp'||event.key==='ArrowLeft')position=(i-1+steps.length)%steps.length;
           if(event.key==='Home')position=0;if(event.key==='End')position=steps.length-1;
-          if(position!==null){event.preventDefault();selectStep(position);stepButtons[position].focus();}
+          if(position!==null){event.preventDefault();stopGuide('step');selectStep(position);stepButtons[position].focus();}
         });
         const c=make('article','card flow-step');c.id=stepId;c.dataset.stepId=s.id||'';
         c.setAttribute('role','tabpanel');c.setAttribute('aria-labelledby',selector.id);c.tabIndex=0;
@@ -420,14 +775,15 @@ function renderFlows(){
         if(s.condition)c.appendChild(make('p','flow-condition',`조건: ${s.condition}`));
         if(s.attention)c.appendChild(make('div','attention',s.attention));
         if(s.analogy)c.appendChild(make('div','analogy',`비유: ${s.analogy}`));
+        const stepAnalogyMap=analogyMap(s);if(stepAnalogyMap)c.appendChild(stepAnalogyMap);
         if(s.canonicalNote&&s.canonicalNote!==s.text){const original=make('details','canonical-note');append(original,make('summary','','모델에 기록된 단계 설명'),make('p','',s.canonicalNote));c.appendChild(original);}
         append(c,make('div','step-identity',`단계 ${s.id||'기록 없음'} · 관계 ${s.relationshipId||'기록 없음'} · ${s.confidence||'UNVERIFIED'}`),claimLinks(s.claimIds),relatedIssues(flow,s));
         if((s.sourceIds||[]).length)c.appendChild(sourceChips(s.sourceIds));
         selectors.appendChild(selector);details.appendChild(c);stepButtons.push(selector);stepPanels.push(c);
       });
-      prev.addEventListener('click',()=>selectStep(selected-1));next.addEventListener('click',()=>selectStep(selected+1));
+      prev.addEventListener('click',()=>{stopGuide('step');selectStep(selected-1);});next.addEventListener('click',()=>{stopGuide('step');selectStep(selected+1);});
       const workspace=make('div','flow-focus-workspace');append(workspace,diagram.root,details);
-      append(nav,prev,progress,next);append(body,nav,workspace);append(story,selectors,body);panel.appendChild(story);
+      append(nav,prev,progress,guideButton,next,announce);append(body,nav,workspace);append(story,selectors,body);panel.appendChild(story);
       selectStep(0);
     }
     (flow.notes||[]).forEach(note=>{
@@ -437,7 +793,13 @@ function renderFlows(){
     });
   });
 }
-function renderElementCard(e,index){const c=make('article','card element-card'),top=make('div','element-top'),heading=make('div');append(heading,make('h3','',e.name||e.id||'Element'),make('div','element-meta',`${e.type||''}${e.technology?' · '+e.technology:''}`));append(top,make('div','element-no',e.shortId||e.id||String(index+1)),heading);c.appendChild(top);const responsibility=make('div','element-responsibility');append(responsibility,make('b','responsibility-label','맡은 역할'),make('p','element-desc',e.description||''));c.appendChild(responsibility);const kv=make('div','kv'),rows=[['왜 필요한가',e.why],['없거나 실패하면',e.without],['비유',e.analogy],['확인 수준',e.confidence],['추가 설명',(e.notes||[]).join(' · ')]];rows.filter(x=>x[1]).forEach(([k,v])=>append(kv,make('b','',k),make('span','',v)));if(kv.children.length)c.appendChild(kv);const foot=make('div','source-ids');if(e.status)foot.appendChild(make('span',`status ${e.status}`,e.status));(e.sourceIds||[]).forEach(id=>foot.appendChild(make('span','source-id',id)));c.appendChild(foot);return c;}
+function renderElementCard(e,index,contextElements=[]){const c=make('article','card element-card'),top=make('div','element-top'),heading=make('div');append(heading,make('h3','',e.name||e.id||'Element'),make('div','element-meta',`${e.type||''}${e.technology?' · '+e.technology:''}`));append(top,make('div','element-no',e.shortId||e.id||String(index+1)),heading);c.appendChild(top);const responsibility=make('div','element-responsibility');append(responsibility,make('b','responsibility-label','맡은 역할'),make('p','element-desc',e.description||''));c.appendChild(responsibility);const kv=make('div','kv'),rows=[['왜 필요한가',e.why],['없거나 실패하면',e.without],['비유',e.analogy],['확인 수준',e.confidence],['추가 설명',(e.notes||[]).join(' · ')]];rows.filter(x=>x[1]).forEach(([k,v])=>append(kv,make('b','',k),make('span','',v)));if(kv.children.length)c.appendChild(kv);
+// A5 내부 보기: 이 요소를 경계로 펼친 더 깊은 뷰가 이 보고서에 있으면 들어간다.
+// 진입 맥락 뷰는 뷰 포함 목록 겹침으로 정하고, 대상이 없으면 진입 불가를 표시한다.
+const zoomRow=make('div','element-zoom');const fromView=elementOverlapView(e.id,contextElements);const zoomTarget=fromView?zoomTargetFor(fromView,e.id):null;const zoomBtn=make('button','btn','내부 보기');zoomBtn.type='button';zoomBtn.dataset.elementZoom=e.id||'';
+if(!zoomTarget){zoomBtn.disabled=true;zoomBtn.title='이 요소를 펼친 별도 View가 이 보고서에 없습니다';append(zoomRow,zoomBtn,make('span','element-zoom-note','펼친 View 기록 없음'));}
+else{zoomBtn.title=`${zoomTarget.title}로 들어갑니다. 이 요소가 있는 ${fromView.title} 그림으로 되돌아올 수 있습니다`;zoomBtn.addEventListener('click',()=>{const state=rendererStates.get(fromView.viewId);enterInternalView(zoomTarget.viewId,{viewId:fromView.viewId,selectedId:e.id,camera:state?.camera||null});});append(zoomRow,zoomBtn);}
+c.appendChild(zoomRow);const elementAnalogyMap=analogyMap(e);if(elementAnalogyMap)c.appendChild(elementAnalogyMap);const foot=make('div','source-ids');if(e.status)foot.appendChild(make('span',`status ${e.status}`,e.status));(e.sourceIds||[]).forEach(id=>foot.appendChild(make('span','source-id',id)));c.appendChild(foot);return c;}
 function responsibilityConnections(e,view){
   const root=make('div'),placementTypes=new Set(['deploymentNode','infrastructureNode','containerInstance','softwareSystemInstance']);
   const isDeployment=r=>placementTypes.has(r.sourceType)||placementTypes.has(r.destinationType)||((r.views||[]).length>0&&(r.views||[]).every(v=>v.type==='deployment'));
@@ -493,7 +855,7 @@ function renderElements(){
     });
     append(workspace,tableWrap,diagramHost);panel.appendChild(workspace);
     const more=make('details','responsibility-details');more.appendChild(make('summary','','구성요소별 전체 설명·비유·추가 기록'));
-    const grid=make('div','element-grid');elements.forEach((e,i)=>grid.appendChild(renderElementCard(e,i)));more.appendChild(grid);panel.appendChild(more);panels.appendChild(panel);
+    const grid=make('div','element-grid');elements.forEach((e,i)=>grid.appendChild(renderElementCard(e,i,elements)));more.appendChild(grid);panel.appendChild(more);panels.appendChild(panel);
     button.addEventListener('click',()=>activateTabs(tabs,panels,panelId));button.addEventListener('keydown',e=>tabKeyHandler(e,button,tabs));if(elements.length)showElement(elements[0]);
   });
 }
@@ -538,8 +900,29 @@ function renderIssues(){
     append(chain,unknown,impact,next);append(c,chain,renderIssueTargets(issue),claimLinks(issue.claimIds));if(issue.sourceIds?.length)c.appendChild(sourceChips(issue.sourceIds));byId('issue-grid').appendChild(c);
   });
 }
-function renderGlossary(){const terms=data.glossary||[];setHiddenIfEmpty('glossary',!terms.length);if(!terms.length)return;const grid=byId('glossary-grid');terms.forEach(t=>{const c=make('article','card term');append(c,make('h3','',t.term||''),make('p','',t.definition||''));if(t.analogy)c.appendChild(make('p','',`비유: ${t.analogy}`));grid.appendChild(c);});}
+function renderGlossary(){const terms=data.glossary||[];setHiddenIfEmpty('glossary',!terms.length);if(!terms.length)return;const grid=byId('glossary-grid');terms.forEach(t=>{const c=make('article','card term');append(c,make('h3','',t.term||''),make('p','',t.definition||''));if(t.analogy)c.appendChild(make('p','',`비유: ${t.analogy}`));const termAnalogyMap=analogyMap(t);if(termAnalogyMap)c.appendChild(termAnalogyMap);grid.appendChild(c);});}
 function makeTable(headers,rows,id){const wrap=make('div','table-wrap'),table=make('table');table.id=id;const thead=make('thead'),head=make('tr');headers.forEach(h=>head.appendChild(make('th','',h)));thead.appendChild(head);table.appendChild(thead);const tbody=make('tbody');rows.forEach(row=>{const tr=make('tr');row.forEach(cell=>tr.appendChild(make('td','',cell??'')));tbody.appendChild(tr);});table.appendChild(tbody);wrap.appendChild(table);return wrap;}
+// 비유 대응(A1): 비유 문장을 canonical 모델로 되짚는 최소 표. 이름·modelId는
+// 빌더가 canonical model에서 채운 값만 쓴다(비유가 모델 사실을 재정의하지 않는다).
+// mappings가 없으면 아무것도 그리지 않는다 — 기존 데이터는 출력 무변경.
+function analogyMap(item){
+  const rows=item.analogyMappings||[];
+  if(!rows.length)return null;
+  const wrap=make('div','analogy-map');
+  append(wrap,make('b','analogy-map-label','비유 대응 — 비유를 실제 구성요소로 되짚기'));
+  const table=make('table'),thead=make('thead'),head=make('tr');
+  append(head,make('th','','비유 개념'),make('th','','실제 구성요소'));append(thead,head);
+  const tbody=make('tbody');
+  rows.forEach(m=>{
+    const tr=make('tr');append(tr,make('td','',m.term||''));
+    const target=make('td');append(target,document.createTextNode(`${m.name||m.modelId} `),make('span','model-id',`(${m.modelId})`));
+    if(m.note)append(target,make('span','analogy-note',m.note));
+    append(tr,target);append(tbody,tr);
+  });
+  append(table,thead,tbody);wrap.appendChild(table);
+  if(item.analogyLimits)wrap.appendChild(make('p','analogy-limits',`비유가 맞지 않는 범위: ${item.analogyLimits}`));
+  return wrap;
+}
 function evidencePanel(id,title,headers,rows,index,tabs,panels){const panelId=`evidence-panel-${id}`,button=make('button','tab',title);button.type='button';button.setAttribute('role','tab');button.dataset.target=panelId;button.setAttribute('aria-selected',String(index===0));button.tabIndex=index===0?0:-1;tabs.appendChild(button);const panel=make('div','tab-panel');panel.id=panelId;panel.hidden=index!==0;const tools=make('div','table-tools'),input=make('input','table-search');input.type='search';input.placeholder='표 안에서 검색';input.setAttribute('aria-label',`${title} 검색`);tools.appendChild(input);panel.appendChild(tools);const tableId=`table-${id}`;panel.appendChild(makeTable(headers,rows,tableId));panels.appendChild(panel);input.addEventListener('input',()=>{const term=input.value.trim().toLowerCase();[...byId(tableId).tBodies[0].rows].forEach(row=>row.hidden=!row.textContent.toLowerCase().includes(term));});button.addEventListener('click',()=>activateTabs(tabs,panels,panelId));}
 function renderEvidence(){const sources=data.sources||[],trace=data.traceability||[];setHiddenIfEmpty('evidence',!sources.length&&!trace.length);if(!sources.length&&!trace.length)return;const tabs=byId('evidence-tabs'),panels=byId('evidence-panels');let index=0;if(sources.length)evidencePanel('sources','Source Snapshot',['ID','자료','종류','위치','고정 참조/Hash','한계'],sources.map(s=>[s.id||'',s.name||'',s.kind||'',s.location||'',s.immutableRef||s.contentHash||'',(s.limitations||[]).join(' · ')]),index++,tabs,panels);if(trace.length){evidencePanel('claims','Claim Traceability',['Claim','Model ID','주장','상태','Source IDs','Locator','Used by'],trace.map(t=>[t.claimId||'',t.modelId||'',t.statement||'',t.status||'',(t.sourceIds||[]).join(', '),t.locator||'',(t.diagrams||[]).join(', ')]),index++,tabs,panels);[...byId('table-claims').tBodies[0].rows].forEach(row=>{const id=row.cells[0].textContent,links=claimLinks([id]),button=links.querySelector('button');if(button)button.textContent=id;row.cells[0].replaceChildren(links);});}}
 function qaRow(check){const row=make('div','qa-row'),cls=resultClass(check.result),icon=make('div',`check ${cls}`,String(check.result||'').toUpperCase()==='PASS'?'✓':cls==='fail'?'!':'·'),body=make('div');append(body,make('b','',`${check.id||''} ${check.label||''}`),make('small','',check.detail||''));append(row,icon,body,make('div',`qa-result ${cls}`,check.result||'NOT RUN'));return row;}
@@ -551,8 +934,62 @@ const score=make('article','card score'),badges=make('div','score-badges');[[i.r
 async function copyText(text){try{await navigator.clipboard.writeText(text);}catch{const a=document.createElement('textarea');a.value=text;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();}showToast('원본을 복사했습니다.');}
 function downloadText(name,text,mime){const blob=new Blob([text],{type:mime||'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name||'artifact.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function renderArtifacts(){const artifacts=data.artifacts||[];setHiddenIfEmpty('raw',!artifacts.length);if(!artifacts.length)return;const grid=byId('artifact-grid');artifacts.forEach(a=>{const details=make('details','raw'),summary=make('summary');append(summary,make('span','',a.name||a.id||'Artifact'),make('span','raw-meta',`${a.kind||''}${a.sourcePath?' · '+a.sourcePath:''}`));details.appendChild(summary);if(/(^|\/)qa\//.test(a.sourcePath||a.contentPath||''))details.appendChild(make('p','callout warn','보존된 QA 원문입니다. 수행 시각·대상 산출물·해시는 이 기록 자체의 명시 범위를 따르며, 현재 HTML의 새 검사 결과로 간주하지 않습니다.'));const actions=make('div','raw-actions'),copy=make('button','','복사'),download=make('button','','파일로 저장');copy.type=download.type='button';copy.addEventListener('click',()=>copyText(a.content||''));download.addEventListener('click',()=>downloadText(a.downloadName||a.name||`${a.id}.txt`,a.content||'',a.mimeType));append(actions,copy,download);details.appendChild(actions);details.appendChild(make('pre','codebox',a.content||'원본 내용을 포함하지 못했습니다.'));grid.appendChild(details);});}
-function renderNav(){const groups=[['이해하기',[['overview-detail','개요'],['diagrams','다이어그램'],['flows','실행 흐름'],['elements','구성요소'],['audience','모드 설명'],['glossary','용어']]],['설계 검토',[['analysis','장점·비용·위험'],['issues','확인 필요']]],['근거·QA',[['evidence','근거'],['qa','검증']]],['원본',[['raw','원본 파일']]]],nav=byId('top-nav'),sections=[];groups.forEach(([group,items])=>{const visible=items.filter(([id])=>byId(id)&&!byId(id).hidden);if(!visible.length)return;nav.appendChild(make('span','nav-group',group));visible.forEach(([id,label])=>{const a=make('a','',label);a.href=`#${id}`;nav.appendChild(a);sections.push([id,a]);});});const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting)sections.forEach(([id,link])=>link.classList.toggle('active',id===entry.target.id));}),{rootMargin:'-20% 0px -70% 0px'});sections.forEach(([id])=>observer.observe(byId(id)));}
-const dialog=byId('diagram-dialog'),dialogImage=make('img');dialogImage.id='dialog-image';byId('dialog-frame').appendChild(dialogImage);const dialogEmbed=make('iframe');dialogEmbed.id='dialog-embed';dialogEmbed.setAttribute('sandbox','allow-scripts allow-downloads');dialogEmbed.hidden=true;byId('dialog-frame').appendChild(dialogEmbed);let dialogScale=1;const dialogTarget=()=>dialogEmbed.hidden?dialogImage:dialogEmbed;function openDialog(img,title){const isEmbed=img.tagName==='IFRAME';dialogImage.hidden=isEmbed;dialogEmbed.hidden=!isEmbed;dialog.showModal();if(isEmbed){dialogEmbed.dataset.viewId=img.dataset.viewId;dialogEmbed.dataset.nativeCamera=img.dataset.nativeCamera;dialogEmbed.srcdoc=img.srcdoc;}else{dialogImage.src=img.src;dialogImage.alt=img.alt;}byId('dialog-title').textContent=title||'다이어그램';dialogScale=1;dialogTarget().style.width='100%';}byId('dialog-minus').addEventListener('click',()=>{if(!dialogEmbed.hidden&&dialogEmbed.dataset.nativeCamera==='1'){dialogEmbed.contentWindow?.postMessage({type:'repo-flowmap-camera',viewId:dialogEmbed.dataset.viewId,action:'out'},'*');return;}dialogScale=Math.max(.3,dialogScale-.2);dialogTarget().style.width=`${dialogScale*100}%`;});byId('dialog-plus').addEventListener('click',()=>{if(!dialogEmbed.hidden&&dialogEmbed.dataset.nativeCamera==='1'){dialogEmbed.contentWindow?.postMessage({type:'repo-flowmap-camera',viewId:dialogEmbed.dataset.viewId,action:'in'},'*');return;}dialogScale=Math.min(4,dialogScale+.2);dialogTarget().style.width=`${dialogScale*100}%`;});byId('dialog-reset').addEventListener('click',()=>{if(!dialogEmbed.hidden&&dialogEmbed.dataset.nativeCamera==='1'){dialogEmbed.contentWindow?.postMessage({type:'repo-flowmap-camera',viewId:dialogEmbed.dataset.viewId,action:'one'},'*');return;}dialogScale=1;dialogTarget().style.width='100%';});byId('dialog-close').addEventListener('click',()=>dialog.close());byId('print-btn').addEventListener('click',()=>window.print());document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>byId(b.dataset.jump)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})));
+// ── 변경 전후 아키텍처 비교(D10) ────────────────────────
+// 두 시점 모델을 ID로 견준 비교 산출물을 표로 보여준다. 표가 완전 목록이고 그림은
+// 보조다 — 어느 뷰에도 속하지 않은 변경(그림 밖)도 표에서 사라지지 않는다.
+// 상태는 색 + 기호 + 한글 라벨로 함께 구분한다(색상만으로 구분 금지 원칙 유지).
+const CMP_KIND_META={added:['cmp-added','＋','추가'],removed:['cmp-removed','－','삭제'],moved:['cmp-moved','⇄','이동'],modified:['cmp-modified','✎','변경'],rewired:['cmp-modified','✎','변경'],unmatched:['cmp-unmatched','？','미확정']};
+const CMP_FIELD_LABELS={name:'이름',type:'종류',technology:'기술',description:'설명',parentId:'상위 경계',sourceId:'출발',destinationId:'도착'};
+const CMP_TARGET_LABELS={element:'요소',relationship:'관계'};
+const CMP_SUBTYPE_LABELS={reversed:'방향 반전',redirected:'재연결'};
+function cmpChip(kind){const meta=CMP_KIND_META[kind]||CMP_KIND_META.unmatched;const chip=make('span',`cmp-chip ${meta[0]}`);append(chip,make('b','cmp-symbol',meta[1]),document.createTextNode(meta[2]));return chip;}
+function cmpSnapshotCell(snapshot,target){const cell=make('td');if(!snapshot){cell.textContent='—';return cell;}
+  if(target==='element'){append(cell,document.createTextNode(snapshot.name||snapshot.id||''));
+    const small=make('small');small.textContent=`종류: ${snapshot.type||''}${snapshot.parentName||snapshot.parentId?` · 상위: ${snapshot.parentName||snapshot.parentId}`:''}`;cell.appendChild(small);}
+  else{append(cell,document.createTextNode(`${snapshot.sourceName||snapshot.sourceId||''} → ${snapshot.destinationName||snapshot.destinationId||''}`));
+    if(snapshot.description)cell.appendChild(make('small','',snapshot.description));}
+  return cell;}
+function renderComparison(){
+  const cmp=data.modelComparison;setHiddenIfEmpty('comparison',!cmp);if(!cmp)return;
+  const body=byId('comparison-body'),summary=cmp.summary||{},changes=cmp.changes||[];
+  const refs=make('div','cmp-refs');
+  [['이전 시점',cmp.before],['이후 시점',cmp.after]].forEach(([label,ref])=>{const card=make('article','card cmp-ref');const p=make('p','',ref?`${ref.title||''} (모델 개정 ${ref.modelRevision||'기록 없음'})`:'기록 없음');append(card,make('h3','',label),p);if(ref)card.appendChild(make('small','',`요소 ${ref.elementCount??'?'}개 · 관계 ${ref.relationshipCount??'?'}개${ref.sourceSnapshotId?` · 스냅샷 ${ref.sourceSnapshotId}`:''}${ref.path?` · ${ref.path}`:''}`));refs.appendChild(card);});
+  body.appendChild(refs);
+  body.appendChild(make('p','cmp-stats',`요소 +${summary.elementAdded??0} · −${summary.elementRemoved??0} · 이동 ${summary.elementMoved??0} · 변경 ${summary.elementModified??0} ／ 관계 +${summary.relationshipAdded??0} · −${summary.relationshipRemoved??0} · 변경 ${summary.relationshipChanged??0} ／ 미확정 ${summary.unmatched??0} ／ 무변경 요소 ${summary.unchangedElements??0} · 관계 ${summary.unchangedRelationships??0}`));
+  const legend=make('ul','cmp-legend');legend.setAttribute('aria-label','변경 상태 범례 — 색과 기호, 라벨을 함께 사용합니다');['added','removed','moved','modified','unmatched'].forEach(kind=>{const li=make('li');li.appendChild(cmpChip(kind));legend.appendChild(li);});body.appendChild(legend);
+  if((summary.unmatched??0)>0){const callout=make('aside','callout warn');append(callout,make('b','label','미확정 대응'),make('p','','같은 ID가 서로 다른 대상을 가리킬 가능성이 큰 변화는 미확정으로 표시하고 이동·변경으로 단정하지 않습니다. 미확정 행의 사유를 확인한 뒤 두 시점의 원본 모델에서 직접 확인하십시오.'));body.appendChild(callout);}
+  else{const callout=make('aside','callout info');append(callout,make('b','label','비교 기준'),make('p','',`두 시점 모델을 canonical ID 기준으로 대조했습니다. 표가 완전 목록이고 그림은 보조입니다 — 어느 뷰에도 속하지 않은 변경도 표에 그대로 남습니다.`));body.appendChild(callout);}
+  if(!changes.length){body.appendChild(make('p','cmp-empty','두 시점 사이에 요소·관계 변경이 없습니다. 무변경 개수는 위 통계에서 확인할 수 있습니다.'));return;}
+  const wrap=make('div','table-wrap'),table=make('table','cmp-table');table.id='cmp-table';
+  const thead=make('thead'),head=make('tr');['구분','대상','이전','이후','그림','설명'].forEach(h=>head.appendChild(make('th','',h)));thead.appendChild(head);table.appendChild(thead);
+  const figureViews=new Set((data.diagrams||[]).map(d=>d.viewId));
+  const tbody=make('tbody');
+  changes.forEach(c=>{
+    const row=make('tr');row.dataset.changeId=c.id||'';row.dataset.kind=c.kind||'';
+    const kind=make('td','cmp-kind');kind.dataset.label='구분';kind.appendChild(cmpChip(c.kind));
+    kind.appendChild(make('small','',`${CMP_TARGET_LABELS[c.target]||c.target||''}${c.subtype?` · ${CMP_SUBTYPE_LABELS[c.subtype]||c.subtype}`:''}`));
+    const target=make('td');target.dataset.label='대상';const snap=c.after||c.before||{};
+    if(c.target==='relationship'){append(target,document.createTextNode(c.id||''),make('small','',`${snap.sourceName||snap.sourceId||''} → ${snap.destinationName||snap.destinationId||''}`));}
+    else{append(target,document.createTextNode(`${snap.name||c.id||''}`),make('small','',`${c.id||''} · ${snap.type||''}`));}
+    const beforeCell=cmpSnapshotCell(c.before,c.target);beforeCell.dataset.label='이전';
+    const afterCell=cmpSnapshotCell(c.after,c.target);afterCell.dataset.label='이후';
+    const figure=make('td');figure.dataset.label='그림';const refs2=c.viewRefs||[];
+    if(!refs2.length){const outside=make('span','cmp-outside','그림 밖');append(figure,outside,make('small','','어느 뷰에도 속하지 않은 변경'));}
+    else{refs2.forEach(ref=>{const phase=ref.phase==='before'?'전':'후';const hasFigure=ref.phase==='after'&&figureViews.has(ref.viewId);figure.appendChild(make('small','',`${ref.title||ref.viewId}(${phase})${hasFigure?'':' · 이 보고서에 그림 없음'}`));});}
+    const desc=make('td');desc.dataset.label='설명';desc.appendChild(make('p','',c.description||''));
+    (c.changedFields||[]).forEach(f=>desc.appendChild(make('small','',`${CMP_FIELD_LABELS[f.field]||f.field}: ${f.before??'없음'} → ${f.after??'없음'}`)));
+    (c.uncertainReasons||[]).forEach(reason=>desc.appendChild(make('small','',`미확정 사유: ${reason}`)));
+    append(row,kind,target,beforeCell,afterCell,figure,desc);tbody.appendChild(row);
+  });
+  table.appendChild(tbody);wrap.appendChild(table);body.appendChild(wrap);
+}
+function renderNav(){const groups=[['이해하기',[['overview-detail','개요'],['diagrams','다이어그램'],['flows','실행 흐름'],['elements','구성요소'],['audience','모드 설명'],['glossary','용어']]],['설계 검토',[['analysis','장점·비용·위험'],['comparison','변경 비교'],['issues','확인 필요']]],['근거·QA',[['evidence','근거'],['qa','검증']]],['원본',[['raw','원본 파일']]]],nav=byId('top-nav'),sections=[];groups.forEach(([group,items])=>{const visible=items.filter(([id])=>byId(id)&&!byId(id).hidden);if(!visible.length)return;nav.appendChild(make('span','nav-group',group));visible.forEach(([id,label])=>{const a=make('a','',label);a.href=`#${id}`;nav.appendChild(a);sections.push([id,a]);});});const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting)sections.forEach(([id,link])=>link.classList.toggle('active',id===entry.target.id));}),{rootMargin:'-20% 0px -70% 0px'});sections.forEach(([id])=>observer.observe(byId(id)));}
+const dialog=byId('diagram-dialog'),dialogImage=make('img');dialogImage.id='dialog-image';byId('dialog-frame').appendChild(dialogImage);const dialogEmbed=make('iframe');dialogEmbed.id='dialog-embed';dialogEmbed.setAttribute('sandbox','allow-scripts allow-downloads');dialogEmbed.hidden=true;dialogEmbed.addEventListener('load',()=>sendProfileToFrame(dialogEmbed));byId('dialog-frame').appendChild(dialogEmbed);let dialogScale=1;const dialogTarget=()=>dialogEmbed.hidden?dialogImage:dialogEmbed;function openDialog(img,title){const isEmbed=img.tagName==='IFRAME';dialogImage.hidden=isEmbed;dialogEmbed.hidden=!isEmbed;dialog.showModal();if(isEmbed){dialogEmbed.dataset.viewId=img.dataset.viewId;dialogEmbed.dataset.nativeCamera=img.dataset.nativeCamera;dialogEmbed.srcdoc=img.srcdoc;}else{dialogImage.src=img.src;dialogImage.alt=img.alt;}byId('dialog-title').textContent=title||'다이어그램';dialogScale=1;dialogTarget().style.width='100%';}byId('dialog-minus').addEventListener('click',()=>{if(!dialogEmbed.hidden&&dialogEmbed.dataset.nativeCamera==='1'){dialogEmbed.contentWindow?.postMessage({type:'repo-flowmap-camera',viewId:dialogEmbed.dataset.viewId,action:'out'},'*');return;}dialogScale=Math.max(.3,dialogScale-.2);dialogTarget().style.width=`${dialogScale*100}%`;});byId('dialog-plus').addEventListener('click',()=>{if(!dialogEmbed.hidden&&dialogEmbed.dataset.nativeCamera==='1'){dialogEmbed.contentWindow?.postMessage({type:'repo-flowmap-camera',viewId:dialogEmbed.dataset.viewId,action:'in'},'*');return;}dialogScale=Math.min(4,dialogScale+.2);dialogTarget().style.width=`${dialogScale*100}%`;});byId('dialog-reset').addEventListener('click',()=>{if(!dialogEmbed.hidden&&dialogEmbed.dataset.nativeCamera==='1'){dialogEmbed.contentWindow?.postMessage({type:'repo-flowmap-camera',viewId:dialogEmbed.dataset.viewId,action:'one'},'*');return;}dialogScale=1;dialogTarget().style.width='100%';});byId('dialog-close').addEventListener('click',()=>dialog.close());
+// 다이어그랬로그가 닫겨도 embed iframe은 DOM에 남아 재생 타이머가 계속 돈다.
+// close 이벤트(닫기 버튼·Esc·프로그램 닫기 모두)에서 embed에 재생 정지를 보낸다.
+// 되돌리기 없이 다시 열 때는 사용자가 재생 버튼으로 다시 시작한다(자동 재개 금지).
+const stopEmbedPlayback=()=>{if(!dialogEmbed.hidden)dialogEmbed.contentWindow?.postMessage({type:'repo-flowmap-playback',action:'stop'},'*');};
+dialog.addEventListener('close',stopEmbedPlayback);byId('print-btn').addEventListener('click',()=>window.print());document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>byId(b.dataset.jump)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})));
 // Print exposes relationship bodies, then restores each reader's exact open state.
 let printDetails=null;
 window.addEventListener('beforeprint',()=>{
@@ -563,7 +1000,7 @@ window.addEventListener('beforeprint',()=>{
 window.addEventListener('afterprint',()=>{printDetails?.forEach((open,node)=>{node.open=open;});printDetails=null;});
 byId('claim-close').addEventListener('click',()=>byId('claim-dialog').close());
 byId('claim-dialog').addEventListener('close',()=>claimOpener?.focus());
-renderHeader();renderStats();renderOverview();renderDiagrams();renderFlows();renderElements();renderAudience();renderAnalysis();renderIssues();renderGlossary();renderEvidence();renderQa();renderArtifacts();renderNav();
+renderHeader();renderStats();renderOverview();renderDiagrams();renderFlows();renderElements();renderAudience();renderAnalysis();renderComparison();renderIssues();renderGlossary();renderEvidence();renderQa();renderArtifacts();renderNav();
 })();
 </script>
 </body>

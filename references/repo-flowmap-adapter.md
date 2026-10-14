@@ -64,7 +64,51 @@ kind는 class/interface. 구획 null은 자료 없음, []는 명시적 빈 목�
 소유자(채운 마름모)다. 연관에 방향을 추측하지 않는다. 다중성은 association/composition만
 허용한다. 모든 멤버/관계 Claim은 실제 ledger에 있어야 한다. 샘플의 멤버는 가상이라고 명시한다.
 
-## 4. 생성 명령과 strict 검증
+## 4. 표시 상세도와 축약 내역(D2·D6)
+
+모델 범위(무엇을 보이는가)와 화면 상세도(설명을 얼마나 붙이는가)는 별개 축이다.
+작성 세션 `architecture-session.json`의 선택 필드 `presentationDetail`이 이 축을 기록하고
+(`full` 기본·생략 가능, 스키마 enum이 검증), 같은 값을 빌드 CLI에 전달한다:
+
+```bash
+python3 scripts/build_repo_flowmap.py --root <package> \
+  --model model/architecture-model.json --view exact-view-id --presentation-detail labels
+```
+
+- `full`(기본): 현재 동작과 바이트 수준으로 동일하다. 설정 없는 기존 데이터·영수증은 무변경이다.
+- `labels`: 노드 설명(desc)을 종류·기술 요약으로 바꾸고 단계 부기(note)를 뺀다.
+- `minimal`: 노드 설명을 비우고 단계 note·기술(data)도 뺀다. 라벨(label·call)만 남는다.
+
+세 수준 모두에서 뷰 포함 목록(elementIds·relationshipIds·steps)의 요소·관계·단계는
+하나도 삭제·병합되지 않는다. canonical 복제(element·relationship·canonicalStep·view)는
+항상 원문 그대로다. 이름변경(rename)은 이 투영이 만들지 않는다 — `label === element.name`,
+`call === relationship.description`을 Node 검증기가 강제한다. 모델 데이터 자체는 건드리지
+않는 표시용 투영이다(정규 모델만 의미 진실).
+
+상세도를 낮추면 어댑터는 모든 화면 변경을 `c4.presentationLog`에 남긴다(D6):
+`{detail, counts{elements, relationships, steps{canonical, displayed}}, entries[]}`.
+각 entry는 `{kind, id, original, displayed, reason}`이고 id는 canonical 요소·관계·step ID다.
+kind는 description-shortened / description-omitted / note-omitted / annotation-omitted /
+view-split-proposal이다. `counts`의 원본 수·표시 수가 같다는 것이 미삭제의 기계 증거다.
+view-split-proposal은 `references/visual-budgets.md`에 문서화된 경고선(System Context 약 10,
+Container 약 14, Component 약 15요소, Dynamic 15단계)을 넘은 뷰에 대한 분리 권고일 뿐,
+자동 분리가 아니다 — 실제 분리는 작성자가 새 View로 명시하고 nextViewIds로 연결한다.
+기록 위치를 flowmap JSON으로 한 이유: 그림과 같이 배포되어 독자가 바로 되짚을 수 있고,
+DIA-008 전체 재투영 대조에 포함되어 위조되면 실패하며, 영수증은 같은 실행 기록이라는
+계약을 그대로 둘 수 있기 때문이다. 빌드 영수증(qa/repo-flowmap-build-*.json)에는 같은
+실행에서 계산된 요약(`presentation`: detail·counts·logEntries)만 추가로 붙는다(full 빌드는 무변경).
+
+상세도가 건드리지 않는 표시: `meta`(제목·질문·근거), 라벨(`label`·`call`), 흐름 요약
+(`summary`), 관계 설명표의 번호·기술 표시는 모든 수준에서 그대로다. 배치 logical-placement의
+경계 부가 설명·클래스 멤버·다중성 등 typed 렌더러가 canonical 복제에서 직접 읽는 표식도
+상세도와 무관하게 유지된다(렌더러 변경 없음 — 필요하면 별도 승인).
+
+재검증 계약: typed 입력은 스탬프된 `c4.presentationDetail`과 같은 상세도로 재투영해
+DIA-008 대조를 통과해야 한다(build legacy 경로·validate_diagram_inputs 모두). 위조된
+스탬프 값은 재투영 자체가 실패한다. Node 검증기도 상세도별 desc/note/data 규칙과
+log 형식·counts를 검사한다(스키마 세부는 assets/repo-flowmap/SCHEMA.md).
+
+## 5. 생성 명령과 strict 검증
 
 ```bash
 # canonical에서 native 입력을 매핑하고 실제 repo-flowmap으로 생성
@@ -97,7 +141,7 @@ input hash를 새로 적어도 canonical과 다르면 실패한다. 기존 DIA/R
 영수증은 기존 repo-flowmap family를 사용하고 input/output SHA-256·성공 상태를 기록한다.
 문서상 숫자나 테스트 PASS를 렌더링/사람 이해도 PASS로 바꾸어 기록하지 않는다.
 
-## 5. 보고서 임베딩과 native SVG 추출
+## 6. 보고서 임베딩과 native SVG 추출
 
 보고서 diagram은 `assetPath`, `mimeType: "text/html"`, exact `viewId`를 사용한다.
 빌더는 원본 HTML bytes를 data URI로 저장한다. template은 그 bytes를 그대로 decode해
@@ -119,7 +163,7 @@ strict builder를 재실행한다. null/생략은 인쇄 그림 미제공이며 
 `--transport injected-test`는 동일 bytes를 about:blank에 주입하는 **별도 테스트 운송 방식**이다.
 영수증에 fileUrlVerified=false를 기록하며, 이것을 file:// 검증으로 계산하지 않는다.
 
-## 6. 지원 범위와 실패
+## 7. 지원 범위와 실패
 
 한 View 24요소 / 32관계 / 40step, sequence 12참가자 이하의 읽기 예산을 사용한다.
 초과하거나 안전한 관계 번호 배치가 불가능하면 오류로 알리고 View 분리를 요구한다.
@@ -149,7 +193,7 @@ logical-placement에서만 원래 경계의 머리글을 관계 연결점으로 
 Runtime에서 배치 실패 시 렌더 오류를 표시한다. CLI의 validate/build는 입력과 HTML 생성 검사이며,
 브라우저 표시 확인을 대신하지 않는다. 손상되지 않은 HTML 영수증은 임의 그래프의 가독성 보증이 아니다.
 
-## 7. 재현 가능한 검사
+## 8. 재현 가능한 검사
 
 ```bash
 python3 <skill>/scripts/generate_repo_flowmap_demo.py --output <new-empty-directory>

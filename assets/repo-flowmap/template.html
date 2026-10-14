@@ -18,9 +18,10 @@
   --color-accent:#17624b; --color-accent-ink:#f8f6f0;
   --color-accent-soft:#dcebe4; --color-accent-line:#84ad9d; --color-focus:#b84f28;
   --color-grid-minor:rgba(24,32,29,.045); --color-grid-major:rgba(24,32,29,.075);
-  --color-edge:#aeb6b0; --color-edge-on:#176b52; --color-edge-back:#a6531d; --color-edge-self:#765284;
+  --color-edge:#737d77; --color-edge-on:#176b52; --color-edge-back:#a6531d; --color-edge-self:#765284;
   --color-node:#fbf9f3; --color-node-dim:#e5e3dc;
   --color-warn-bg:#f3e8d3; --color-warn-line:#c79548; --color-warn-text:#74430d;
+  --color-uncertain:#8a4d0f;
   --color-stop:#b3261e;
 
   --bg:var(--color-canvas); --panel:var(--color-paper); --panel-2:var(--color-paper-2);
@@ -49,9 +50,9 @@
     --color-accent:#7ac6a8; --color-accent-ink:#101512;
     --color-accent-soft:#1d382e; --color-accent-line:#4b806b; --color-focus:#f0a06f;
     --color-grid-minor:rgba(237,240,235,.035); --color-grid-major:rgba(237,240,235,.065);
-    --color-edge:#46534c; --color-edge-on:#7ac6a8; --color-edge-back:#e3a164; --color-edge-self:#c4a0d2;
+    --color-edge:#616f66; --color-edge-on:#7ac6a8; --color-edge-back:#e3a164; --color-edge-self:#c4a0d2;
     --color-node:#1b221e; --color-node-dim:#141a17;
-    --color-warn-bg:#302516; --color-warn-line:#8e6731; --color-warn-text:#efc88f;
+    --color-warn-bg:#302516; --color-warn-line:#8e6731; --color-warn-text:#efc88f; --color-uncertain:#d9964a;
     --color-stop:#f2857c;
     --l-ui:#8eb5e2; --l-hook:#c4a0d2; --l-context:#7ac6a8; --l-logic:#e3a164; --l-backend:#a7b3ac;
   }
@@ -63,9 +64,9 @@
   --color-accent:#7ac6a8; --color-accent-ink:#101512;
   --color-accent-soft:#1d382e; --color-accent-line:#4b806b; --color-focus:#f0a06f;
   --color-grid-minor:rgba(237,240,235,.035); --color-grid-major:rgba(237,240,235,.065);
-  --color-edge:#46534c; --color-edge-on:#7ac6a8; --color-edge-back:#e3a164; --color-edge-self:#c4a0d2;
+  --color-edge:#616f66; --color-edge-on:#7ac6a8; --color-edge-back:#e3a164; --color-edge-self:#c4a0d2;
   --color-node:#1b221e; --color-node-dim:#141a17;
-  --color-warn-bg:#302516; --color-warn-line:#8e6731; --color-warn-text:#efc88f;
+  --color-warn-bg:#302516; --color-warn-line:#8e6731; --color-warn-text:#efc88f; --color-uncertain:#d9964a;
   --color-stop:#f2857c;
   --l-ui:#8eb5e2; --l-hook:#c4a0d2; --l-context:#7ac6a8; --l-logic:#e3a164; --l-backend:#a7b3ac;
 }
@@ -141,6 +142,13 @@ aside,main{min-width:0;min-height:0}
 }
 .legend h3.legend-subtitle{margin-top:var(--space-sm)}
 .lg{display:flex;align-items:center;gap:var(--space-2xs);font-size:.72rem;color:var(--text-2);margin-bottom:var(--space-3xs)}
+/* 입력 장치별 조작 안내(A8): 기능은 전 장치에서 그대로 두고 안내 문구만
+   주 포인터에 맞춘다. 터치에서는 마우스·hover/키보드 전용 문구를 감춘다. */
+html[data-input-guide="mouse"] .lg[data-guide="touch"]{display:none}
+html[data-input-guide="touch"] .lg[data-guide="mouse"]{display:none}
+html[data-input-guide="touch"] .lg[data-guide="key"]{display:none}
+/* 터치 기기라도 실제 키보드 입력이 들어오면 키보드 안내를 다시 보여준다. */
+html[data-input-guide="touch"][data-keyboard-active="1"] .lg[data-guide="key"]{display:flex}
 .key{font-family:var(--font-mono);font-weight:700;color:var(--text-2)}
 .empty-search{font-size:.8rem;color:var(--text-3);padding:var(--space-2xs) var(--space-3xs)}
 .empty-note{color:var(--text-3);font-size:.8rem}
@@ -276,6 +284,18 @@ marker path.arrow-head{
 @keyframes edge-current{
   to{stroke-dashoffset:-26}
 }
+/* A4: 활성 관계선 위의 진행 표시 — 구조계 뷰(path.c4-edge)에서 선택 단계의 관계선
+   위에만 얹는다. 원본 선의 색·굵기·의존/실현 점선은 그대로 두고, 같은 경로를 그리는
+   오버레이 조각(pathLength=100, dasharray 7 93)이 출발 → 도착으로 흐른다. 상태색은
+   flowmap 스키마의 steps[].state가 기록되었을 때만 바뀐다. 화살촉(c4-flow-head)은 움직임을 끈 화면에서도 방향을 읽게 하는 정적 표시다. */
+.c4-view g.c4-flow-mark{pointer-events:none}
+.c4-view path.c4-flow-dash{fill:none;stroke:var(--accent);stroke-width:5;stroke-linecap:round;stroke-dasharray:7 93;animation:c4-flow-dash 1.7s linear infinite}
+.c4-view path.c4-flow-head{fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.c4-view g.c4-flow-mark[data-state=failover] path,.c4-view g.c4-flow-mark[data-state=blocked] path{stroke:var(--stop)}
+.c4-view g.c4-flow-mark[data-state=cond] path{stroke:var(--warn-bd)}
+.c4-view g.c4-flow-mark[data-state=blocked] path.c4-flow-dash{animation-name:c4-flow-dash-blocked}
+@keyframes c4-flow-dash{from{stroke-dashoffset:-7}to{stroke-dashoffset:-93}}
+@keyframes c4-flow-dash-blocked{from{stroke-dashoffset:-7}to{stroke-dashoffset:-62}}
 @media (prefers-reduced-motion:reduce){
   /* 움직임을 끄면 흔히 "그 자리에서 멈춤"을 쓰는데, 그러면 사용자마다 다른 순간의
      그림을 보게 된다. 대표 프레임을 t=0 으로 못 박아 누구에게나 같은 한 장을 준다 —
@@ -287,6 +307,10 @@ marker path.arrow-head{
      나머지 선의 점선은 종류를 뜻하니 건드리지 않고,
      차단·장애는 끊긴 자리와 죽은 표시가 대시로 되어 있어 예외로 둔다. */
   path.edge.hot:not(.st-blocked):not(.st-failover){stroke-dasharray:none}
+  /* A4 진행 표시도 같은 원칙: 흐름을 멈추되 화살촉과 겹치는 대표 위치(58%·차단 45%)에
+     조각을 못 박아 누구에게나 같은 한 장의 방향 표시를 준다. */
+  .c4-view path.c4-flow-dash{animation:none;stroke-dashoffset:-58}
+  .c4-view g.c4-flow-mark[data-state=blocked] path.c4-flow-dash{animation:none;stroke-dashoffset:-45}
   g#vp{transition:none}
   g.node rect.body{transition:none}
 }
@@ -558,6 +582,11 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
 @media (prefers-reduced-motion:reduce){
   html[data-workflow-view] body.desktop-canvas-mode .flows,
   html[data-workflow-view] body.desktop-canvas-mode .steps{transition:none}
+  /* A4 진행 표시 — 이 블록은 workflow 전용 규칙만 담지만, 진행 표시도 같은 설정에서
+     대표 프레임으로 굳힌다(위 일반 블록과 같은 값 — 두 블록 모두에 둬 어느 쪽이
+     이기든 같은 결과가 나게 한다). */
+  .c4-view path.c4-flow-dash{animation:none;stroke-dashoffset:-58}
+  .c4-view g.c4-flow-mark[data-state=blocked] path.c4-flow-dash{animation:none;stroke-dashoffset:-45}
 }
 #routing-prototype-switcher{
   position:fixed;z-index:1000;left:50%;bottom:16px;transform:translateX(-50%);
@@ -582,18 +611,21 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
 .fbtn.stale .t::after{content:"STALE";margin-left:6px;font-size:10px;font-weight:700;letter-spacing:.04em;padding:1px 5px;border-radius:3px;background:#8a6d3b;color:#fff;vertical-align:middle}
 .fbtn.stale{opacity:.62}
 .fstale{margin:6px 0 2px;padding:6px 9px;border-left:3px solid #8a6d3b;background:rgba(138,109,59,.10);font-size:12px;line-height:1.5}
-.fstale b{color:#8a6d3b}
+.fstale b{color:var(--warn-tx)}
+.stopnote{margin:6px 0 2px;padding:6px 9px;border-left:3px solid var(--warn-bd);background:var(--warn-bg);font-size:12px;line-height:1.5;color:var(--warn-tx)}
 
 /* Maintained repo-flowmap fork: typed views. Legacy workflow styles stay intact. */
 .c4-view text.c4-text{font-family:system-ui,sans-serif;font-weight:400;fill:var(--text);text-anchor:start;letter-spacing:0}
+/* C4_TEXT_WEIGHT(측정·인라인 굵기의 단일 원천)과 같은 값으로 유지한다. */
 .c4-view text.c4-title{font-weight:700}.c4-view text.c4-kind{fill:var(--accent);font-weight:700}
 .c4-view text.c4-id,.c4-view text.c4-tech{fill:var(--text-3)}
-.c4-view text.c4-uncertain{fill:#b16616}
+.c4-view text.c4-target{font-weight:700}
+.c4-view text.c4-uncertain{fill:var(--color-uncertain);font-weight:700}
 .c4-view .c4-body{fill:var(--panel);stroke:var(--border-2);stroke-width:2}
 .c4-view .c4-inner{fill:none;stroke:var(--accent);stroke-width:1}
 .c4-view .c4-person,.c4-view .c4-tab,.c4-view .c4-component-mark,.c4-view .c4-instance-mark{fill:var(--panel);stroke:var(--accent);stroke-width:2}
 .c4-view .c4-boundary>rect{fill:var(--panel-2);fill-opacity:.55;stroke:var(--accent);stroke-width:2;stroke-dasharray:10 5}
-.c4-view .c4-boundary.c4-unresolved>rect{stroke:#b16616;stroke-dasharray:3 7}
+.c4-view .c4-boundary.c4-unresolved>rect{stroke:var(--color-uncertain);stroke-dasharray:3 7}
 .c4-view .c4-divider{stroke:var(--border-2);stroke-width:1.4}
 .c4-view path.c4-edge{stroke:var(--text);stroke-width:1.8;fill:none;animation:none;opacity:1;stroke-dashoffset:0}
 .c4-view path.c4-edge.hot{stroke:var(--accent);stroke-width:3;animation:none}
@@ -605,6 +637,8 @@ html[data-workflow-view] body.desktop-canvas-mode.desktop-steps-open .desktop-sc
 .c4-view .c4-message.c4-hot .c4-message-line{stroke:var(--accent);stroke-width:3}
 .c4-view .c4-label-bg{fill:var(--panel);stroke:none}
 .c4-view .c4-message-label{paint-order:stroke;stroke:var(--panel);stroke-width:3;stroke-linejoin:round}
+/* A4 진행 표시의 기본 규칙과 상태색은 아래 path.edge 애니메이션 규칙 옆(첫 reduced-motion
+   블록보다 앞)에 있다 — 재생 정지 재정의가 문서 순서로 이기는 기존 패턴과 같다. */
 html[data-repo-flowmap-typed] .stage{min-height:560px}
 @media(max-width:600px){html[data-repo-flowmap-typed] .stage{min-height:500px}}
 
@@ -690,10 +724,13 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
       <div class="lg lg-state" data-state="blocked" hidden><svg aria-hidden="true" width="26" height="10"><line x1="0" y1="5" x2="14" y2="5" stroke="var(--stop)" stroke-width="2"/><line x1="14" y1="5" x2="26" y2="5" stroke="var(--edge)" stroke-width="1.6" stroke-dasharray="3 4"/></svg>차단 — 도달 없음</div>
       <div class="lg lg-state" data-state="cond" hidden><svg aria-hidden="true" width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--warn-bd)" stroke-width="2"/></svg>조건 분기 (둘 다 정상 경로)</div>
       <h3 class="legend-subtitle">캔버스 조작</h3>
-      <div class="lg">드래그 · 두 손가락 이동</div>
-      <div class="lg">휠 · 핀치 확대/축소</div>
-      <div class="lg"><b class="key">0</b>&nbsp;전체 &nbsp;<b class="key">F</b>&nbsp;선택한 동작 &nbsp;<b class="key">1</b>&nbsp;실제 크기</div>
-      <div class="lg"><b class="key">← →</b>&nbsp;단계 이동 &nbsp;<b class="key">Esc</b>&nbsp;선택 해제</div>
+      <div class="lg" data-guide="mouse">드래그로 이동</div>
+      <div class="lg" data-guide="touch">한 손가락 드래그 · 두 손가락 이동</div>
+      <div class="lg" data-guide="mouse">휠 확대/축소</div>
+      <div class="lg" data-guide="touch">두 손가락 벌리기 · 오므리기로 확대/축소</div>
+      <div class="lg" data-guide="key"><b class="key">0</b>&nbsp;전체 &nbsp;<b class="key">F</b>&nbsp;선택한 동작 &nbsp;<b class="key">1</b>&nbsp;실제 크기</div>
+      <div class="lg" data-guide="key"><b class="key">← →</b>&nbsp;단계 이동 &nbsp;<b class="key">Esc</b>&nbsp;선택 해제</div>
+      <div class="lg">▶ 순서 재생은 화면에 보일 때만 · 멈추면 버튼으로 다시 시작</div>
     </div>
   </aside>
 
@@ -811,7 +848,7 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
   // 선택된 동작이 없을 때는 영향이 없으므로 개요에는 여전히 전체 모듈이 나온다.
   var state = {
     flow: null, step: -1, compact: true, node: null, playing: null,
-    editing: false, dirty: false, selfEndpoint: 'from'
+    editing: false, dirty: false, selfEndpoint: 'from', stopNotice: null
   };
 
   var el = {
@@ -1871,9 +1908,14 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
   var c4MeasureCanvas = document.createElement('canvas');
   var c4MeasureContext = c4MeasureCanvas.getContext('2d');
   var C4_NAMES = {person:'Person · 사람',softwareSystem:'Software System · 시스템',container:'Container · 컨테이너',component:'Component · 컴포넌트',codeElement:'Code · 코드',deploymentNode:'Deployment node · 배치 경계',infrastructureNode:'Infrastructure · 인프라'};
-  function c4Lines(value, width, size, bold) {
+  // 글자 굵기의 단일 원천: 캔버스 측정(c4Lines)과 화면 표시(c4Text 인라인)가 모두
+  // 이 매핑을 읽는다. CSS .c4-view text.<클래스>의 font-weight도 같은 값으로
+  // 유지하며 테스트가 세 곳의 일치를 검사한다. 굵기를 바꿀 때는 세 곳을 함께 바꾼다.
+  var C4_TEXT_WEIGHT={'c4-title':700,'c4-kind':700,'c4-target':700,'c4-uncertain':700};
+  function c4Weight(cls){return C4_TEXT_WEIGHT[cls||'']||400;}
+  function c4Lines(value, width, size, cls) {
     var lines=[];
-    c4MeasureContext.font=(bold?'700 ':'400 ')+size+'px system-ui';
+    c4MeasureContext.font=c4Weight(cls)+' '+size+'px system-ui';
     String(value==null?'':value).split('\n').forEach(function(para){
       var line='';
       Array.from(para).forEach(function(ch){
@@ -1885,34 +1927,35 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     return lines;
   }
   function c4Text(lines,x,y,size,cls) {
-    return lines.map(function(line,i){return '<text class="c4-text '+(cls||'')+'" x="'+x+'" y="'+(y+i*(size+6))+'" style="font-size:'+size+'px">'+esc(line)+'</text>';}).join('');
+    var weight=c4Weight(cls);
+    return lines.map(function(line,i){return '<text class="c4-text '+(cls||'')+'" x="'+x+'" y="'+(y+i*(size+6))+'" style="font-size:'+size+'px;font-weight:'+weight+'">'+esc(line)+'</text>';}).join('');
   }
-  function c4Block(text,width,size,bold,cls) {
-    var lines=c4Lines(text,width,size,bold);
+  function c4Block(text,width,size,cls) {
+    var lines=c4Lines(text,width,size,cls);
     return {lines:lines,size:size,h:lines.length*(size+6),cls:cls||''};
   }
   function c4LeafMetric(n) {
     var e=n.element, w=300, rows=[], person=e.type==='person';
-    var title=c4Block(n.label,w-32,17,true,'c4-title');
+    var title=c4Block(n.label,w-32,17,'c4-title');
     var kind = e.codeDetails ? '«'+e.codeDetails.kind+'»' : C4_NAMES[e.type];
     if(e.instanceOfId) kind='«instance» · 실제 인스턴스';
-    rows.push(c4Block(kind,w-32,12,false,'c4-kind')); rows.push(title);
-    rows.push(c4Block(e.id,w-32,11,false,'c4-id'));
+    rows.push(c4Block(kind,w-32,12,'c4-kind')); rows.push(title);
+    rows.push(c4Block(e.id,w-32,11,'c4-id'));
     if(DATA.c4.mode==='class') {
       [['attributes','속성'],['methods','메서드']].forEach(function(pair){
         var values=e.codeDetails[pair[0]];
         rows.push({divider:true,h:12});
-        rows.push(c4Block(pair[1]+(values===null?' · 자료 없음':values.length?'':' · 명시적 빈 목록'),w-32,12,true,'c4-kind'));
-        (values||[]).forEach(function(m){rows.push(c4Block(m.declaration,w-32,14,false,'c4-member'));});
+        rows.push(c4Block(pair[1]+(values===null?' · 자료 없음':values.length?'':' · 명시적 빈 목록'),w-32,12,'c4-kind'));
+        (values||[]).forEach(function(m){rows.push(c4Block(m.declaration,w-32,14,'c4-member'));});
       });
     } else {
-      rows.push(c4Block(e.technology || '기술 · 미확인',w-32,12,false,'c4-tech'));
-      rows.push(c4Block(e.description,w-32,14,false,'c4-desc'));
+      rows.push(c4Block(e.technology || '기술 · 미확인',w-32,12,'c4-tech'));
+      rows.push(c4Block(e.description,w-32,14,'c4-desc'));
       if(e.instanceOfId) {
         var target=(DATA.c4.targets||[]).find(function(t){return t.id===e.instanceOfId;});
-        rows.push(c4Block('대상: '+(target?target.name:e.instanceOfId)+' ['+e.instanceOfId+']',w-32,13,true,'c4-target'));
+        rows.push(c4Block('대상: '+(target?target.name:e.instanceOfId)+' ['+e.instanceOfId+']',w-32,13,'c4-target'));
       }
-      if(e.derivation==='unresolved'||e.confidence==='UNVERIFIED'||e.confidence==='CONFLICT') rows.push(c4Block('미확정 · '+e.confidence,w-32,12,true,'c4-uncertain'));
+      if(e.derivation==='unresolved'||e.confidence==='UNVERIFIED'||e.confidence==='CONFLICT') rows.push(c4Block('미확정 · '+e.confidence,w-32,12,'c4-uncertain'));
     }
     return {n:n,w:w,h:24+rows.reduce(function(s,r){return s+r.h+4;},0)+(person?64:0),rows:rows,person:person};
   }
@@ -1952,9 +1995,9 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
       kidMetrics.forEach(function(k,i){var col=i%cols,row=Math.floor(i/cols);cw[col]=Math.max(cw[col]||0,k.w);rh[row]=Math.max(rh[row]||0,k.h);});
       var w=Math.max(380,cw.reduce(function(a,b){return a+b;},0)+gap*Math.max(0,cw.length-1)+padding*2);
       var unresolved=n.element.derivation==='unresolved'||n.element.confidence==='UNVERIFIED'||n.element.confidence==='CONFLICT';
-      var lines=c4Lines((unresolved?'미확정 경계 · ':'')+n.label+' ['+n.element.type+']',w-40,16,true);
-      var sub=c4Lines([n.id,n.element.technology||'기술 미확인',n.element.environment].filter(Boolean).join(' · '),w-40,12,false);
-      if(c.deploymentPresentation==='logical-placement') sub=sub.concat(c4Lines(n.element.description,w-40,12,false));
+      var lines=c4Lines((unresolved?'미확정 경계 · ':'')+n.label+' ['+n.element.type+']',w-40,16,'c4-title');
+      var sub=c4Lines([n.id,n.element.technology||'기술 미확인',n.element.environment].filter(Boolean).join(' · '),w-40,12,'c4-id');
+      if(c.deploymentPresentation==='logical-placement') sub=sub.concat(c4Lines(n.element.description,w-40,12,'c4-id'));
       var header=lines.length*22+sub.length*18+30;
       var h=header+rh.reduce(function(a,b){return a+b;},0)+gap*Math.max(0,rh.length-1)+padding;
       if(!kids.length) h=header+52;
@@ -1963,9 +2006,9 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     var roots=children.get(null)||[], rms=roots.map(measure), cols=rms.length>1?2:1, cw=[],rh=[];
     rms.forEach(function(m,i){cw[i%cols]=Math.max(cw[i%cols]||0,m.w);rh[Math.floor(i/cols)]=Math.max(rh[Math.floor(i/cols)]||0,m.h);});
     var width=Math.max(860,cw.reduce(function(a,b){return a+b;},0)+120*Math.max(0,cw.length-1)+96);
-    var titleLines=c4Lines(c.view.title,width-96,22,true);
-    var intro=c4Lines(c.mode.toUpperCase()+' · '+c.view.type+' · 구조 관계의 번호는 시간순이 아닙니다',width-96,13,false);
-    if(c.deploymentPresentation==='logical-placement') intro=intro.concat(c4Lines('논리 요소·배치 관계 보기 · 실제 인스턴스 배치 아님 · 상자는 원래 parentId 경계이며 관계는 재배치하지 않습니다',width-96,13,false));
+    var titleLines=c4Lines(c.view.title,width-96,22,'c4-title');
+    var intro=c4Lines(c.mode.toUpperCase()+' · '+c.view.type+' · 구조 관계의 번호는 시간순이 아닙니다',width-96,13,'c4-id');
+    if(c.deploymentPresentation==='logical-placement') intro=intro.concat(c4Lines('논리 요소·배치 관계 보기 · 실제 인스턴스 배치 아님 · 상자는 원래 parentId 경계이며 관계는 재배치하지 않습니다',width-96,13,'c4-id'));
     var top=40+titleLines.length*28+intro.length*19+40;
     var L={pos:{},routePos:{},groups:[],width:width,height:0,heads:[],title:titleLines,intro:intro};
     function place(id,x,y){
@@ -2013,7 +2056,7 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
         nodeLabel(s.from)+(fallback?' ['+s.from+']':'')+' → '+nodeLabel(s.to)+(fallback?' ['+s.to+']':'')+' · '+(cr?cr.kind:'관계')+' · '+r.description;
       if(r.technology)text+=' ['+r.technology+']';
       if(cr && (cr.sourceMultiplicity||cr.destinationMultiplicity))text+=' · 다중성 '+(cr.sourceMultiplicity||'미제공')+' → '+(cr.destinationMultiplicity||'미제공');
-      var lines=c4Lines(text,width,14,false), ids=c4Lines(r.id,width,11,false),h=lines.length*20+ids.length*17+25;
+      var lines=c4Lines(text,width,14,''), ids=c4Lines(r.id,width,11,'c4-id'),h=lines.length*20+ids.length*17+25;
       html+='<g class="c4-relation-row'+(fallback?' c4-badge-warning':'')+'" data-relation="'+esc(r.id)+'"><rect x="40" y="'+(y-18)+'" width="'+(L.width-80)+'" height="'+h+'" rx="6"/>'+c4Text(lines,x,y,14,'')+c4Text(ids,x,y+lines.length*20+6,11,'c4-id');
       if(fallback)html+='<g class="badge'+(state.step===i?' hot':'')+'" data-i="'+i+'" tabindex="0" role="button" aria-label="관계 '+(i+1)+' · 목록에 번호 표시"><circle cx="66" cy="'+(y-2)+'" r="12"/><text x="66" y="'+(y+2)+'">'+(i+1)+'</text></g>';
       html+='</g>';
@@ -2051,7 +2094,7 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     metrics.forEach(function(m){headH=Math.max(headH,m.h);});
     metrics.forEach(function(m){L.pos[m.n.id]={id:m.n.id,x:x,y:top,w:m.w,h:m.h,metric:m};x+=m.w+130;});
     L.width=Math.max(900,x-130+48);
-    var title=c4Lines(DATA.c4.view.title,L.width-96,22,true);
+    var title=c4Lines(DATA.c4.view.title,L.width-96,22,'c4-title');
     // Participant top is below variable-height heading, not a fixed magic constant.
     top=50+title.length*28+54;Object.keys(L.pos).forEach(function(id){L.pos[id].y=top;});
     markup+=c4Text(title,48,38,22,'c4-title')+c4Text(['SEQUENCE · 위 → 아래 시간순 / 각 번호는 canonical step.order'],48,42+title.length*28,13,'c4-id');
@@ -2061,7 +2104,7 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
       var left=self?ax+126:Math.min(ax,bx)+16, width=self?340:Math.max(60,Math.abs(bx-ax)-32);
       var label=(i+1)+'. '+s.call+(s.relationship.technology?' ['+s.relationship.technology+']':'');
       if(s.note)label+=' · '+s.note;
-      var lines=c4Lines(label,width,14,false),textH=lines.length*20;
+      var lines=c4Lines(label,width,14,'c4-message-label'),textH=lines.length*20;
       var lineY=y+textH+12, bottom=lineY+(self?42:0);
       var d=self?'M'+ax+','+lineY+' H'+(ax+100)+' V'+(lineY+42)+' H'+ax:'M'+ax+','+lineY+' H'+bx;
       var cr='c4-message'+(state.step===i?' c4-hot':'');
@@ -2108,6 +2151,60 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     });
     return legendBadges;
   }
+  // ── 활성 관계선 진행 표시 (A4) ──────────────────
+  // 구조계 뷰(path.c4-edge)에서 state.step에 해당하는 관계선 위에만 작은 진행 표시를
+  // 얹는다. 원본 선의 색·굵기·의존/실현 점선은 그대로 두고 같은 경로의 오버레이 조각이
+  // 출발 → 도착으로 흐른다(경로가 출발점에서 시작하므로 dashoffset 감소 = 정방향).
+  // 상태색은 flowmap 입력 스키마가 정의하는 steps[].state(failover·blocked·cond)가
+  // 기록되었을 때만 반영한다. 표준 투영(projection)은 구조계 뷰에 이 필드를 만들지
+  // 않으므로 기본색이 보통이며, 재시도 같은 기록 없는 의미는 만들지 않는다.
+  function c4UpdateFlowMark() {
+    if (!DATA.c4 || DATA.c4.mode === 'sequence') return;
+    var host = el.map.querySelector('#vp g.edges');
+    if (!host) return;
+    var previous = host.querySelector('g.c4-flow-mark');
+    if (previous) previous.remove();
+    if (state.step < 0) return;
+    var flow = state.flow ? flowById(state.flow) : null;
+    var step = flow && flow.steps[state.step];
+    if (!step) return;
+    // 렌더러가 실제 경로를 제공할 때만 적용한다: 안전한 경로가 없어 빠진 관계선에는
+    // 표시를 얹지 않고 관계 설명 목록의 번호로 확인하게 한다.
+    var edge = host.querySelector('path.c4-edge[data-i="' + state.step + '"]');
+    if (!edge) return;
+    var d = edge.getAttribute('d');
+    if (!d) return;
+    var SVGNS = 'http://www.w3.org/2000/svg';
+    var mark = document.createElementNS(SVGNS, 'g');
+    mark.setAttribute('class', 'c4-flow-mark');
+    mark.setAttribute('data-step-index', String(state.step));
+    // 진행 표시는 시각 보조 표시다 — 관계선 자체의 접근성 이름/툴팁과 이중 낭독하지 않는다.
+    mark.setAttribute('aria-hidden', 'true');
+    var stateKind = stepState(step);
+    if (stateKind) mark.setAttribute('data-state', stateKind);
+    var dash = document.createElementNS(SVGNS, 'path');
+    dash.setAttribute('class', 'c4-flow-dash');
+    dash.setAttribute('d', d);
+    dash.setAttribute('pathLength', '100');
+    mark.appendChild(dash);
+    // 정적 방향 지시: 움직임을 끈 화면(reduced-motion)에서도 같은 선의 진행 방향을
+    // 읽게, 조각이 멈추는 대표 위치에 접선 방향 화살촉을 남긴다. 차단(blocked) 기록은
+    // 62%에서 멈추는 기존 상태 표기(BLOCK_CUT)와 같은 비율까지만 간다.
+    var headAt = stateKind === 'blocked' ? 0.45 : 0.58;
+    var length = 0;
+    try { length = edge.getTotalLength(); } catch (err) { length = 0; }
+    if (length > 2) {
+      var point = edge.getPointAtLength(length * headAt);
+      var ahead = edge.getPointAtLength(Math.min(length, length * headAt + 2));
+      var angle = Math.atan2(ahead.y - point.y, ahead.x - point.x) * 180 / Math.PI;
+      var head = document.createElementNS(SVGNS, 'path');
+      head.setAttribute('class', 'c4-flow-head');
+      head.setAttribute('d', 'M-4.6,-4.6 L4,0 L-4.6,4.6');
+      head.setAttribute('transform', 'translate(' + point.x + ',' + point.y + ') rotate(' + angle + ')');
+      mark.appendChild(head);
+    }
+    host.appendChild(mark);
+  }
   function c4MeasureExtent() {
     if(!DATA.c4 || !lastLayout || !vp())return;
     // Hidden iframe documents may report a zero bbox until first layout.
@@ -2120,6 +2217,52 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     }
     el.map.dataset.contentWidth=L.width;el.map.dataset.contentHeight=L.height;
   }
+  // ── SVG 접근성 이름·설명 (D9) ──────────────────
+  // 화면 지도와 내보낸 SVG가 같은 <title>/<desc> 구조를 공유한다. ID는 view·동작 기준
+  // 접두사로 만들어 서로 다른 그림을 한 문서에 합쳐도 이름 참조가 충돌하지 않게 한다.
+  // 원본 viewId 값(점 포함)은 데이터로 보존하고, ID로 쓸 때만 sanitize한다.
+  function a11yIdBase() {
+    var key = DATA.c4 ? DATA.c4.viewId : (state.flow || 'all');
+    var safe = String(key).replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+    return 'rfm-' + (safe || 'view');
+  }
+  function mapTitleDesc() {
+    if (DATA.c4) {
+      var view = DATA.c4.view || {};
+      var desc = [view.question, view.description].filter(Boolean).join(' ');
+      return {
+        title: view.title || DATA.meta.project + ' C4 보기',
+        desc: desc || '모델에서 정의한 C4 보기 그림입니다.'
+      };
+    }
+    var flow = state.flow ? flowById(state.flow) : null;
+    return {
+      title: flow ? flow.title : DATA.meta.project + ' 전체 워크플로',
+      desc: (flow && flow.summary) || '모듈 사이의 호출·데이터 흐름을 나타낸 그림입니다.'
+    };
+  }
+  function updateMapA11y() {
+    var SVGNS = 'http://www.w3.org/2000/svg';
+    var base = a11yIdBase();
+    var td = mapTitleDesc();
+    var title = null, desc = null;
+    Array.prototype.some.call(el.map.children, function (child) {
+      if (child.localName === 'title' && !title) title = child;
+      else if (child.localName === 'desc' && !desc) desc = child;
+      return !!(title && desc);
+    });
+    // <title>/<desc>는 SVG의 첫 자식 구조로 유지한다(뷰·동작 전환 때 갱신).
+    if (!title) { title = document.createElementNS(SVGNS, 'title'); el.map.insertBefore(title, el.map.firstChild); }
+    if (!desc) { desc = document.createElementNS(SVGNS, 'desc'); el.map.insertBefore(desc, title.nextSibling); }
+    title.id = base + '-title';
+    desc.id = base + '-desc';
+    title.textContent = td.title;
+    desc.textContent = td.desc;
+    // role은 화면 조작 모드(desktop applyMapFocusModel)가 관리하므로 여기서는 이름
+    // 연결만 맡는다. 내보낸 SVG의 role="img"는 serializeCurrentSvg가 고정한다.
+    el.map.setAttribute('aria-labelledby', title.id + ' ' + desc.id);
+  }
+
   function renderTypedMap() {
     var flow=DATA.flows[0], result;
     try{
@@ -2133,11 +2276,13 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
         el.map.querySelector('.c4-relations').innerHTML=table.html;
         L.height=table.bottom+30;
       }
+      // 진행 표시(A4)는 보조 표시다 — 여기서 실패해도 본 렌더를 fail로 만들지 않는다.
+      try{c4UpdateFlowMark();}catch(markError){console.warn('c4-flow-mark:',markError);}
       // Measure the ACTUAL SVG glyphs and paths, including last self-call labels.
       // Extent growth is done before camera painting/export, after text insertion.
       c4MeasureExtent();
       el.map.dataset.renderStatus='pass';el.map.removeAttribute('data-render-error');
-      el.hint.textContent='repo-flowmap · '+DATA.c4.mode+' · 드래그 이동 / 휠 확대 / 1:100%';el.hint.style.display='';
+      el.hint.textContent=hintC4Text();el.hint.style.display='';
       paintView();
     }catch(error){
       el.map.dataset.renderStatus='fail';el.map.dataset.renderError=error.message;
@@ -2148,7 +2293,7 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
 
   // ── 지도 렌더 ───────────────────────────────────
   function renderMap() {
-    if (DATA.c4) return renderTypedMap();
+    if (DATA.c4) { renderTypedMap(); updateMapA11y(); return; }
     var flow = state.flow ? flowById(state.flow) : null;
     var involved = new Set();
     if (flow) flow.steps.forEach(function (s) { involved.add(s.from); involved.add(s.to); });
@@ -2358,6 +2503,7 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
       '" fill="url(#grid-major)"/><g class="heads">' + heads + '</g><g class="edges">' + edges +
       '</g><g class="states"></g><g class="badges"></g><g class="nodes">' + nodes + '</g>' +
       canvasLegend + brandMark + '</g>';
+    updateMapA11y();
 
     // 단계 번호 배지 — 노드와 다른 번호를 피해 경로 위에서 가장 가까운 빈자리를 선택
     var badges = el.map.querySelector('.badges');
@@ -2543,7 +2689,7 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
           ? '자기 연결: ' + (state.selfEndpoint === 'from' ? '출발점' : '도착점') + ' 위치를 선택하세요'
           : '출발·도착 노드의 위·오른쪽·아래·왼쪽 연결점을 선택하세요';
     } else {
-      el.hint.textContent = '왼쪽에서 동작을 선택하세요 · 드래그로 이동, 휠로 확대/축소';
+      el.hint.textContent = hintIdleText();
       el.hint.style.display = flow ? 'none' : '';
     }
     paintView();
@@ -2554,6 +2700,9 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     // Do not trust an extent cached while this iframe was hidden, even when
     // export runs before ResizeObserver delivery (or without that optional API).
     c4MeasureExtent();
+    // 화면 지도가 유지하는 <title>/<desc>가 그대로 클론되므로 여기서 다시 넣지 않는다.
+    // 대신 내보내기 시점 기준으로 문구·ID를 한 번 더 맞춰 클론이 항상 최신 상태를 갖게 한다.
+    updateMapA11y();
 
     var width = Math.max(1, Math.ceil(lastLayout.width));
     var height = Math.max(1, Math.ceil(lastLayout.height));
@@ -2563,27 +2712,43 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
       (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
     clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    // 내보낸 SVG는 상호조작이 없는 한 장의 그림이므로 역할을 img로 고정한다.
+    // 포스터·인쇄·개별 저장 어디서 쓰여도 이름·설명 연결이 유지된다.
+    clone.setAttribute('role', 'img');
     clone.classList.add('exporting');
     clone.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
     clone.setAttribute('width', width);
     clone.setAttribute('height', height);
     clone.setAttribute('data-theme', theme);
+    // 활성 시각 프로필(D5)의 역할 값도 내보내는 SVG에 싣는다. 스타일시트 복사만으로는
+    // html 요소의 인라인 덧씨우기가 전달되지 않는다. 기본 프로필이면 아무 것도 추가하지
+    // 않는다(내보내기 바이트 무변경).
+    var exportRoles = profileRoles[theme] || {};
+    for (var pi = 0; pi < profileApplied.length; pi++) {
+      clone.style.setProperty(profileApplied[pi], exportRoles[profileApplied[pi]]);
+    }
     cloneVp.setAttribute('transform', 'translate(0,0) scale(1)');
     cloneVp.classList.add('nofx');
     Array.prototype.forEach.call(clone.querySelectorAll('circle.port'), function (port) {
       port.remove();
+    });
+    // A4 진행 표시(마커 그룹·애니메이션)는 화면 전용 오버레이다 — 정적 저장에는 기존
+    // 관계선만 남긴다. 단계 강조(hot)는 저장 시점과 무관한 한 장으로도 읽히는 정적
+    // 스타일이므로 기존 동작을 유지한다(선택 없이 내보내는 표준 경로와 같은 모습).
+    Array.prototype.forEach.call(clone.querySelectorAll('g.c4-flow-mark'), function (mark) {
+      mark.remove();
     });
 
     var style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
     style.textContent = Array.prototype.map.call(document.querySelectorAll('style'), function (node) {
       return node.textContent;
     }).join('\n');
-    clone.insertBefore(style, clone.firstChild);
-
-    var title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-    var flow = state.flow ? flowById(state.flow) : null;
-    title.textContent = flow ? flow.title : DATA.meta.project + ' 전체 워크플로';
-    clone.insertBefore(title, clone.firstChild);
+    // <style>는 접근성 <title>/<desc> 뒤에 둔다 — SVG 규약상 이름 구조가 먼저 온다.
+    var styleAnchor = clone.firstChild;
+    while (styleAnchor && (styleAnchor.localName === 'title' || styleAnchor.localName === 'desc')) {
+      styleAnchor = styleAnchor.nextSibling;
+    }
+    clone.insertBefore(style, styleAnchor);
 
     var bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     bg.setAttribute('x', '0');
@@ -2645,6 +2810,7 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     g.classList.add('nofx');
     g.setAttribute('transform', transformStr());
     requestAnimationFrame(function () { g.classList.remove('nofx'); });
+    scheduleStatePush();
   }
 
   function boxAll() {
@@ -2786,6 +2952,9 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
         '<button id="play">' + (state.playing ? '■ 정지' : '▶ 순서대로 보기') + '</button>' +
         '<button id="all"' + (state.step < 0 ? ' disabled' : '') + '>전체 보기</button>' +
       '</div>' +
+      (state.stopNotice && !state.playing
+        ? '<div class="stopnote" role="status">' + esc(state.stopNotice) + '</div>'
+        : '') +
       '<ol class="stepl">' + steps + '</ol>';
   }
 
@@ -2846,11 +3015,40 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
       else if (itemBox.bottom > panelBox.bottom) el.panel.scrollTop += itemBox.bottom - panelBox.bottom;
     }
   }
-  function stopPlay() { if (state.playing) { clearInterval(state.playing); state.playing = null; } }
+  // ── 재생 제어 (A7) ───────────────────────
+  // 원칙: 자동 재개 금지. 숨김·화면 밖·대화상자 닫힘으로 정지한 재생은 사용자가
+  // 재생 버튼으로 다시 시작한다. 다시 보일 때 지난 시간을 한꺼번에 진행시키지 않는다.
+  var PLAY_STOP_NOTICES = {
+    hidden: '화면이 숨겨져 재생을 멈췄습니다. 다시 보이면 재생 버튼으로 이어서 보세요.',
+    offscreen: '그림이 화면 밖에 있어 재생을 멈췄습니다. 그림을 화면에 둔 뒤 재생 버튼으로 이어서 보세요.',
+    dialog: '전체 화면이 닫혀 재생을 멈췄습니다. 재생 버튼으로 이어서 보세요.',
+    reduced: '움직임 줄이기 설정이 켜져 있어 자동 진행을 시작하지 않았습니다. 다음 단계 버튼이나 ←/→ 키로 한 단계씩 볼 수 있습니다.'
+  };
+  function stopPlay(reason) {
+    if (!state.playing) return;
+    clearInterval(state.playing);
+    state.playing = null;
+    if (reason) {
+      state.stopNotice = PLAY_STOP_NOTICES[reason] || String(reason);
+      renderPanel();
+    }
+  }
+  function reducedMotionActive() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
   function togglePlay() {
     var flow = state.flow ? flowById(state.flow) : null;
     if (!flow) return;
     if (state.playing) { stopPlay(); renderPanel(); return; }
+    // 움직임 줄이기 사용자에게 자동 진행은 움직임을 강요하는 것과 같다. 재생 기능을
+    // 없애지는 대신, 수동 단계 이동 안내로 대체한다(표시 전환은 reduced-motion CSS가
+    // 이미 대표 프레임 한 장으로 굳힌다).
+    if (reducedMotionActive()) {
+      state.stopNotice = PLAY_STOP_NOTICES.reduced;
+      renderPanel();
+      return;
+    }
+    state.stopNotice = null;
     if (state.step < 0 || state.step >= flow.steps.length - 1) setStep(0); else setStep(state.step);
     state.playing = setInterval(function () {
       if (state.step >= flow.steps.length - 1) { stopPlay(); renderPanel(); return; }
@@ -3003,6 +3201,9 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     if (g) {
       state.node = state.node === g.dataset.node ? null : g.dataset.node;
       renderMap(); renderPanel();
+      // A5: 선택 변화를 부모 문서에 알린다(카메라는 드래그·줌 중엔 180ms로 묶는다).
+      if (statePushTimer) { clearTimeout(statePushTimer); statePushTimer = 0; }
+      pushState();
     }
   });
   el.map.addEventListener('keydown', function (e) {
@@ -3033,6 +3234,8 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
       state.node = state.node === node.dataset.node ? null : node.dataset.node;
       renderMap();
       renderPanel();
+      if (statePushTimer) { clearTimeout(statePushTimer); statePushTimer = 0; }
+      pushState();
     }
   });
 
@@ -3047,6 +3250,7 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     var dark = cur ? cur === 'dark'
       : window.matchMedia('(prefers-color-scheme: dark)').matches;
     document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+    applyProfileRoles(); // 프로필은 테마와 직교 — 새 테마의 역할 값을 다시 덧씰운다(D5)
     renderMap();
   });
 
@@ -3063,7 +3267,59 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
     else if (e.key === 'Escape') { stopPlay(); setFlow(null); }
   });
 
+  // ── 입력 장치별 조작 안내(A8) ─────────────────────
+  // 기능(드래그 팬·휠 줌·핀치·탭 선택·키보드 이동·재생 컨트롤)은 전 장치에서
+  // 그대로 동작한다. 여기는 안내 문구만 주 포인터에 맞춘다 — 터치에서는
+  // 마우스/휠·hover·키보드 전용 문구를 보여주지 않는다. matchMedia 변경
+  // (장치 전환·에뮬레이션)마다 문구를 다시 쓴다.
+  var coarseMQL = window.matchMedia ? window.matchMedia('(pointer: coarse)') : null;
+  var noHoverMQL = window.matchMedia ? window.matchMedia('(hover: none)') : null;
+  function touchInput() {
+    return !!((coarseMQL && coarseMQL.matches) || (noHoverMQL && noHoverMQL.matches));
+  }
+  function hintIdleText() {
+    return '왼쪽에서 동작을 선택하세요 · ' +
+      (touchInput() ? '한 손가락 드래그로 이동, 두 손가락으로 확대/축소'
+                    : '드래그로 이동, 휠로 확대/축소');
+  }
+  function hintC4Text() {
+    return 'repo-flowmap · ' + DATA.c4.mode + ' · 드래그 이동 / ' +
+      (touchInput() ? '핀치 확대' : '휠 확대') + ' / 1:100%';
+  }
+  var zoomTitles = {
+    zfit: ['전체 맞춤 (0)', '전체 맞춤'],
+    zflow: ['선택한 동작에 맞춤 (F)', '선택한 동작에 맞춤'],
+    zone: ['실제 크기 (1)', '실제 크기']
+  };
+  function refreshInputGuides() {
+    var touch = touchInput();
+    document.documentElement.dataset.inputGuide = touch ? 'touch' : 'mouse';
+    // 단축키가 붙은 줌 버튼 title도 장치에 맞게 바꾼다(버튼 기능은 불변).
+    Object.keys(zoomTitles).forEach(function (key) {
+      if (el[key]) el[key].title = zoomTitles[key][touch ? 1 : 0];
+    });
+    if (!el.hint) return;
+    if (DATA.c4) {
+      el.hint.textContent = hintC4Text();
+    } else if (!state.editing) {
+      el.hint.textContent = hintIdleText();
+      el.hint.style.display = state.flow ? 'none' : '';
+    }
+  }
+  document.addEventListener('keydown', function () {
+    // 실제 물리 키보드 입력이 들어오면 터치 모드에서도 키보드 안내를 보여준다.
+    document.documentElement.dataset.keyboardActive = '1';
+  }, true);
+  [coarseMQL, noHoverMQL].forEach(function (mql) {
+    if (!mql) return;
+    if (mql.addEventListener) mql.addEventListener('change', refreshInputGuides);
+    else if (mql.addListener) mql.addListener(refreshInputGuides);
+  });
+
   // ── 초기화 ──────────────────────────────────────
+  // 입력 장치별 안내(A8)를 가장 먼저 적용해 첫 화면부터 터치 기기에 마우스·
+  // 키보드 전용 문구가 섞여 보이지 않게 한다. 이후 matchMedia 변경 때 갱신된다.
+  refreshInputGuides();
   if (DATA.meta.title) {
     document.getElementById('hdr-title').textContent = DATA.meta.title;
     document.title = DATA.meta.title;
@@ -3097,26 +3353,141 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
         ? ['논리 요소·배치 관계: 실제 인스턴스 배치 아님','점선 상자: 원래 parentId 경계','화살표: 원문 관계, 후보 문구 그대로','논리 요소를 호스트 안으로 옮기지 않음','명시된 instanceOfId만 인스턴스 표식']
         : ['점선 상자: 배치 경계','겹친 탭: 배치된 인스턴스','대상: 논리 요소의 canonical ID','미확정 경계는 미확정으로 표시'])
       : ['사람 실루엣 / 이중 시스템 외곽선','탭: 컨테이너 / 옆 표시: 컴포넌트','포함 경계: canonical parentId','관계 번호는 시간순이 아닌 참조 번호'];
-    legend.innerHTML='<h3>'+esc(DATA.c4.mode)+' 표기</h3>'+descriptions.map(function(d){return '<div class="lg">'+esc(d)+'</div>';}).join('')+'<h3>캔버스 조작</h3><div class="lg">드래그 이동 · 휠 확대</div><div class="lg">1: 실제 크기 · 0: 전체 맞춤</div>';
+    legend.innerHTML='<h3>'+esc(DATA.c4.mode)+' 표기</h3>'+descriptions.map(function(d){return '<div class="lg">'+esc(d)+'</div>';}).join('')+'<h3>캔버스 조작</h3><div class="lg" data-guide="mouse">드래그 이동 · 휠 확대</div><div class="lg" data-guide="touch">한 손가락 드래그 · 두 손가락으로 확대/축소</div><div class="lg" data-guide="key">1: 실제 크기 · 0: 전체 맞춤</div><div class="lg">순서 재생은 화면에 보일 때만 진행</div>';
     el.map.setAttribute('aria-label',DATA.c4.mode+' '+DATA.c4.view.title);
+    // A4 진행 표시 설명 — 상태줄은 이 View의 단계에 실제 기록된 상태만 나온다.
+    if(DATA.c4.mode!=='sequence'){
+      var markRows=['활성 관계 진행 표시: 출발 → 도착으로 흐르는 짧은 표시 · 원본 선 색·점선은 그대로'];
+      var recorded={};
+      ((DATA.flows[0]||{}).steps||[]).forEach(function(s){var st=stepState(s);if(st)recorded[st]=1;});
+      if(recorded.failover)markRows.push('진행 표시 빨강: 장애(failover) 기록 관계');
+      if(recorded.blocked)markRows.push('진행 표시 빨강, 62%에서 멈춤: 차단(blocked) 기록 관계');
+      if(recorded.cond)markRows.push('진행 표시 호박색: 조건 기록 관계');
+      legend.innerHTML+='<h3>진행 표시</h3>'+markRows.map(function(d){return '<div class="lg">'+esc(d)+'</div>';}).join('');
+    }
 
   }
   window.repoFlowmap = {exportSvg:serializeCurrentSvg,
-    state:function(){return {viewId:DATA.c4?DATA.c4.viewId:null,flow:state.flow,step:state.step,camera:{k:view.k,tx:view.tx,ty:view.ty}};},
+    state:function(){return {viewId:DATA.c4?DATA.c4.viewId:null,flow:state.flow,step:state.step,node:state.node||null,playing:!!state.playing,stopNotice:state.stopNotice||null,camera:{k:view.k,tx:view.tx,ty:view.ty}};},
     ready:function(){return !DATA.c4 || el.map.dataset.renderStatus==='pass';}};
+  // ── 상위 경계를 유지하는 내부 펼치기(A5): 부모 문서와 선택·카메라를 주고받는다 ──
+  // 선택이 바뀔 때마다, 카메라가 잡힌 뒤(180ms 묶음) repo-flowmap-state로 알린다.
+  // 부모의 repo-flowmap-focus는 선택 요소(canonical ID)와 카메라를 정확히 되돌리는
+  // 지시다 — 등록되지 않은 ID로 선택을 지어내지 않고, 문서에 없을 때 뷰만 되돌린다.
+  var statePushTimer = 0;
+  function pushState() {
+    if (window.parent === window) return;
+    window.parent.postMessage({type:'repo-flowmap-state',
+      viewId:DATA.c4?DATA.c4.viewId:null,
+      selectedId:state.node||null,
+      camera:{k:view.k,tx:view.tx,ty:view.ty}},'*');
+  }
+  function scheduleStatePush() {
+    if (statePushTimer) return;
+    statePushTimer = setTimeout(function () { statePushTimer = 0; pushState(); }, 180);
+  }
+  // ── 공유 시각 프로필(D5): 부모 문서가 색·글꼴·간격 역할 값을 테마별로 덮어쓴다 ──
+  // 기존 light/dark 테마 전환은 그대로 작동한다 — 프로필은 테마와 직교하며, 테마가
+  // 바뀌면 새 테마의 프로필 값을 다시 적용한다. 이 문서에 정의된 CSS 변수만 받고
+  // 모르는 역할은 무시한다(미래 호환). 값은 실제 색·글꼴·간격 값만 허용한다.
+  var profileRoles = {light:{}, dark:{}};
+  var profileApplied = [];
+  function currentTheme() {
+    var t = document.documentElement.getAttribute('data-theme');
+    if (t) return t;
+    return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+  function applyProfileRoles() {
+    var root = document.documentElement;
+    while (profileApplied.length) root.style.removeProperty(profileApplied.pop());
+    var roles = profileRoles[currentTheme()] || {};
+    var known = getComputedStyle(root);
+    for (var key in roles) {
+      var value = String(roles[key]);
+      if (!/^--[\w-]+$/.test(key)) continue;
+      if (/\burl\(|\bexpression\(/i.test(value) || value.toLowerCase().indexOf('java' + 'script:') >= 0) continue;
+      if (!known.getPropertyValue(key).trim()) continue; // 이 렌더더가 모르는 역할은 무시
+      root.style.setProperty(key, value);
+      profileApplied.push(key);
+    }
+  }
   window.addEventListener('message',function(e){
-    if(e.source!==window.parent || !e.data || e.data.type!=='repo-flowmap-camera')return;
-    if(DATA.c4 && e.data.viewId!==DATA.c4.viewId)return;
-    if(e.data.action==='in')zoomCenter(1.25);
-    else if(e.data.action==='out')zoomCenter(0.8);
-    else if(e.data.action==='fit')fitAll(false);
-    else if(e.data.action==='one')moveTo(1,24,24,false);
+    if(e.source!==window.parent || !e.data)return;
+    if(e.data.type==='repo-flowmap-camera'){
+      if(DATA.c4 && e.data.viewId!==DATA.c4.viewId)return;
+      if(e.data.action==='in')zoomCenter(1.25);
+      else if(e.data.action==='out')zoomCenter(0.8);
+      else if(e.data.action==='fit')fitAll(false);
+      else if(e.data.action==='one')moveTo(1,24,24,false);
+    }else if(e.data.type==='repo-flowmap-playback'){
+      // 보고서 다이어그랬로그 닫힘 등 부모 문서의 명시적 정지 요청.
+      // 'start'는 두지 않는다 — 자동 재개 금지 원칙 때문이다.
+      if(e.data.action==='stop')stopPlay('dialog');
+    }else if(e.data.type==='repo-flowmap-focus'){
+      // A5 복귀: 부모가 떠날 때 저장한 선택 요소·카메라를 되돌리라는 지시다.
+      // canonicalId가 null이면 '선택 없음'으로 되돌리고, 등록된 노드만 선택한다.
+      if(DATA.c4 && e.data.viewId!==DATA.c4.viewId)return;
+      if(statePushTimer){clearTimeout(statePushTimer);statePushTimer=0;}
+      if(e.data.canonicalId===null||e.data.canonicalId===undefined){state.node=null;}
+      else if(NODE.has(e.data.canonicalId)){state.node=e.data.canonicalId;}
+      if(e.data.camera&&[e.data.camera.k,e.data.camera.tx,e.data.camera.ty].every(isFinite)){
+        moveTo(e.data.camera.k,e.data.camera.tx,e.data.camera.ty,false);
+      }
+      renderMap();renderPanel();pushState();
+    }else if(e.data.type==='repo-flowmap-profile'){
+      // D5 공유 프로필: 역할 ID→값 맵(light/dark 테마별). 적용은 현재 테마 값으로
+      // 즉시 반영되고, 테마 전환 때 다시 적용된다. 재생·카메라·선택 상태는 건드리지
+      // 않는다(시각 값만 바꾼다). 빈 맵은 기본 복귀(덮어쓰기 전부 해제)를 뜻한다.
+      var rolesIn = e.data.roles || {};
+      profileRoles = {light: rolesIn.light || {}, dark: rolesIn.dark || {}};
+      applyProfileRoles();
+    }else if(e.data.type==='repo-flowmap-step'){
+      // 보고서 안내 재생(A3)이 단계를 지시한다. 렌더러 자체 재생(togglePlay)과 겹치지
+      // 않게 먼저 조용히 정리하고(안내 문구를 남기지 않는다 — 안내 상태는 보고서가 알린다),
+      // setStep 적용 결과를 ack로 돌려준다. 보고서는 그림 반영을 확인한 뒤 다음 단계로
+      // 넘어간다. 이 경로는 재생을 시작하지 않는다 — 단계 지시일 뿐이다.
+      if(DATA.c4 && e.data.viewId!==DATA.c4.viewId)return;
+      var requestedStep=parseInt(e.data.stepIndex,10);
+      if(!isFinite(requestedStep))return;
+      stopPlay();
+      setStep(requestedStep);
+      if(window.parent!==window){
+        window.parent.postMessage({type:'repo-flowmap-step-ack',viewId:DATA.c4?DATA.c4.viewId:null,
+          requestId:e.data.requestId||null,stepIndex:requestedStep,
+          ready:!!(window.repoFlowmap&&window.repoFlowmap.ready()),step:state.step},'*');
+      }
+    }
   });
+  // ── 화면 밖·숨김·제거 시 재생 정지 (A7) ──────────
+  // iframe은 부모 탭·표시 상태를 상속하므로 visibilitychange 하나로 탭 숨김과
+  // 숨은 임베드를 함께 다룬다. 재개는 하지 않는다(사용자가 재생 버튼으로 시작).
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stopPlay('hidden');
+  });
+  // IntersectionObserver는 선택 API다 — 없으면 이 경로만 생략된다(ResizeObserver 선례와 동일).
+  if ('IntersectionObserver' in window) {
+    var playObserver = new IntersectionObserver(function (entries) {
+      var anyVisible = entries.some(function (entry) { return entry.isIntersecting; });
+      if (!anyVisible) stopPlay('offscreen');
+    }, { threshold: 0 });
+    playObserver.observe(el.stage);
+  }
+  // 문서 제거(iframe 해제·탭 닫기) 시 타이머를 정리한다.
+  window.addEventListener('pagehide', function () { stopPlay(); });
+  window.addEventListener('beforeunload', function () { stopPlay(); });
+  // 움직임 줄이기 설정이 재생 중에 켜지면 바로 정지하고 안내를 남긴다.
+  if (window.matchMedia) {
+    var rmQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var rmChange = function () { if (rmQuery.matches) stopPlay('reduced'); };
+    if (rmQuery.addEventListener) rmQuery.addEventListener('change', rmChange);
+    else if (rmQuery.addListener) rmQuery.addListener(rmChange);
+  }
   runAntiSlopGuard();
   renderList();
   renderMap();
   renderPanel();
   fitAll(false);
+  pushState();
   requestAnimationFrame(function () { if (!state.flow) fitAll(false); });
   if(DATA.c4) document.fonts.ready.then(function(){renderMap();c4ReadingView();});
 

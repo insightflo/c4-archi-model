@@ -81,6 +81,13 @@
             "null"
           ]
         },
+        "comparisonPath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "변경 전후 비교 산출물(architecture-model-comparison) 경로. 선택 — 없으면 보고서의 비교 섹션이 나타나지 않는다."
+        },
         "expectedFiles": {
           "type": "array",
           "items": {
@@ -221,6 +228,32 @@
         "inferred",
         "unresolved"
       ]
+    },
+    "analogyMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "term",
+        "modelId",
+        "kind"
+      ],
+      "properties": {
+        "term": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "modelId": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "element",
+            "relationship"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
     },
     "confidence": {
       "enum": [
@@ -366,6 +399,18 @@
             "string",
             "null"
           ]
+        },
+        "mappings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/analogyMapping"
+          }
+        },
+        "limits": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     },
@@ -488,6 +533,18 @@
           ]
         },
         "analogy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mappings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/analogyMapping"
+          }
+        },
+        "limits": {
           "type": [
             "string",
             "null"
@@ -635,6 +692,18 @@
           "$ref": "#/$defs/nonEmptyString"
         },
         "analogy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mappings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/analogyMapping"
+          }
+        },
+        "limits": {
           "type": [
             "string",
             "null"
