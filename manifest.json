@@ -171,8 +171,8 @@
     },
     {
       "path": "assets/repo-flowmap/CHANGELOG.md",
-      "sha256": "92e42087a83e6582a2cfcb14592e87ee18f320dc41d0fc48696c226546ab3205",
-      "size": 25505
+      "sha256": "f2985a22758aa56e90c549e59cdee76875e0b9bcfd4d051ce08c6015bc10f79a",
+      "size": 26980
     },
     {
       "path": "assets/repo-flowmap/SCHEMA.md",
@@ -196,8 +196,8 @@
     },
     {
       "path": "assets/repo-flowmap/references/RENDERER_RULES.md",
-      "sha256": "1a57ea240b60e946b38433d7c8196057115845753f8775b0e3a6c92576eb39a3",
-      "size": 14395
+      "sha256": "d5b319ac6e3d6ac2871f8bb9822331a039823093ab0801d7aedf1c8034567312",
+      "size": 14812
     },
     {
       "path": "assets/repo-flowmap/scripts/build_flowmap.mjs",
@@ -211,8 +211,8 @@
     },
     {
       "path": "assets/repo-flowmap/template.html",
-      "sha256": "3b6db2e04a55eb774da9ed5debf497b77d2c090a6a9a177a5e37eacc3464efc1",
-      "size": 318896
+      "sha256": "e53344b55bf95dd179e1f61395f159552b02f5776f51f142191ee2c5c6a7bf91",
+      "size": 319319
     },
     {
       "path": "assets/report-template.md",
@@ -226,8 +226,8 @@
     },
     {
       "path": "diagrams/ordering-container.flowmap.html",
-      "sha256": "9e039de4524c161c653bf3c68dd8373e6a94c61f41b7e1f6ac5f015f0197d220",
-      "size": 329947
+      "sha256": "7ae112d41627b4ddd61d00725b191a9facd2fe0b17976b64184b3976d5c5bb5f",
+      "size": 330370
     },
     {
       "path": "diagrams/ordering-container.flowmap.json",
@@ -241,8 +241,8 @@
     },
     {
       "path": "diagrams/ordering-context.flowmap.html",
-      "sha256": "924be5981f9be57568038930f0fa470fecf0cc336f8ca0b819d0ea63b8335a27",
-      "size": 323028
+      "sha256": "fc319dbe95f44b885a0bd94e18da3a5b7ad5d970394d02f1a1d2d840af4a679f",
+      "size": 323451
     },
     {
       "path": "diagrams/ordering-context.flowmap.json",
@@ -261,8 +261,8 @@
     },
     {
       "path": "examples/html-report-example.html",
-      "sha256": "2763d69909dd4a1f83ae1fc97086c3d6810388c2e4a65489cb8a69a470e8d6a9",
-      "size": 1599631
+      "sha256": "8684e8939e6a40ba0520636ec5a86bf05d446f033726cfc7fc0fd7751d056df6",
+      "size": 1600759
     },
     {
       "path": "examples/invalid-fixtures/README.md",
@@ -341,32 +341,32 @@
     },
     {
       "path": "qa/repo-flowmap-build-ordering-container.json",
-      "sha256": "4a202fc7804f17e00f92085b1d4d6fff95e963ff4d2c7c73ff875a1d0504abe9",
+      "sha256": "f904ddfc8f1a432022bab0179f7df6f385f1e42b9ebf94f76835424b980eb3a8",
       "size": 706
     },
     {
       "path": "qa/repo-flowmap-build-ordering-context.json",
-      "sha256": "e45adb447cc024e5e5ecf9780a9538b43afec6782600c58db130aa6afe67686d",
+      "sha256": "79e630f6c576cb59f926507c9571087db0e7031f9363b12ee367fdcdada23dd0",
       "size": 697
     },
     {
       "path": "qa/repo-flowmap-svg-ordering-container.json",
-      "sha256": "6fea940514bf494244eca056dbc7def4ad4ce12ae8f8ad78538103294f4c859c",
+      "sha256": "fc728a68497d351407d530ae6470fc0df63853e8b340f456bbdeffd4e7d443e5",
       "size": 527
     },
     {
       "path": "qa/repo-flowmap-svg-ordering-context.json",
-      "sha256": "dbe22f4564e0bd271e20a3b491882af784d402ffbcb3b1139dac0339edb2b959",
+      "sha256": "fd89ea26236ad3be7f12c24864e5407f1fe4cc6f3bd369cacb547db4911a0b5d",
       "size": 521
     },
     {
       "path": "qa/repo-flowmap-validate-ordering-container.json",
-      "sha256": "191f7ec8b5e352fdb18711a1279554b0d3dba6520faafb20d443a426fbd35a32",
+      "sha256": "6deb7a38f06f975f5d74a5202c3dec3318ff99499c06a3cc1f873a2dc1560833",
       "size": 514
     },
     {
       "path": "qa/repo-flowmap-validate-ordering-context.json",
-      "sha256": "0b138943f35a31ac0375387f04c28628e89752f93afff2ff5256cc50f31e7407",
+      "sha256": "bb68ffe70aac7efcc75743b40882ffbcd37aa70c7db00167fe94f93417e05c3f",
       "size": 507
     },
     {
@@ -691,8 +691,8 @@
     },
     {
       "path": "tests/test_repo_flowmap_real_browser.py",
-      "sha256": "f7e3ece1a572f1ed6ef1ca4938f972fde6bcec21c1fbeae4dcd954ed52e6e0f8",
-      "size": 20385
+      "sha256": "9c1a2f42d94f949d71c8d293a6a8e8e2cf4343755f7c0e81f4af29937b25d034",
+      "size": 24452
     },
     {
       "path": "tests/test_repo_flowmap_real_inputs.py",

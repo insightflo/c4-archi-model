@@ -2861,7 +2861,9 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
   function c4ReadingView() {
     if(!lastLayout)return;
     var width=el.stage.clientWidth;
-    var k=width<600?1:Math.min(1,Math.max(.72,(width-48)/lastLayout.width));
+    // 초기 읽기 배율 상한은 전체 맞춤(fitAll)과 같은 1.2 — 자연 크기보다 화면이
+    // 넓으면 최대 120%로 읽기 시작한다. 이 호출은 초기 로드·fonts.ready에만 쓰인다.
+    var k=width<600?1:Math.min(1.2,Math.max(.72,(width-48)/lastLayout.width));
     moveTo(k,24,document.body.classList.contains('desktop-canvas-mode')?118:46,false);
   }
   function fitAll(animate) { fitBox(boxAll(), 30, 1.2, animate); }
@@ -3186,7 +3188,9 @@ html[data-repo-flowmap-typed] .zoomctl{max-width:calc(100% - 16px);flex-wrap:wra
 
   if (window.ResizeObserver) {
     var ro = new ResizeObserver(function () {
-      if (DATA.c4) { c4MeasureExtent(); c4ReadingView(); }
+      // 사용자가 설정한 확대 배율은 자동으로 바꾸지 않는다(자동 재개 금지와 같은 원칙).
+      // 창이 바뀌어도 배율을 유지하고, 잘린 부분은 드래그로 탐색한다.
+      if (DATA.c4) { c4MeasureExtent(); }
       else if (state.flow) fitFlow(false);
       else fitAll(false);
     });

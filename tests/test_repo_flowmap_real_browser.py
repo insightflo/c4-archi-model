@@ -317,5 +317,70 @@ class RendererChronologyTests(unittest.TestCase):
         self.assertEqual(errors, [], timeline.render())
 
 
+@unittest.skipUnless(sync_playwright and Path(CHROME).is_file() and shutil.which('node'),
+                     'actual Chrome, Playwright and Node required')
+class StageResizeZoomTests(unittest.TestCase):
+    """W5-b: 스테이지 리사이즈(ResizeObserver)가 사용자 확대 배율을 리셋하지 않는지 검증한다."""
+
+    @classmethod
+    def setUpClass(cls):
+        from test_report_guided_playback import build_view_html, typed_projection
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.view = build_view_html(typed_projection('ordering-classes'), Path(cls.tmp.name) / 'classes.html')
+        cls.pw = sync_playwright().start()
+        cls.browser = cls.pw.chromium.launch(executable_path=CHROME, headless=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.browser.close()
+        cls.pw.stop()
+        cls.tmp.cleanup()
+
+    def open_view(self):
+        page = self.browser.new_page(viewport={'width': 1440, 'height': 1000}, offline=True)
+        errors = []
+        page.on('pageerror', lambda e: errors.append(str(e)))
+        page.goto(self.view.as_uri())
+        page.evaluate('document.fonts.ready')
+        page.wait_for_function('window.repoFlowmap && window.repoFlowmap.ready()')
+        self.addCleanup(page.close)
+        return page, errors
+
+    def test_zoom_survives_stage_resize(self):
+        page, errors = self.open_view()
+        before = page.evaluate('''() => ({ stageW: document.getElementById("stage").clientWidth,
+                                          k: repoFlowmap.state().camera.k })''')
+        for _ in range(3):
+            page.evaluate('document.getElementById("zin").click()')
+        # 긍정형 predicate: 카메라가 실제로 확대된 뒤에만 리사이즈 단계로 넘어간다.
+        page.wait_for_function('window.repoFlowmap.state().camera.k > %r' % (before['k'] * 1.9))
+        page.wait_for_timeout(600)  # 0.32s 카메라 전환이 끝나고 값이 확정된 뒤 측정한다.
+        zoomed = page.evaluate('window.repoFlowmap.state().camera.k')
+        self.assertGreater(zoomed, before['k'], '확대 버튼 뒤에는 배율이 올라 있어야 합니다')
+        page.set_viewport_size({'width': 820, 'height': 640})
+        # 스테이지 크기가 실제로 줄어든 것을 먼저 확인한다(ResizeObserver 발화 조건).
+        page.wait_for_function('document.getElementById("stage").clientWidth < %d' % before['stageW'])
+        page.wait_for_timeout(500)  # ResizeObserver 콜백 프레임이 지나가기를 기다린다.
+        after = page.evaluate('''() => ({ stageW: document.getElementById("stage").clientWidth,
+                                         k: repoFlowmap.state().camera.k })''')
+        self.assertLess(after['stageW'], before['stageW'], '리사이즈가 실제로 발생했는지 확인합니다')
+        self.assertAlmostEqual(after['k'], zoomed, delta=1e-6,
+                               msg='스테이지 리사이즈 뒤에도 사용자가 설정한 확대 배율을 유지해야 합니다')
+        self.assertEqual(errors, [])
+
+    def test_initial_reading_zoom_allows_up_to_120_percent(self):
+        # 폭이 넉넉한 화면에서 작은 그림((stageW-48)/layoutW > 1)은 초기 읽기 배율이
+        # 100%를 넘을 수 있다 — 전체 맞춤(fitAll)의 maxK 1.2와 정렬된 상한이다.
+        page, errors = self.open_view()
+        facts = page.evaluate('''() => ({ stageW: document.getElementById("stage").clientWidth,
+                                         k: repoFlowmap.state().camera.k,
+                                         layoutW: document.getElementById("vp").getBBox().width })''')
+        self.assertGreater((facts['stageW'] - 48) / facts['layoutW'], 1.0,
+                           '이 검증은 자연 크기보다 화면이 넓은 레이아웃에서만 의미가 있습니다')
+        self.assertAlmostEqual(facts['k'], 1.2, delta=1e-9,
+                               msg='초기 읽기 배율은 최대 120%까지 시작할 수 있어야 합니다')
+        self.assertEqual(errors, [])
+
+
 if __name__ == '__main__':
     unittest.main()
